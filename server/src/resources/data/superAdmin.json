@@ -1,0 +1,11 @@
+{
+  "firstName": "StreetUp",
+  "lastName": "Admin",
+  "email": "street-up@gmail.com",
+  "phone": "+2348031957690",
+  "password": "",
+  "confirm_password": "",
+  "gender": "male",
+  "slug": "SUPER_ADMIN_ROLE",
+  "active": true
+}
