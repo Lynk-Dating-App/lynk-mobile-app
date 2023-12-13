@@ -60,6 +60,18 @@ export const getUsersHandler = authenticateRouteWrapper( async (req, res) =>  {
     res.status(response.code).json(response);
 });
 
+export const getUsersWithIdsHandler = authenticateRouteWrapper( async (req, res) =>  {
+    const response = await userController.usersWithIds(req);
+
+    res.status(response.code).json(response);
+});
+
+export const getMatchAndLikedByUsersHandler = authenticateRouteWrapper( async (req, res) =>  {
+    const response = await userController.matchedAndLikedByUsers(req);
+
+    res.status(response.code).json(response);
+});
+
 export const changeUserPasswordHandler = authenticateRouteWrapper( async (req, res) =>  {
     const response = await userController.changePassword(req);
 
@@ -231,6 +243,18 @@ export const deleteNotificationsHandler = authenticateRouteWrapper(async (req, r
     res.status(response.code).json(response);
 });
 
+export const getSingleNotificationHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.getSingleNotification(req);
+
+    res.status(response.code).json(response);
+});
+
+export const updateNotificationHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.updateNotification(req);
+
+    res.status(response.code).json(response);
+});
+
 export const getAllNotificationsHandler = authenticateRouteWrapper(async (req, res) => {
     const response = await userController.getAllNotifications(req);
 
@@ -245,6 +269,36 @@ export const getUserChatsHandler = authenticateRouteWrapper(async (req, res) => 
 
 export const deleteChatsHandler = authenticateRouteWrapper(async (req, res) => {
     const response = await userController.deleteChat(req);
+
+    res.status(response.code).json(response);
+});
+
+export const createChatHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.createChat(req);
+
+    res.status(response.code).json(response);
+});
+
+export const findChatHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.findChat(req);
+
+    res.status(response.code).json(response);
+});
+
+export const findUserChatsHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.findUserChats(req);
+
+    res.status(response.code).json(response);
+});
+
+export const createChatMessageHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.createChatMessage(req);
+
+    res.status(response.code).json(response);
+});
+
+export const getChatMessagesHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.getChatMessages(req);
 
     res.status(response.code).json(response);
 });
@@ -266,3 +320,9 @@ export const checkUserHandler = async (req: Request, res: Response) => {
 
     res.status(response.code).json(response);
 };
+
+export const fetchFavUsersHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.fetchFavouriteUsers(req);
+
+    res.status(response.code).json(response);
+});

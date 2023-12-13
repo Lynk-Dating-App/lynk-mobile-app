@@ -6,6 +6,7 @@ import {
     resetPasswordAction, 
     savePasswordAfterResetAction, 
     sendSignUpTokenAction, signInAction, 
+    signInWithBiometricAction, 
     signUpAction, updateProfileDetailAction, 
     validateSignUpTokenAction 
 } from '../actions/authActions';
@@ -37,6 +38,10 @@ interface IAuthState {
     signInStatus: IThunkAPIStatus;
     signInSuccess: string;
     signInError?: string;
+
+    signInWithBiometricStatus: IThunkAPIStatus;
+    signInWithBiometricSuccess: string;
+    signInWithBiometricError?: string;
 
     validateSignUpTokenStatus: IThunkAPIStatus;
     validateSignUpTokenSuccess: string;
@@ -83,6 +88,10 @@ const initialState: IAuthState = {
     signInError: '',
     signInSuccess: '',
     signInStatus: 'idle',
+
+    signInWithBiometricError: '',
+    signInWithBiometricSuccess: '',
+    signInWithBiometricStatus: 'idle',
 
     validateSignUpTokenError: '',
     validateSignUpTokenSuccess: '',
@@ -151,6 +160,12 @@ const authSlice = createSlice({
             state.signInStatus = 'idle';
             state.signInSuccess = '';
             state.signInError = '';
+        },
+
+        clearSignInWithBiometricStatus(state: IAuthState) {
+            state.signInWithBiometricStatus = 'idle';
+            state.signInWithBiometricSuccess = '';
+            state.signInWithBiometricError = '';
         },
 
         clearResetPasswordStatus(state: IAuthState) {
@@ -304,6 +319,29 @@ const authSlice = createSlice({
             });
 
         builder
+            .addCase(signInWithBiometricAction.pending, state => {
+                state.signInWithBiometricStatus = 'loading';
+            })
+            .addCase(signInWithBiometricAction.fulfilled, (state, action) => {
+                state.signInWithBiometricStatus = 'completed';
+                state.signInWithBiometricSuccess = action.payload.message;
+
+                if (action.payload.result) {
+                    state.authToken = action.payload.result.jwt;
+
+                    socket.emit('userId', action.payload.result.userId)
+                    saveTokenToSecureStore(settings.auth.admin, state.authToken);
+                }
+            })
+            .addCase(signInWithBiometricAction.rejected, (state, action) => {
+                state.signInWithBiometricStatus = 'failed';
+
+                if (action.payload) {
+                state.signInWithBiometricError = action.payload.message;
+                } else state.signInWithBiometricError = action.error.message;
+            });
+
+        builder
             .addCase(isUserExistAction.pending, state => {
                 state.userExistStatus = 'loading';
             })
@@ -364,7 +402,8 @@ export const {
     clearGalleryStatus,
     clearEnterPasswordCodeStatus,
     clearResetPasswordStatus,
-    clearEnterPasswordStatus
+    clearEnterPasswordStatus,
+    clearSignInWithBiometricStatus
 } = authSlice.actions;
 
 export default authSlice.reducer;

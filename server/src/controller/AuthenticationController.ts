@@ -368,6 +368,60 @@ export default class AuthenticationController {
       return Promise.resolve(response);
     }
 
+    @TryCatch
+    public async sign_in_with_biometric(req: Request) {
+      const { error, value } = Joi.object<any>({
+        userId: Joi.string().required().label('user biometric identify')
+      }).validate(req.body);
+      if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+
+      const user = await datasources.userDAOService.findById(value.userId);
+      if(!user) return Promise.reject(CustomAPIError.response(HttpStatus.UNAUTHORIZED.value, HttpStatus.BAD_REQUEST.code));
+      
+      if(!user.active)
+        return Promise.reject(
+          CustomAPIError.response('Account is disabled. Please contact administrator', HttpStatus.UNAUTHORIZED.code)
+        );
+
+      const role = await datasources.roleDAOService.findByIdPopulatePermissions(user.role);
+      if(!role) return Promise.reject(CustomAPIError.response('Role is not found', HttpStatus.UNAUTHORIZED.code));
+
+      const permissions: any = [];
+      
+      for (const _permission of role.permissions) {
+        permissions.push(_permission)
+      }
+
+      //generate JWT
+      const jwt = Generic.generateJwt({
+        userId: user.id,
+        isExpired: user.isExpired,
+        permissions,
+        level: user.level,
+        subscription: {
+          plan: user.subscription.plan,
+          startDate: user.subscription.startDate,
+          endDate: user.subscription.endDate
+        }
+      });
+
+      //update user authentication date and authentication token
+      const updateValues = {
+        loginDate: new Date(),
+        loginToken: jwt
+      };
+
+      await datasources.userDAOService.updateByAny({user}, updateValues);
+
+      const response: HttpResponse<any> = {
+        code: HttpStatus.OK.code,
+        message: 'Login successful',
+        result: {jwt, userId: user._id}
+      };
+
+      return Promise.resolve(response);
+    }
+
     public async loginFailed(req: Request, res:Response) {
       console.log(res, 'error')
       const response: HttpResponse<string> = {
@@ -439,7 +493,7 @@ export default class AuthenticationController {
           endpoint = '/transaction/initialize';
 
           const callbackUrl = `${process.env.PAYMENT_GW_CB_URL}/`;
-          const amount = plan.price as number;
+          const amount = +plan.price as number;
           let serviceCharge = 0.015 * amount;
 
           if (amount >= 2500) {
@@ -514,10 +568,10 @@ export default class AuthenticationController {
 
           const txnValues: Partial<ITransactionModel> = {
               reference: data.reference,
-              authorizationUrl: data.authorization_url,
+              // authorizationUrl: data.authorization_url,
               type: 'Payment',
               status: initResponse.data.message,
-              amount: plan.price as number,
+              amount: plan.price,
               user: user?._id
           };
 
@@ -579,7 +633,7 @@ export default class AuthenticationController {
         endpoint = '/transaction/initialize';
 
         const callbackUrl = `${process.env.PAYMENT_GW_CB_URL}/`;
-        const amount = plan.price as number;
+        const amount = +plan.price as number;
         let serviceCharge = 0.015 * amount;
 
         if (amount >= 2500) {
@@ -654,10 +708,10 @@ export default class AuthenticationController {
 
         const txnValues: Partial<ITransactionModel> = {
             reference: data.reference,
-            authorizationUrl: data.authorization_url,
+            // authorizationUrl: data.authorization_url,
             type: 'Payment',
             status: initResponse.data.message,
-            amount: plan.price as number,
+            amount: plan.price,
             user: user?._id
         };
 

@@ -13,6 +13,7 @@ import {
     instagramOAutCallbackhHandler,
     signupUserRedHandler,
     signupUserPurpleHandler,
+    signIWithBiometricHandler,
 } from '../../routes/authRoute';
 
 import { appCommonTypes } from '../../@types/app-common';
@@ -30,6 +31,12 @@ const authEndpoints: RouteEndpoint  = [
         method: 'post',
         path: '/sign-in-user',
         handler: signInHandler_User
+    },
+    {
+        name: 'signIn user with biometric',
+        method: 'post',
+        path: '/sign-in-user-with-biometric',
+        handler: signIWithBiometricHandler
     },
     {
         name: 'sign-up-user-black',

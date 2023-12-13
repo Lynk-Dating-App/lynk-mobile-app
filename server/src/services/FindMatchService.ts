@@ -50,7 +50,7 @@ class Matcher {
           ) {
             return false;
           }
-
+        
         // Check gender preference
         if (otherUser.gender && otherUser.gender !== preferences.pGender) {
           return false;
@@ -63,7 +63,7 @@ class Matcher {
           
           const similarity = this.jaccardIndex(about, preferredAbout);
 
-          const similarityThreshold = 0.2;
+          const similarityThreshold = 0.1;
   
           if (similarity < similarityThreshold) {
             return false;

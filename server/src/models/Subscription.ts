@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 interface ISubscription {
   name: string;
   slug: string;
-  price: number | null;
+  price: string | '';
   duration: number | null;
   durationUnit: string | null; 
 };
@@ -11,7 +11,7 @@ interface ISubscription {
 const subscriptionSchema = new Schema<ISubscription>({
   name: { type: String },
   slug: { type: String },
-  price: { type: Number, allowNull: true },
+  price: { type: String, allowNull: true },
   duration: { type: Number, allowNull: true },
   durationUnit: { type: String, allowNull: true }
 });

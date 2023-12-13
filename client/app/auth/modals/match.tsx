@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Dimensions, Image, Platform, StyleSheet } from 'react-native';
 import { SafeAreaView, ScrollView, Text, View } from '../../../components/Themed';
@@ -10,16 +10,46 @@ import useUser from '../../../hook/useUser';
 import useAppSelector from '../../../hook/useAppSelector';
 import settings from '../../../config/settings';
 import useAppDispatch from '../../../hook/useAppDispatch';
-import { setPhotoUri } from '../../../store/reducers/userReducer';
+import { clearCreateChatStatus, setPhotoUri } from '../../../store/reducers/userReducer';
+import { createChatAction } from '../../../store/actions/userAction';
+import Snackbar from '../../../helpers/Snackbar';
 
 const { height, width } = Dimensions.get('window');
 
 export default function ForgotPasswordModal() {
   const router = useRouter();
   const { user } = useUser();
+  const [isError, setIsError] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const userReducer = useAppSelector(state => state.userReducer);
   const dispatch = useAppDispatch();
+
+  const handleChat = async () => {
+    dispatch(createChatAction({firstId: user?._id, secondId: userReducer.photoUri.userId}))
+  }
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if(userReducer.createChatStatus === 'completed') {
+        router.push('/(tabs)/three')
+        dispatch(clearCreateChatStatus())
+    } else if(userReducer.createChatStatus === 'failed') {
+        setIsError(true)
+        setError(userReducer.createChatError)
+
+        intervalId = setTimeout(() => {
+            setIsError(false)
+            setError('')
+        },6000)
+        dispatch(clearCreateChatStatus())
+    }
+
+    return () => {
+        clearInterval(intervalId);
+    }
+  },[userReducer.createChatStatus]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -35,8 +65,8 @@ export default function ForgotPasswordModal() {
       >
         <View style={{marginTop: 40}}>
           <Image
-            source={userReducer.photoUri !== ''
-                    ? {uri: `${settings.api.baseURL}/${userReducer.photoUri}`} 
+            source={userReducer.photoUri.photo !== ''
+                    ? {uri: `${settings.api.baseURL}/${userReducer.photoUri.photo}`} 
                     : images.no_image_m}
             style={{
               width: 150,
@@ -106,7 +136,8 @@ export default function ForgotPasswordModal() {
           </Text>
           <AppBtn
             handlePress={() => {
-              dispatch(setPhotoUri(''))
+              handleChat()
+              dispatch(setPhotoUri({photo: '', userId: ''}))
             }}
             isText={true}
             btnTitle={'Say hello'} 
@@ -128,7 +159,7 @@ export default function ForgotPasswordModal() {
             />
             <AppBtn2
               handlePress={() => {
-                dispatch(setPhotoUri(''))
+                dispatch(setPhotoUri({photo: '', userId: ''}))
                 router.push('/(tabs)/one')
               }}
               isText={true}
@@ -150,7 +181,12 @@ export default function ForgotPasswordModal() {
               }}
             />
         </View>
-
+        <Snackbar
+          isVisible={isError} 
+          message={error}
+          onHide={() => setIsError(false)}
+          type='error'
+        />
         <StatusBar style={Platform.OS === 'ios' ? 'auto' : 'auto'} />
       </ScrollView>
     </SafeAreaView>

@@ -1,6 +1,6 @@
 import React from "react";
-import { Dimensions, Image, ImageBackground, Platform, SafeAreaView, ScrollView, StyleSheet } from "react-native";
-import { Text, View } from "../../components/Themed";
+import { Dimensions, Image, ImageBackground, Platform, StyleSheet } from "react-native";
+import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
 import { COLORS, FONT, SIZES, icons, images } from "../../constants";
 import { useRouter } from "expo-router";
 import AppBtn from "../../components/common/button/AppBtn";
@@ -15,10 +15,10 @@ const SignUpPage = () => {
       source={images.signUpImage}
       style={styles.image}
     >
-      <SafeAreaView>
+      <SafeAreaView style={{backgroundColor: 'transparent', height: height}}>
         <ScrollView showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            height: height
+          style={{
+            backgroundColor: 'transparent'
           }}
         >
           <View style={styles.backBtnContainer}>
@@ -167,7 +167,8 @@ const SignUpPage = () => {
 const styles = StyleSheet.create({
   image: {
     resizeMode: 'cover',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    height: height
   },
   logoContainer: {
     width: '100%',
@@ -193,7 +194,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     marginLeft: 15,
-    marginTop: Platform.select({ios: 25, android: 60})
+    marginTop: Platform.select({ios: 25, android: 60}),
+    marginBottom: 50
   },
   separator: {
     marginVertical: 30,
@@ -208,7 +210,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 30
+    gap: 30,
+    backgroundColor: 'transparent'
   }
 });
 

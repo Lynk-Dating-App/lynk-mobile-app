@@ -69,7 +69,7 @@ const Interests = () => {
     }, []);
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}}>
+        <SafeAreaView style={{flex: 1}}>
             <FlatList
                 data={data}
                 numColumns={2}

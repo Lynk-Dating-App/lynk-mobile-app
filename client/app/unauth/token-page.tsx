@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Button, Dimensions, SafeAreaView, ScrollView, StyleSheet } from "react-native";
-import { Text, View } from "../../components/Themed";
+import { ActivityIndicator, Button, Dimensions, StyleSheet } from "react-native";
+import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
 import AppBtn from "../../components/common/button/AppBtn";
 import { COLORS, FONT, SIZES, icons } from "../../constants";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -9,7 +9,7 @@ import useAppSelector from "../../hook/useAppSelector";
 import { sendSignUpTokenAction, signUpAction, validateSignUpTokenAction } from "../../store/actions/authActions";
 import useAppDispatch from "../../hook/useAppDispatch";
 import { clearSendSignUpTokenStatus, clearSignUpStatus, clearValidateSignUpTokenStatus } from "../../store/reducers/authReducer";
-import { removeData } from "../../components/LocalStorage/LocalStorage";
+import { removeData, retrieveData } from "../../components/LocalStorage/LocalStorage";
 
 const { width, height } = Dimensions.get('window');
 

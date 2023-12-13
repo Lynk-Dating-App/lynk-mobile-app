@@ -1,27 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { 
-    Alert, 
-    Button, 
+    Alert,
     Dimensions, 
     Image, 
-    Platform, 
-    SafeAreaView, ScrollView, 
+    Platform,
     StyleSheet, 
     TouchableHighlight, 
     TouchableOpacity
 } from "react-native";
-import { View, Text } from '../../components/Themed';
+import { View, Text, SafeAreaView, ScrollView } from '../../components/Themed';
 import AppBtn from '../../components/common/button/AppBtn';
 import { useRouter } from 'expo-router';
-import { COLORS, FONT, SIZES, images } from '../../constants';
+import { COLORS, FONT, SIZES, icons, images } from '../../constants';
 import AppInput, { Phone } from '../../components/AppInput/AppInput';
 import { Formik } from 'formik';
 import * as Yup from "yup";
 import * as LocalAuthentication from 'expo-local-authentication';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
-import { enterPasswordResetCodeAction, resetPasswordAction, savePasswordAfterResetAction, signInAction } from '../../store/actions/authActions';
-import { clearEnterPasswordCodeStatus, clearEnterPasswordStatus, clearResetPasswordStatus, clearSignInStatus } from '../../store/reducers/authReducer';
+import { enterPasswordResetCodeAction, resetPasswordAction, savePasswordAfterResetAction, signInAction, signInWithBiometricAction } from '../../store/actions/authActions';
+import { clearEnterPasswordCodeStatus, clearEnterPasswordStatus, clearResetPasswordStatus, clearSignInStatus, clearSignInWithBiometricStatus } from '../../store/reducers/authReducer';
 import Snackbar from '../../helpers/Snackbar';
 import ReusableModal from '../../components/Modal/ReusableModal';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -29,6 +27,11 @@ import OTPTextView from 'react-native-otp-textinput';
 import { getTokenFromSecureStore } from '../../components/ExpoStore/SecureStore';
 import settings from '../../config/settings';
 import { decode as base64Decode } from 'base-64';
+import { StatusBar } from 'expo-status-bar';
+import { clearDeactivateAccountStatus, clearUpdateUserStatus } from '../../store/reducers/userReducer';
+//@ts-ignore
+import { BIOMETRIC_LOGIN_KEY } from '@env';
+import tw from 'twrnc';
 
 const { width, height } = Dimensions.get('window');
 
@@ -76,10 +79,12 @@ const Login = () => {
     const [otp, setOtp] = useState<string>('');
     const [count, setCount] = useState<number>(120);
     const [formattedValue, setFormattedValue] = useState("");
+    const [biometricId, setBiometricId] = useState<string>("");
+    
     const otpRef = useRef<any>(null);
-
     const dispatch = useAppDispatch();
     const authReducer = useAppSelector(state => state.authReducer);
+    const userReducer = useAppSelector(state => state.userReducer);
 
     const fallBackToDefaultAuth = () => {
         console.log('fall back to password auth')
@@ -124,7 +129,7 @@ const Login = () => {
             let supportedBiometrics: any;
             if(isBiometricAvailable)
                 supportedBiometrics = await LocalAuthentication.supportedAuthenticationTypesAsync()
-  
+    
             // check biometric are saved locally in users device
             const savedBiometrics = await LocalAuthentication.isEnrolledAsync()
             if(!savedBiometrics)
@@ -139,16 +144,23 @@ const Login = () => {
             const biometricAuth = await LocalAuthentication.authenticateAsync({
                 promptMessage: 'Login with biometric',
                 cancelLabel: 'cancel',
-                disableDeviceFallback: true
+                disableDeviceFallback: false,
+                // fallbackLabel: 'Enter Password',
             })
   
             //Log the user in on success
-            // if(biometricAuth) {TwoButtonAlert()}
-            // console.log(isBiometricAvailable)
-            // console.log(supportedBiometrics)
-            // console.log(savedBiometrics)
-            console.log(biometricAuth)
-  
+            if(biometricAuth) {
+                if(!biometricId) {
+                    return alertComponent(
+                        'Biometric authentication is not currently enabled for Lynk on this device.',
+                        'Kindly log in using your password and proceed to activate it within the privacy and security settings.',
+                        'Ok',
+                        () => fallBackToDefaultAuth()
+                    );
+                }
+
+                dispatch(signInWithBiometricAction(biometricId))
+            }
     };
 
     const handleResetPassword = (values: any) => {
@@ -192,6 +204,15 @@ const Login = () => {
             setIsBiometricSupport(compatible);
         })();
     });
+
+    useEffect(() => {
+        const checkToken = async () => {
+            const id = await getTokenFromSecureStore(BIOMETRIC_LOGIN_KEY);
+            setBiometricId(id)
+        }
+        
+        checkToken()
+    },[]);
 
     useEffect(() => {
         const intervalId = setTimeout(() => {
@@ -278,7 +299,7 @@ const Login = () => {
         const fetchData = async () => {
           try {
             
-            if (authReducer.signInStatus === 'completed') {
+            if (authReducer.signInStatus === 'completed' || authReducer.signInWithBiometricStatus === 'completed') {
                 const data = await getTokenFromSecureStore(settings.auth.admin);
                 const payloadBase64 = data && data.split('.')[1];
                 const decodedPayload = base64Decode(payloadBase64);
@@ -289,11 +310,13 @@ const Login = () => {
                     : router.push('/(tabs)/one')
 
                 dispatch(clearSignInStatus())
+                dispatch(clearSignInWithBiometricStatus())
 
-            } else if(authReducer.signInStatus === 'failed') {
+            } else if(authReducer.signInStatus === 'failed' || authReducer.signInWithBiometricStatus === 'failed') {
                 setSignInError(true)
-                setError(authReducer.signInError)
+                setError(authReducer.signInError || authReducer.signInWithBiometricError)
                 dispatch(clearSignInStatus())
+                dispatch(clearSignInWithBiometricStatus())
             }
           } catch (error) {
             console.error(error);
@@ -302,11 +325,49 @@ const Login = () => {
         };
     
         fetchData();
-    }, [authReducer.signInStatus]);
+    }, [authReducer.signInStatus, authReducer.signInWithBiometricStatus]);
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+
+        if(userReducer.updateUserStatus === 'completed') {
+            setIsResetPasswordSuccess(true)
+            setSuccess("Successful, please login again.")
+        
+            intervalId = setTimeout(() => {
+                setIsResetPasswordSuccess(false)
+                setSuccess('')
+            },6000);
+            dispatch(clearUpdateUserStatus());
+        } 
+
+        return () => {
+            clearInterval(intervalId);
+        }
+    },[userReducer.updateUserStatus]);
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+    
+        if(userReducer.deactivateAccountStatus === 'completed') {
+            setIsResetPasswordSuccess(true)
+            setSuccess("Your account has been successfully deactivated.")
+        
+            intervalId = setTimeout(() => {
+                setIsResetPasswordSuccess(false)
+                setSuccess('')
+            },6000);
+            dispatch(clearDeactivateAccountStatus());
+        } 
+    
+        return () => {
+          clearInterval(intervalId);
+        }
+    },[userReducer.deactivateAccountStatus]);
 
     return (
-        <SafeAreaView style={{height: height, backgroundColor: 'transparent', marginBottom: 30}}>
-            <ScrollView showsVerticalScrollIndicator={false} 
+        <SafeAreaView style={[{flex: 1}]}>
+            <ScrollView showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollViewContent}
             >
                 <View style={styles.container}>
@@ -314,8 +375,7 @@ const Login = () => {
                         style={{
                             fontFamily: FONT.extraBold,
                             fontSize: SIZES.xxLarge,
-                            color: 'black', marginBottom: 10,
-                            marginTop: 50
+                            color: 'black'
                         }}
                     >
                         Welcome back
@@ -368,15 +428,17 @@ const Login = () => {
                                     style={{
                                         backgroundColor: 'transparent',
                                         display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center'
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        flexDirection: 'row',
+                                        width: 80/100 * width
                                     }}
                                 >
                                     <AppBtn
                                         handlePress={() => handleSubmit()}
                                         isText={true}
                                         btnTitle={'Sign in'} 
-                                        btnWidth={'100%'} 
+                                        btnWidth={isBiometricSupport ? '80%' : '100%'} 
                                         btnHeight={60} 
                                         btnBgColor={COLORS.primary}
                                         btnTextStyle={{
@@ -397,6 +459,23 @@ const Login = () => {
                                             marginLeft: 10
                                         }}
                                     />
+                                    {isBiometricSupport && (<TouchableOpacity
+                                        onPress={handleBiometricAuth}
+                                        style={[{
+                                            width: '18%',
+                                            height: 60,
+                                            borderRadius: 20,
+                                            backgroundColor: COLORS.primary
+                                        }, tw`flex justify-center items-center`]}
+                                    >
+                                        <Image
+                                            source={icons.fingerprint}
+                                            style={{
+                                                width: '80%',
+                                                height: '80%'
+                                            }}
+                                        />
+                                    </TouchableOpacity>)}
                                 </View>
                             </View>
                         )}
@@ -411,7 +490,7 @@ const Login = () => {
                             flexDirection: 'column'
                         }}
                     >
-                        {isBiometricSupport && (<View
+                        {/* {isBiometricSupport && (<View
                             style={{
                                 backgroundColor: 'transparent',
                                 display: 'flex',
@@ -444,7 +523,7 @@ const Login = () => {
                                     resizeMode='contain'
                                 />
                             </TouchableHighlight>
-                        </View>)}
+                        </View>)} */}
                         
                         <View
                             style={{
@@ -867,22 +946,21 @@ const Login = () => {
                             )}
                         </Formik>
                     </View>
-                    
-                    
                 </ReusableModal>
+                <StatusBar style='dark'/>
             </ScrollView>
-            
         </SafeAreaView>
     )
 };
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: 'transparent',
         width: width,
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        alignSelf: 'center',
+        height: height
     },
     tokenContainer: {
         backgroundColor: 'transparent',
@@ -892,9 +970,9 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     scrollViewContent: {
-        flex: 1,
+        display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     agreeBtn: {
         backgroundColor: 'transparent',

@@ -47,21 +47,21 @@ export function Text(props: TextProps) {
 
 export function View(props: ViewProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
-  const backgroundColor = useThemeColor({ light: 'transparent', dark: 'transparent' }, 'background');
+  const backgroundColor = useThemeColor({ light: 'white', dark: 'white' }, 'background');
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
 
 export function SafeAreaView(props: SafeAreaViewProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
-  const backgroundColor = useThemeColor({ light: 'transparent', dark: 'transparent' }, 'background');
+  const backgroundColor = useThemeColor({ light: 'white', dark: 'white' }, 'background');
 
   return <DefaultSafeAreaView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
 
 export function ScrollView(props: ScrollViewProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
-  const backgroundColor = useThemeColor({ light: 'transparent', dark: 'transparent' }, 'background');
+  const backgroundColor = useThemeColor({ light: 'white', dark: 'white' }, 'background');
 
   return <DefaultScrollView style={[{ backgroundColor }, style]} {...otherProps} />;
 }

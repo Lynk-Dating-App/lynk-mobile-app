@@ -28,6 +28,7 @@ const TabLayout = () => {
         headerShown: false,
         tabBarStyle: {
           borderTopWidth: 1,
+          backgroundColor: 'white'
         }
       }}
     >
@@ -39,19 +40,6 @@ const TabLayout = () => {
           tabBarIcon: ({ color }) => <TabBarIcon name="sticky-note" color={color} />,
           headerLeft: () => (
             <Text>Discovery</Text>
-            
-            // <Link href="/modal" asChild>
-            //   <Pressable>
-            //     {({ pressed }) => (
-            //       <FontAwesome
-            //         name="info-circle"
-            //         size={25}
-            //         color={'black'}
-            //         style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-            //       />
-            //     )}
-            //   </Pressable>
-            // </Link>
           ),
         }}
       />

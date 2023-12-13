@@ -82,7 +82,6 @@ function RootLayoutNav() {
                 margin: 0, 
                 padding: 0, }
             }}
-            
           />
           <Stack.Screen name="unauth/sign-up" options={{ headerShown: false }} />
           <Stack.Screen name="unauth/create-account"
@@ -141,6 +140,93 @@ function RootLayoutNav() {
           <Stack.Screen name="auth/gallery" options={{ headerShown: false }} />
           <Stack.Screen name="auth/notification" options={{ headerShown: false }} />
           <Stack.Screen name="auth/single-user" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/notifications" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/single-notification" options={{ headerShown: false }} />
+          <Stack.Screen 
+            name="auth/modals/chatMessageScreen" 
+            options={{ 
+              presentation: 'fullScreenModal', 
+              headerShown: false,
+              contentStyle: { 
+                margin: 0, 
+                padding: 0, }
+            }}
+          />
+          <Stack.Screen name="auth/favourites" 
+            options={{ 
+              headerShown: true, 
+              headerTitle: '',
+              headerStyle: { backgroundColor: COLORS.lightWhite },
+              headerShadowVisible: false,
+              headerLeft: () => (
+                <AppBtn
+                  handlePress={() => router.back()}
+                  isImage={true}
+                  iconUrl={icons.backBtn}
+                  dimension={35}
+                />
+            ),
+            }} 
+          />
+          <Stack.Screen name="auth/edit-user-detail" 
+            options={{ 
+              headerShown: true, 
+              headerTitle: '',
+              headerStyle: { backgroundColor: COLORS.lightWhite },
+              headerShadowVisible: false,
+              headerLeft: () => (
+                <AppBtn
+                  handlePress={() => router.back()}
+                  isImage={true}
+                  iconUrl={icons.backBtn}
+                  dimension={35}
+                />
+            ),
+            }} 
+          />
+          <Stack.Screen 
+            name="auth/modals/job-description" 
+            options={{ 
+              presentation: 'modal', 
+              headerShown: false,
+              contentStyle: { 
+                margin: 0, 
+                padding: 0
+              }
+            }}
+          />
+          <Stack.Screen name="auth/billing" 
+            options={{ 
+              headerShown: true, 
+              headerTitle: '',
+              headerStyle: { backgroundColor: COLORS.lightWhite },
+              headerShadowVisible: false,
+              headerLeft: () => (
+                <AppBtn
+                  handlePress={() => router.back()}
+                  isImage={true}
+                  iconUrl={icons.backBtn}
+                  dimension={35}
+                />
+            ),
+            }} 
+          />
+          <Stack.Screen name="auth/privacy-security" 
+            options={{ 
+              headerShown: true, 
+              headerTitle: '',
+              headerStyle: { backgroundColor: COLORS.lightWhite },
+              headerShadowVisible: false,
+              headerLeft: () => (
+                <AppBtn
+                  handlePress={() => router.back()}
+                  isImage={true}
+                  iconUrl={icons.backBtn}
+                  dimension={35}
+                />
+            ),
+            }} 
+          />
         </Stack>
       </Provider>
     </ThemeProvider>

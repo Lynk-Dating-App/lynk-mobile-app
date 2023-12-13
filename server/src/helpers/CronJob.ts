@@ -10,7 +10,7 @@ export default class CronJob {
 
         for (const user of users) {
             if (user.subscription.endDate && user.subscription.endDate <= currentDate) {
-                await userRepository.update({_id: user._id}, {isExpired: true});
+                await userRepository.update({_id: user._id}, {isExpired: true, planType: 'purple'});
             }
         }
     }

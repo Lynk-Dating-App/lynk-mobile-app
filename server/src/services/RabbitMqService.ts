@@ -16,12 +16,14 @@ class RabbitMqService {
   private channel: Channel | null;
   private io: Server<any, any, any, any> | null;
   private socketMap: Map<any, Socket>;
+  private onlineUsers: any[];
 
   constructor() {
     this.connection = null;
     this.channel = null;
     this.io = null;
     this.socketMap = new Map<any, Socket>();
+    this.onlineUsers = [];
   }
 
   async connectToRabbitMQ(): Promise<void> {
@@ -70,15 +72,19 @@ class RabbitMqService {
     }
   }
 
-  async sendMessageToUser(senderId: string, receiverId: string, message: string) {
+  async sendMessageToUser(
+    senderId: any, receiverId: any, 
+    message: string, 
+    chatId: string
+    ) {
 
     await datasources.chatMessageDAOService.create({
+      chatId,
       senderId,
-      receiverId,
-      message,
-      dateCreated: new Date(),
-      status: 'delivered'
-    } as IChatMessageModel)
+      message
+    } as IChatMessageModel);
+
+    this.io?.to(senderId).emit('messageSentAck', 'message sent');
 
     if (receiverId) {
       const targetSocketRooms = this.io?.sockets.adapter.rooms.get(receiverId);
@@ -118,7 +124,10 @@ class RabbitMqService {
       notification: data.message,
       status: false,
       user: data.toUserId,
-      dateCreated: new Date()
+      senderId: data.fromUserId,
+      image: data.photo,
+      name: data.name,
+      age: data.age
     } as INotificationModel)
     if (data.toUserId) {
       const targetSocketRooms = this.io?.sockets.adapter.rooms.get(data.toUserId);
@@ -165,11 +174,20 @@ class RabbitMqService {
   
     socket.on('userId', (userId: any) => {
       if (userId) {
+        if(!this.onlineUsers.some(user => user.userId === userId)) {
+          this.onlineUsers.push({
+            userId,
+            socketId: socket.id
+          })
+        }
         socket.join(userId);
         console.log(`Socket joined room for userId: ${userId}`);
+        console.log(`Online users: ${JSON.stringify(this.onlineUsers)}`);
       } else {
         console.log('Invalid or disconnected socket.');
       }
+
+      socket.emit("getOnlineUsers", this.onlineUsers);
     });
   
     socket.on('liked', (data: any) => {
@@ -178,8 +196,8 @@ class RabbitMqService {
       const payload = {
         ..._data,
         message: _data.action === 'like' 
-          ? `${_data.name} just liked your profile.`
-          : `${_data.name} just unliked your profile.`
+          ? `${_data.name} liked your profile.`
+          : `${_data.name} unliked your profile.`
       }
    
       this.handleLikeDislike(payload);
@@ -187,18 +205,21 @@ class RabbitMqService {
 
     // Sending a private message to another user
     socket.on('sendPrivateMessage', (data: any) => {
-      const { senderId, receiverId, message } = data;
+      const { senderId, receiverId, message, chatId } = data;
 
-      this.sendMessageToUser(senderId, receiverId, message)
+      this.sendMessageToUser(senderId, receiverId, message, chatId)
       
       // Emit the private message to the receiver's room
       // io.to(receiverId).emit('receivePrivateMessage', { senderId, message });
     });
-
   
     socket.on('disconnect', () => {
       console.log('Client disconnected.');
       logger.info(`Client with id ${socket.id} disconnected`);
+
+      this.onlineUsers = this.onlineUsers.filter(user => user.socketId !== socket.id)
+      console.log(this.onlineUsers, 'online')
+      socket.emit("getOnlineUsers", this.onlineUsers);
       // Handle socket disconnection and leave rooms if needed
       //socket.leaveAll(); // Leave all rooms this socket was a part of
     });

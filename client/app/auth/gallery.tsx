@@ -113,8 +113,8 @@ const Gallery = () => {
     },[authReducer.galleryStatus]);
     
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}}>
-            <ScrollView style={{backgroundColor: 'transparent'}}>
+        <SafeAreaView style={{flex: 1}}>
+            <ScrollView>
                 <View style={styles.backBtnContainer}>
                     <Text/>
                     <Text

@@ -21,8 +21,8 @@
         "durationUnit": null
     },
     {
-        "name": "premium_purple",
-        "slug": "PREMIUM_PURPLE",
+        "name": "premium",
+        "slug": "PREMIUM",
         "price": 500,
         "duration": 1,
         "durationUnit": "month"

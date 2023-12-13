@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, Platform, TouchableOpacity } from 'react-native';
+import { Dimensions, Image, Platform, TouchableOpacity } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import { Text, View } from '../Themed';
 import { COLORS, FONT, SIZES, icons, images } from '../../constants';
@@ -7,12 +7,12 @@ import { BlurView } from 'expo-blur';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
 import { favUserAction, likeUserAction, unLikeFrmMatchAction } from '../../store/actions/userAction';
-import { setPhotoUri } from '../../store/reducers/userReducer';
-import { capitalizeEachWord, capitalizeFirstLetter } from '../../Utils/Generic';
+import { setFromUserId, setPhotoUri } from '../../store/reducers/userReducer';
+import { capitalizeEachWord, capitalizeFirstLetter, wordBreaker } from '../../Utils/Generic';
 import settings from '../../config/settings';
-import useUser from '../../hook/useUser';
 import { useRouter } from 'expo-router';
 import Snackbar from '../../helpers/Snackbar';
+import tw from 'twrnc';
 
 interface Match {
   address: string;
@@ -26,6 +26,7 @@ interface Match {
   userId: string;
   gender: string;
   state: string;
+  profileVisibility: boolean;
 }
 
 const { height } = Dimensions.get('window');
@@ -117,9 +118,10 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         renderCard={(card: Match) => (
           data.length > 0 
           ? (<View key={card?.userId}
-            style={{
-              height: 58/100 * height
-            }}
+              style={{
+                height: 58/100 * height,
+                backgroundColor: 'transparent'
+              }}
           >
             <Image
               source={card?.image === undefined 
@@ -139,7 +141,8 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                 height: '100%',
                 borderRadius: 20,
                 display: 'flex',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                backgroundColor: 'transparent'
               }}
             >
               <View
@@ -147,7 +150,8 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   flexDirection: 'row',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  backgroundColor: 'transparent'
                 }}
               >
                 {card?.distance !== 0 && (<BlurView intensity={100}
@@ -211,7 +215,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                   borderBottomRightRadius: 20,
                   overflow: 'hidden',
                   width: '100%',
-                  height: Platform.select({android: 110, ios: 100}),
+                  height: Platform.select({android: 145, ios: 135}),
                   backgroundColor: '#191919',
                   paddingHorizontal: 20,
                   paddingVertical: 5
@@ -221,10 +225,10 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                   style={{
                     color: 'white',
                     fontFamily: FONT.extraBold,
-                    fontSize: SIZES.xxLarge,
+                    fontSize: card?.firstName.length + card?.lastName.length > 8 ? SIZES.xLarge : SIZES.xxLarge,
                     elevation: 5,
                   }}
-                >{capitalizeFirstLetter(card?.firstName)} {capitalizeFirstLetter(card?.lastName)}, {card?.age}</Text>
+                >{capitalizeFirstLetter(card?.firstName)} {`${capitalizeFirstLetter(card?.lastName)},`} {card?.age}</Text>
                 <Text
                   style={{
                     color: 'white',
@@ -238,7 +242,28 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                     fontFamily: FONT.semiBold,
                     fontSize: SIZES.medium
                   }}
-                >{capitalizeEachWord(card?.address)}</Text>
+                >{wordBreaker(capitalizeEachWord(card?.address), 4)}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    dispatch(setFromUserId(card?.userId))
+                    router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})}}
+                  style={[{
+                    backgroundColor: 'white',
+                    borderRadius: 5,
+                    marginTop: 15,
+                    marginBottom: 10,
+                    width: 100
+                  }, tw`flex justify-center items-center`]}
+                >
+                  <Text
+                    style={{
+                      fontFamily: FONT.bold,
+                      color: COLORS.primary
+                    }}
+                  >
+                    View profile
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
              </View>)
@@ -287,7 +312,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                       fontSize: SIZES.xLarge,
                       elevation: 5,
                     }}
-                  >Not result found</Text>
+                  >No match found</Text>
                   <Text
                     style={{
                       color: 'white',
@@ -316,7 +341,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
           dispatch(unLikeFrmMatchAction(data[cardIndex].userId))
         }}
         onSwipedRight={(cardIndex) => {
-          dispatch(setPhotoUri(data[cardIndex].image))
+          dispatch(setPhotoUri({photo: data[cardIndex].image, userId: data[cardIndex].userId}))
           dispatch(likeUserAction(data[cardIndex].userId))
         }}
         onSwipedTop={(cardIndex) => dispatch(favUserAction(data[cardIndex].userId))}

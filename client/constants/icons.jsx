@@ -44,9 +44,25 @@ import Calendar from "../assets/icons/Calendar.png";
 import btn_filter from "../assets/icons/btn_filter.png";
 import location_pin from "../assets/icons/location_pin.png";
 import location_pin_colord from "../assets/icons/location_pin_colord.png";
+import boost from "../assets/icons/boost.png";
+import sub from "../assets/icons/sub.png";
+import fbook from "../assets/icons/fbook.png";
+import ig from "../assets/icons/ig.png";
+import snap from "../assets/icons/snap.png";
+import tiktok from "../assets/icons/tiktok.png";
+import twitter2 from "../assets/icons/twitter2.png";
+import subscription from "../assets/icons/subscription.png";
+import fingerprint from "../assets/icons/fingerprint.png";
 
 export default {
+  snap,
+  fingerprint,
+  subscription,
+  tiktok,
+  ig, twitter2, fbook,
   Calendar,
+  boost,
+  sub,
   heart,
   backBtn,
   menu,

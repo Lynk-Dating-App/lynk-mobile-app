@@ -3,8 +3,6 @@ import settings from './settings';
 import { decode as base64Decode } from 'base-64';
 import { getTokenFromSecureStore } from '../components/ExpoStore/SecureStore';
 
-const BACKGROUND_SOCKET_TASK = 'socket-io-background-task';
-
 const socket = io(settings.api.baseURL);
 
 const connectToServer = async () => {

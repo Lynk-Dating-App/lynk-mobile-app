@@ -34,7 +34,7 @@ import SendMailService from "../services/SendMailService";
 import Generic from "../utils/Generic";
 import formidable, { File } from 'formidable';
 import { $saveUserAddress, $updateUserAddress, IUserAddressModel } from "../models/UserAddress";
-import {
+import User, {
     $updateUserSchema,
     IUserModel,
     $changePassword,
@@ -51,9 +51,10 @@ import { Server } from 'socket.io';
 
 import IPreference = appModelTypes.IPreference
 import { INotificationModel } from "../models/Notification";
-import { IChatMessageModel } from "../models/ChatMessages";
+import ChatMessage, { IChatMessageModel } from "../models/ChatMessages";
 import moment = require("moment");
 import { Types } from "mongoose";
+import { IChatModel } from "../models/ChatModel";
 // import RabbitMqService from "../services/RabbitMqService";
 
 const redisService = new RedisService();
@@ -131,7 +132,7 @@ export default class UserController {
      * permission can do this 
      */
     @TryCatch
-    @HasPermission([MANAGE_ALL, UPDATE_USER])
+    @HasPermission([MANAGE_ALL, UPDATE_USER, USER_PERMISSION])
     public  async updateUserStatus (req: Request) {
         await this.doUpdateUserStatus(req);
 
@@ -195,12 +196,12 @@ export default class UserController {
         const userId = req.user._id;
         
         const user = await datasources.userDAOService.findById(userId);
-        if(!user) return Promise.reject(CustomAPIError.response(`User with Id: ${userId} does not exist`, HttpStatus.BAD_REQUEST.code));
+        if(!user) return Promise.reject(CustomAPIError.response(`User does not exist`, HttpStatus.BAD_REQUEST.code));
 
         const response: HttpResponse<IUserModel> = {
             code: HttpStatus.OK.code,
             message: HttpStatus.OK.value,
-            result: user,
+            result: user
         };
       
         return Promise.resolve(response);
@@ -308,6 +309,107 @@ export default class UserController {
         if(!users) return Promise.reject(CustomAPIError.response('No user is available at this time', HttpStatus.BAD_REQUEST.code));
 
         const response: HttpResponse<IUserModel> = {
+            code: HttpStatus.OK.code,
+            message: HttpStatus.OK.value,
+            results: users,
+        };
+      
+        return Promise.resolve(response);
+    };
+
+    /**
+     * 
+     * @param req array of user's ids
+     * 
+     * @returns this returns users who's id's are provided in the
+     * request array.
+     */
+    @TryCatch
+    @HasPermission([USER_PERMISSION])
+    public  async usersWithIds (req: Request) {
+
+        const { userIds } = req.body;
+        //@ts-ignore
+        const signedInUserId = req.user._id;
+        // .exec();
+
+        const chatUsers = await ChatMessage.find({
+            $or: [
+                { senderId: { $in: userIds } },
+                { receiverId: { $in: userIds } }
+            ]
+        })
+        .populate('senderId', 'firstName profileImageUrl _id')
+        .populate('receiverId', 'firstName profileImageUrl _id')
+        .exec();
+
+        const _users = chatUsers.map((user) => {
+
+            let count = 0;
+            let content = '';
+
+            if (user.senderId && 
+                user.senderId === signedInUserId.toString() &&
+                user.receiverStatus === 'delivered'
+            ) {
+                count += 1;
+                content = user.message;
+            }
+            const result = {
+                //@ts-ignore
+                ...user._doc, 
+                postedAt: Generic.dateDifference(new Date()), 
+                unread: count,
+                lastUnreadMessage: content
+            }
+
+            return result;
+        })
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: HttpStatus.OK.value,
+            results: _users,
+        };
+      
+        return Promise.resolve(response);
+    };
+
+    @TryCatch
+    @HasPermission([USER_PERMISSION])
+    public async matchedAndLikedByUsers (req: Request) {
+
+        const userId = req.params.userId;
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user) 
+            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+
+        let ids: Types.ObjectId[] = [];
+        user.likedUsers.map(id => {
+            if(user.likedByUsers.includes(id)) {
+                ids.push(id)
+            }
+        })
+
+        const matchingUsers = await User.find({
+            _id: { $in: ids}
+        }).select('firstName profileImageUrl age likedUsers _id');
+        
+        const likedByUsers = await User.find({
+            _id: { $in: user.likedByUsers }
+        }).select('firstName profileImageUrl age likedUsers _id');
+
+        // Function to filter out users present in both arrays
+        const filterMatchingUsers = (user: any) => {
+            return !matchingUsers.some((matchingUser) => matchingUser._id.equals(user._id));
+        };
+
+        const matched_users = matchingUsers.map(user => ({ ...user.toObject(), isMatch: true }));
+        const uniqueLikedByUsers = likedByUsers.filter(filterMatchingUsers);
+        const users = [...matched_users, ...uniqueLikedByUsers];
+
+        const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
             message: HttpStatus.OK.value,
             results: users,
@@ -777,7 +879,7 @@ export default class UserController {
         endpoint = '/transaction/initialize';
 
         const callbackUrl = `${process.env.PAYMENT_GW_CB_URL}/`;
-        const amount = plan.price as number;
+        const amount = +plan.price as number;
         let serviceCharge = 0.015 * amount;
 
         if (amount >= 2500) {
@@ -810,10 +912,10 @@ export default class UserController {
 
         const txnValues: Partial<ITransactionModel> = {
             reference: data.reference,
-            authorizationUrl: data.authorization_url,
-            type: 'Payment',
+            // authorizationUrl: data.authorization_url,
+            // type: 'Payment',
             status: initResponse.data.message,
-            amount: plan.price as number,
+            amount: plan.price,
             user: user._id
         };
 
@@ -869,7 +971,7 @@ export default class UserController {
         endpoint = '/transaction/initialize';
 
         const callbackUrl = `${process.env.PAYMENT_GW_CB_URL}/`;
-        const amount = plan.price as number;
+        const amount = +plan.price as number;
         let serviceCharge = 0.015 * amount;
 
         if (amount >= 2500) {
@@ -908,10 +1010,10 @@ export default class UserController {
 
         const txnValues: Partial<ITransactionModel> = {
             reference: data.reference,
-            authorizationUrl: data.authorization_url,
+            // authorizationUrl: data.authorization_url,
             type: 'Payment',
             status: initResponse.data.message,
-            amount: plan.price as number,
+            amount: plan.price,
             user: user._id
         };
 
@@ -940,7 +1042,7 @@ export default class UserController {
         if(user.planType === BLACK_PLAN)
             return Promise.reject(CustomAPIError.response("You are not allowed to toggle profile visibility", HttpStatus.BAD_REQUEST.code));
 
-        const updateUser = await datasources.userDAOService.updateByAny(
+        const updatedUser = await datasources.userDAOService.updateByAny(
             { _id: user._id },
             { profileVisibility: !user.profileVisibility }
         );
@@ -948,7 +1050,7 @@ export default class UserController {
         const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
             message: 'Successful',
-            result: updateUser
+            result: updatedUser?.profileVisibility
         };
 
         return Promise.resolve(response);
@@ -1009,7 +1111,6 @@ export default class UserController {
                 pAbout: Joi.string().required().label("About"),
                 pMinAge: Joi.string().required().label("Minimum Age"),
                 pMaxAge: Joi.string().required().label("Maximu Age"),
-                pState: Joi.string().required().label("State"),
                 pMinHeight: Joi.string().required().label("Minimum Height"),
                 pMaxHeight: Joi.string().required().label("Maximum Height")
             }
@@ -1024,8 +1125,7 @@ export default class UserController {
             preference: {
                 pAbout: value.preference.pAbout,
                 pMinAge: value.preference.pMinAge, 
-                pMaxAge: value.preference.pMaxAge, 
-                pState: value.preference.pState, 
+                pMaxAge: value.preference.pMaxAge,
                 pMinHeight: value.preference.pMinHeight, 
                 pMaxHeight: value.preference.pMaxHeight, 
                 pGender: user.gender === 'male' ? 'female' : 'male'
@@ -1092,6 +1192,12 @@ export default class UserController {
           return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
         }
 
+        if(user.planType === 'black' && likedUser.planType !== 'black')
+            return Promise.reject(CustomAPIError.response("You can't like this user, please upgrade your plan.", HttpStatus.BAD_REQUEST.code));
+
+        if(user.planType === 'red' && (likedUser.planType === 'purple' || likedUser.planType === 'premium'))
+            return Promise.reject(CustomAPIError.response("You can't like this user, please upgrade your plan.", HttpStatus.BAD_REQUEST.code));
+
         const checkLikedUserInUser = user.likedUsers.includes(likedUser._id); //this checks if the liked user was prev liked.
         if(checkLikedUserInUser)
             return Promise.reject(CustomAPIError.response('You already liked this user.', HttpStatus.BAD_REQUEST.code))
@@ -1112,12 +1218,13 @@ export default class UserController {
             name: Generic.capitalizeFirstLetter(user.firstName),
             othername: Generic.capitalizeFirstLetter(user.lastName),
             photo: user.profileImageUrl,
+            age: user.age,
             likened
         }
 
-        if(user.favourites.includes(likedUser._id)) {
-            await user.updateOne({ $pull: { favourites: likedUser._id } });
-        }
+        // if(user.favourites.includes(likedUser._id)) {
+        //     await user.updateOne({ $pull: { favourites: likedUser._id } });
+        // }
 
         //remove from unliked array after like
         if (user.unLikedUsers.length > 0) {
@@ -1131,7 +1238,7 @@ export default class UserController {
         }
         
         user.likedUsers.push(likedUser._id);
-        likedUser.likedByUsers.push(user._id);
+        !likedUser.likedByUsers.includes(user._id) && (likedUser.likedByUsers.push(user._id));
         
         await Promise.all([user.save(), likedUser.save()]);
       
@@ -1169,9 +1276,9 @@ export default class UserController {
             photo: user.profileImageUrl
         }
 
-        if(user.favourites.includes(unLikedUser._id)) {
-            await user.updateOne({ $pull: { favourites: unLikedUser._id } });
-        }
+        // if(user.favourites.includes(unLikedUser._id)) {
+        //     await user.updateOne({ $pull: { favourites: unLikedUser._id } });
+        // }
         // Remove unLikedUserId from the likedUsers array of user
         await user.updateOne({ $pull: { likedUsers: unLikedUserId } });
 
@@ -1208,9 +1315,9 @@ export default class UserController {
         return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
         }
 
-        if(user.favourites.includes(unLikedUser._id)) {
-            await user.updateOne({ $pull: { favourites: unLikedUser._id } });
-        }
+        // if(user.favourites.includes(unLikedUser._id)) {
+        //     await user.updateOne({ $pull: { favourites: unLikedUser._id } });
+        // }
         const payload = {
             date: new Date(),
             user: unLikedUser._id
@@ -1260,6 +1367,10 @@ export default class UserController {
             return Promise.reject(CustomAPIError.response("Already added to favourites.", HttpStatus.BAD_REQUEST.code));
         }
 
+        // if(user.likedUsers.includes(faveUser._id)) {
+        //     return Promise.reject(CustomAPIError.response("You currentlty like this user, can't add to favourites.", HttpStatus.BAD_REQUEST.code));
+        // }
+
         user.favourites.push(faveUser._id);
         await user.save();
 
@@ -1277,11 +1388,12 @@ export default class UserController {
             name: Joi.string().required().label("job name")
         }).validate(req.body);
         if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+        
+        const job = await datasources.jobDAOService.findByAny({name: value.name });
 
-        const job = await datasources.jobDAOService.findByAny({name: value.name })
         if(job)
-            return Promise.reject(CustomAPIError.response("Job with name alreay exist", HttpStatus.BAD_REQUEST.code));
-
+            return Promise.reject(CustomAPIError.response(`${value.name} already exist.`, HttpStatus.BAD_REQUEST.code));
+        
         let jobValues;
         //@ts-ignore
         const role = await datasources.roleDAOService.findById(req.user.role);
@@ -1303,7 +1415,7 @@ export default class UserController {
 
         const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
-            message: `${role?.slug === "SUPER_ADMIN_ROLE" ? "Successfully created." : `Successful, ${value.name} will be added to the list of jobs after review`}`,
+            message: `${role?.slug === "SUPER_ADMIN_ROLE" ? "Successfully created." : `Successful, ${value.name} will be added to the list of jobs after review.`}`,
             result
         };
 
@@ -1394,7 +1506,7 @@ export default class UserController {
             longitude: Joi.number().required().label('Longitude')
         }).validate(req.body);
         if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
-
+        console.log(value, 'saved location in upd loc controller')
         const user = await datasources.userDAOService.findById(userId);
         if(!user)
             return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
@@ -1420,7 +1532,7 @@ export default class UserController {
     @HasPermission([USER_PERMISSION])
     public async gallery (req: Request) {
         const user = await this.doGallery(req);
-
+        console.log(user)
         const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
             message: 'Successfully uploaded image.',
@@ -1454,7 +1566,7 @@ export default class UserController {
                 fs.unlink(`${basePath}/${_photo}`, () => {})
             }
         })
-        
+
         await user.updateOne({ $pull: { gallery: value.photo } });
 
         const response: HttpResponse<IUserModel> = {
@@ -1473,13 +1585,58 @@ export default class UserController {
         const userId = req.user._id
 
         const notifications = await datasources.notificationDAOService.findAll({
-            where: { user: userId }
+            user: userId
         })
 
         const response: HttpResponse<INotificationModel> = {
             code: HttpStatus.OK.code,
             message: 'Successfully fetched notifications.',
             results: notifications
+         };
+ 
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    @HasPermission([USER_PERMISSION])
+    public async getSingleNotification (req: Request) {
+
+        const notificationId = req.params.notificationId;
+
+        const notification = await datasources.notificationDAOService.findByAny({
+            _id: notificationId
+        })
+
+        const response: HttpResponse<INotificationModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully fetched notification.',
+            result: notification
+         };
+ 
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    @HasPermission([USER_PERMISSION])
+    public async updateNotification (req: Request) {
+
+        const notificationId = req.params.notificationId;
+
+        const notification = await datasources.notificationDAOService.findByAny({
+            _id: notificationId
+        })
+
+        if(!notification) 
+            return Promise.reject(CustomAPIError.response("Notification not found.", HttpStatus.NOT_FOUND.code));
+
+        await datasources.notificationDAOService.updateByAny(
+            {_id: notification._id},
+            {status: true}
+        )
+
+        const response: HttpResponse<INotificationModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully updated notification.'
          };
  
         return Promise.resolve(response);
@@ -1538,20 +1695,247 @@ export default class UserController {
             ));
 
         const chats = await datasources.chatMessageDAOService.findAll({
-            where: {
-                receiverId: value.receiverId,
-                senderId: value.senderId
-            }
+            receiverId: value.receiverId,
+            senderId: value.senderId
         });
-        
+
+        const results = chats.map(chat => {
+            let _chat = {
+                //@ts-ignore
+                ...chat._doc, 
+                datePosted: Generic.dateDifference(new Date())}
+            return _chat
+        })
+
         const response: HttpResponse<IChatMessageModel> = {
             code: HttpStatus.OK.code,
             message: 'Successfully fetched notifications.',
-            results: chats
+            results
          };
  
         return Promise.resolve(response);
 
+    }
+
+    @TryCatch
+    public async createChatMessage(req: Request) {
+        const { chatId, senderId, message } = req.body;
+
+        const newMessage = await datasources.chatMessageDAOService.create({
+            chatId, senderId, message
+        } as IChatMessageModel);
+
+        const response: HttpResponse<IChatMessageModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful.',
+            result: newMessage
+         };
+ 
+        return Promise.resolve(response);
+    }
+
+    public async getChatMessages(req: Request) {
+        try {
+            const { chatId } = req.params;
+            //@ts-ignore
+            const loggedInUser = req.user._id;
+    
+            const updateUnreadStatus = async (query: any, update: any) => {
+                const unreadMessages = await datasources.chatMessageDAOService.findAll(query);
+    
+                if (unreadMessages.length > 0) {
+                    const unreadMessageIds = unreadMessages.map((message) => new Types.ObjectId(message._id));
+                    await ChatMessage.updateMany(
+                        { _id: { $in: unreadMessageIds } },
+                        update
+                    );
+                }
+            };
+    
+            // Update receiver's unread messages to read
+            await updateUnreadStatus(
+                { chatId, receiverStatus: 'unread', senderId: { $ne: loggedInUser } },
+                { $set: { receiverStatus: 'read' } }
+            );
+    
+            // Update sender's unread messages to read
+            await updateUnreadStatus(
+                { chatId, senderStatus: 'unread', senderId: loggedInUser },
+                { $set: { senderStatus: 'read' } }
+            );
+    
+            // Retrieve all chat messages
+            const messages = await datasources.chatMessageDAOService.findAll({ chatId }, { sort: { createdAt: 1 } });
+    
+            const response: HttpResponse<IChatMessageModel> = {
+                code: HttpStatus.OK.code,
+                message: 'Successfully.',
+                results: messages
+            };
+    
+            return Promise.resolve(response);
+        } catch (error) {
+            // Handle errors appropriately
+            console.error('Error in getChatMessages:', error);
+            const response: HttpResponse<IChatMessageModel> = {
+                code: HttpStatus.INTERNAL_SERVER_ERROR.code,
+                message: 'Internal Server Error',
+                result: null
+            };
+            return Promise.resolve(response);
+        }
+    }
+
+    public async findUserChats(req: Request) {
+        try {
+          const userId = req.params.userId;
+      
+          const chats = await datasources.chatDAOService.findAll({
+            members: { $in: [userId] },
+          });
+      
+          if (!chats)
+            return Promise.reject(
+              CustomAPIError.response(
+                "Not found",
+                HttpStatus.NOT_FOUND.code
+              )
+            );
+      
+          let _member: any = [];
+          await Promise.all(
+            chats.map(async (chat) => {
+                const otherMember = chat.members.find((member) => member !== userId);
+
+                const user = await datasources.userDAOService.findById(otherMember);
+                const chatMessages = await datasources.chatMessageDAOService.findAll({
+                    chatId: chat._id
+                });
+
+                if(!chatMessages)
+                    return Promise.reject(CustomAPIError.response("No chat message found.", HttpStatus.NOT_FOUND.code))
+
+                //@ts-ignore
+                const sortedMessages = chatMessages.sort((a, b) => b.createdAt - a.createdAt);
+                const lastMessage = sortedMessages[0];
+
+                const unreadMessages = sortedMessages.filter((message) => message.receiverStatus === 'unread');
+                const totalUnreadMessages = unreadMessages.length;
+
+                _member.push({
+                    _id: user?._id,
+                    firstName: user?.firstName,
+                    lastName: user?.lastName,
+                    profileImageUrl: user?.profileImageUrl,
+                    chat: chat,
+                    totalUnreadMessages: totalUnreadMessages,
+                    lastMessage: lastMessage ? lastMessage.message : '',
+                    senderId: lastMessage ? lastMessage.senderId : '',
+                    //@ts-ignore
+                    chatDate: lastMessage ? lastMessage.createdAt : null
+                });
+            })
+          );
+
+          const member = _member.sort((a: any, b: any) => b.chatDate - a.chatDate)
+      
+          const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully fetched notifications.',
+            result: { chats, member },
+          };
+      
+          return Promise.resolve(response);
+        } catch (error) {
+          // Handle errors appropriately, log or send an error response
+          console.error(error);
+          return Promise.reject(
+            CustomAPIError.response(
+              "Internal Server Error",
+              HttpStatus.INTERNAL_SERVER_ERROR.code
+            )
+          );
+        }
+    }      
+
+    @TryCatch
+    public async fetchFavouriteUsers(req: Request) {
+        //@ts-ignore
+        const userId = req.user._id;
+        
+        const user = await datasources.userDAOService.findById(userId);
+        if (!user) {
+            return Promise.reject(CustomAPIError.response('User not found.', HttpStatus.NOT_FOUND.code));
+        }
+
+        const users = await datasources.userDAOService.findAll();
+
+        const filteredUsers = users.filter(_user => {
+            if(user.favourites.includes(_user._id)) {
+                return user
+            }
+            
+        });
+    
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully fetched users.',
+            results: filteredUsers,
+        };
+    
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    public async findChat (req: Request) {
+        const {firstId, secondId} = req.params
+
+        const chat = await datasources.chatDAOService.findByAny({
+            members: {$all: [firstId, secondId]}
+        })
+
+        if(!chat) 
+            return Promise.reject(CustomAPIError.response("Not found", HttpStatus.NOT_FOUND.code));
+
+        const response: HttpResponse<IChatModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully fetched notifications.',
+            result: chat
+        };
+    
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    public async createChat (req: Request) {
+        const { firstId, secondId } = req.body;
+
+        const chat = await datasources.chatDAOService.findByAny({
+            members: {$all: [firstId, secondId]}
+        });
+
+        if(!chat) {
+
+            const newChat = await datasources.chatDAOService.create({
+                members: [firstId, secondId]
+            } as IChatModel);
+
+            const response: HttpResponse<IChatModel> = {
+                code: HttpStatus.OK.code,
+                message: 'Successfully created chat.',
+                result: newChat
+            };
+        
+            return Promise.resolve(response);
+        }
+
+        const response: HttpResponse<IChatModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully.',
+            result: chat
+        };
+    
+        return Promise.resolve(response);
     }
 
     @TryCatch
@@ -1615,7 +1999,7 @@ export default class UserController {
                         filename: galleryImage.originalFilename as string,
                         basePath: `${UPLOAD_BASE_PATH}/user`,
                     });
-                    
+                 
                     updatedGallery.push(imagePath);
                 };
 
@@ -1623,7 +2007,7 @@ export default class UserController {
     
                 user.save()
                     //@ts-ignore
-                    return resolve(user); // Resolve with the updated user
+                return resolve(user); // Resolve with the updated user
             });
         });
     }
@@ -1780,7 +2164,7 @@ export default class UserController {
                 const userId = req.user._id;
 
                 const { error, value } = Joi.object<IUserModel>({
-                    profileImageUrl: Joi.string().required().label('profile image')
+                    profileImageUrl: Joi.string().label('profile image')
                 }).validate(fields);
                 if(error) return reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
                 
@@ -1830,97 +2214,67 @@ export default class UserController {
         })
     }
 
-    private async doUpdateUser(req: Request): Promise<HttpResponse<IUserModel>> {
-        return new Promise((resolve, reject) => {
-            form.parse(req, async (err, fields, files) => {
-                const userId = req.params.userId;
+    private async doUpdateUser(req: Request) {
 
-                const { error, value } = Joi.object<IUserModel>($updateUserSchema).validate(fields);
-                if(error) return reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
-                
-                const user = await datasources.userDAOService.findById(userId);
-                if(!user) return reject(CustomAPIError.response('User not found', HttpStatus.NOT_FOUND.code));
+        //@ts-ignore
+        const userId = req.user._id;
 
-                const user_email = await datasources.userDAOService.findByAny({
-                    email: value.email
-                });
+        const { error, value } = Joi.object<IUserModel>($updateUserSchema).validate(req.body);
+        if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+        
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user) return Promise.reject(CustomAPIError.response('User not found', HttpStatus.NOT_FOUND.code));
 
-                if(value.email && user.email !== value.email){
-                    if(user_email) {
-                        return reject(CustomAPIError.response('User with this email already exists', HttpStatus.NOT_FOUND.code))
-                    }
-                };
-
-                const user_phone = await datasources.userDAOService.findByAny({
-                    phone: value.phone
-                });
-
-                //@ts-ignore
-                if(value.phone && user_phone !== value.phone){
-                    if(user_phone) {
-                        return reject(CustomAPIError.response('User with this phone number already exists', HttpStatus.NOT_FOUND.code))
-                    }
-                };
-
-                let _email = ''
-                if(!user.googleId || !user.facebookId || !user.instagramId) {
-                    _email = value.email as string
-                };
-
-                let _phone = ''
-                if(user.googleId || user.facebookId || user.instagramId) {
-                    _phone = value.phone
-                };
-
-                const profile_image = files.profileImageUrl as File;
-                const basePath = `${UPLOAD_BASE_PATH}/user`;
-
-                let _profileImageUrl = ''
-                if(profile_image) {
-                    // File size validation
-                    const maxSizeInBytes = MAX_SIZE_IN_BYTE
-                    if (profile_image.size > maxSizeInBytes) {
-                        return reject(CustomAPIError.response(MESSAGES.image_size_error, HttpStatus.BAD_REQUEST.code));
-                    }
-            
-                    // File type validation
-                    const allowedFileTypes = ALLOWED_FILE_TYPES;
-                    if (!allowedFileTypes.includes(profile_image.mimetype as string)) {
-                        return reject(CustomAPIError.response(MESSAGES.image_type_error, HttpStatus.BAD_REQUEST.code));
-                    }
-            
-                    _profileImageUrl = await Generic.getImagePath({
-                        tempPath: profile_image.filepath,
-                        filename: profile_image.originalFilename as string,
-                        basePath,
-                    });
-                };
-                
-                //delete existing image from directory
-                if(profile_image) {
-                    if(user.profileImageUrl) {
-                        const image = user.profileImageUrl.split('user/')[1];
-                        fs.unlink(`${basePath}/${image}`, () => {})
-                    }
+        if(value.email) {
+            const user_email = await datasources.userDAOService.findByAny({
+                email: value.email
+            });
+    
+            if(user.email && user.email !== value.email){
+                if(user_email) {
+                    return Promise.reject(CustomAPIError.response('User with this email already exists', HttpStatus.NOT_FOUND.code))
                 }
+            };
+        }
 
-                const userValues = {
-                    ...value,
-                    email: _email ? _email : user.email,
-                    profileImageUrl: profile_image && _profileImageUrl,
-                    phone: _phone ? _phone : user.phone,
-                    age: +value.age
-                };
+        let phone = '';
+        if(value.phone) {
+            phone = value.phone.replace(/(^\+?(234)?0?)/, '234');
 
-                const updatedUser = await datasources.userDAOService.updateByAny(
-                    {_id: userId},
-                    userValues
-                );
-                
-                //@ts-ignore
-                return resolve(updatedUser);
-            })
-        })
+            const user_phone = await datasources.userDAOService.findByAny({
+                phone: phone
+            });
+            
+            //@ts-ignore
+            if(user.phone && user.phone !== phone){
+                if(user_phone) {
+                    return Promise.reject(CustomAPIError.response('User with this phone number already exists', HttpStatus.NOT_FOUND.code))
+                }
+            };
+        }
+
+        // let _email = ''
+        // if(!user.googleId || !user.facebookId || !user.instagramId) {
+        //     _email = value.email as string
+        // };
+
+        // let _phone = ''
+        // if(user.googleId || user.facebookId || user.instagramId) {
+        //     _phone = value.phone
+        // };
+
+        const userValues = {
+            ...value,
+            email: value.email,
+            phone: phone === '' ? user.phone : phone
+        };
+
+        const updatedUser = await datasources.userDAOService.updateByAny(
+            {_id: userId},
+            userValues
+        );
+        
+        return updatedUser;
     }
 
     private async doUpdateUserStatus(req: Request) {
@@ -1946,7 +2300,8 @@ export default class UserController {
     };
 
     private async doChangePassword(req: Request) {
-        const userId = req.params.userId;
+        //@ts-ignore
+        const userId = req.user._id;
         
         const { error, value } = Joi.object<IUserModel>($changePassword).validate(req.body);
         if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
@@ -1955,7 +2310,7 @@ export default class UserController {
         if(!user) return Promise.reject(CustomAPIError.response('User not found', HttpStatus.BAD_REQUEST.code));
     
         const hash = user.password as string;
-        const password = value.previousPassword;
+        const password = value.currentPassword;
 
         const isMatch = await this.passwordEncoder?.match(password.trim(), hash.trim());
         if(!isMatch) return Promise.reject(CustomAPIError.response('Password in the database differ from the password entered as current  password', HttpStatus.UNAUTHORIZED.code));
@@ -2046,8 +2401,24 @@ export default class UserController {
                     _user.location.coordinates[0]
                 ))
         }));
+       
+        const finallAll = allUsers.filter(_user => _user.gender !== user.gender)
+        
+        // const allUsers = users
+        //     .filter(_user => _user._doc.gender !== user.gender)
+        //     .map(_user => ({
+        //         //@ts-ignore
+        //         ..._user._doc,
+        //         distance: (_user.location.coordinates[1] === -1 && _user.location.coordinates[0] === -1) ? 0 :
+        //         Math.ceil(Generic.location_km(
+        //             user.location.coordinates[1],
+        //             user.location.coordinates[0],
+        //             _user.location.coordinates[1],
+        //             _user.location.coordinates[0]
+        //         ))
+        //     }));
 
-        return finalMatches.length > 0 ? finalMatches : allUsers;
+        return finalMatches.length > 0 ? finalMatches : finallAll;
     }
       
 

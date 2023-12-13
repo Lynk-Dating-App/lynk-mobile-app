@@ -44,6 +44,12 @@ export const signInHandler_User = async (req: Request, res: Response) => {
     res.status(response.code).json(response)
 };
 
+export const signIWithBiometricHandler = async (req: Request, res: Response) => {
+  const response = await authController.sign_in_with_biometric(req);
+
+  res.status(response.code).json(response)
+};
+
 export const googleOAuthHandler = (passport.authenticate("google", { scope: ["email", "profile"] }))
 
 export const googleOAutCallbackhHandler = (req: Request, res: Response, next: NextFunction) => {

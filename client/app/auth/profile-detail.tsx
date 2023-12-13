@@ -130,14 +130,13 @@ const ProfileDetail = () => {
     // };
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}}>
+        <SafeAreaView style={{flex: 1}}>
             <KeyboardAvoidingView
                 style={styles.containerKey}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <ScrollView showsVerticalScrollIndicator={false}
                     style={{
-                        backgroundColor: 'transparent',
                         paddingHorizontal: 20
                     }}
                 >
@@ -311,7 +310,7 @@ const ProfileDetail = () => {
                                         setSelectedDate(date)
                                         hideDatePicker()
                                     } : undefined}
-                                    buttonTextColorIOS={COLORS.primary}
+                                    buttonTextColorIOS={'white'}
                                     customConfirmButtonIOS={() => (
                                         <AppBtn
                                             handlePress={hideDatePicker}

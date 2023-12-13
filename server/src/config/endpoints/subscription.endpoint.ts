@@ -6,7 +6,7 @@ import {
     getTransactionsHandler,
     getUserTransactionsHandler,
     initTransactionCallbackHandler,
-    premiumPurpleSubscriptionHandler,
+    subscriptionHandler,
     updatePlanHandler,
     updateTransactionHandler
 } from '../../routes/subscriptionRoute';
@@ -27,8 +27,8 @@ const subscriptionEndpoints: RouteEndpoint  = [
     {
         name: 'premium-purple',
         method: 'post',
-        path: '/premium-purple-subscription',
-        handler: premiumPurpleSubscriptionHandler
+        path: '/subscribe',
+        handler: subscriptionHandler
     },
     {
         name: 'paystack init transaction callback',

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Button, Dimensions, SafeAreaView, ScrollView, StyleSheet } from "react-native";
-import { Text, View } from "../../components/Themed";
+import { Dimensions, Platform, StyleSheet } from "react-native";
+import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
 import AppBtn from "../../components/common/button/AppBtn";
 import { useRouter } from "expo-router";
 import { COLORS, FONT, SIZES, icons } from "../../constants";
@@ -44,9 +44,10 @@ const Verification = () => {
 
     useEffect(() => {
         const phone = formattedValue.startsWith('+') && (formattedValue.replace('+', ''))
+        
         const payload = {
-            phone,
-            ...data
+            ...data,
+            phone
         }
 
         setUserData(JSON.stringify(payload))
@@ -83,8 +84,7 @@ const Verification = () => {
                             fontFamily: FONT.extraBold,
                             fontSize: SIZES.xxLarge,
                             color: 'black',
-                            marginTop: 70,
-                            marginBottom: 10
+                            marginTop: 70
                         }}
                     >
                         Enter mobile
@@ -117,7 +117,7 @@ const Verification = () => {
                             fontFamily: FONT.bold
                         }}
                         btnStyle={{
-                            marginBottom: 20,
+                            marginBottom: Platform.select({android: 20, ios: 60}),
                             marginTop: 100,
                             display: 'flex',
                             flexDirection: 'row',
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         marginLeft: 15,
-        marginTop: 25,
+        marginTop: Platform.select({ android: 45, ios: 25}),
         marginBottom: -10
     },
     containerStyle: {

@@ -2,42 +2,22 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 interface ITransactions {
     reference: string,
-    amount: number,
+    amount: string,
     status: string,
+    message: string,
     type: string,
-    serviceStatus: string,
-    authorizationUrl: string,
-    last4: string,
-    expMonth: string,
-    expYear: string,
-    channel: string,
-    cardType: string,
-    bank: string,
-    countryCode: string,
-    brand: string,
-    currency: string,
     paidAt: Date,
     user: mongoose.Types.ObjectId;
 };
 
 const transactionSchema = new Schema<ITransactions>({
     reference: { type: String },
-    amount: { type: Number },
+    amount: { type: String },
     status: { type: String },
+    message: { type: String },
     type: { type: String },
-    serviceStatus: { type: String },
-    authorizationUrl: { type: String },
-    last4: { type: String },
-    expMonth: { type: String },
-    expYear: { type: String },
-    channel: { type: String },
-    cardType: { type: String },
-    bank: { type: String },
-    countryCode: { type: String },
-    brand: { type: String },
-    currency: { type: String },
     paidAt: { type: Date },
-    user: { type: Schema.Types.ObjectId, ref: 'Vendor' }
+    user: { type: Schema.Types.ObjectId, ref: 'User' }
 });
 
 transactionSchema.pre('findOne', function (next) {

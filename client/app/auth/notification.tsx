@@ -62,7 +62,7 @@ const Notification = () => {
     };
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}}>
+        <SafeAreaView style={{flex: 1}}>
             <View style={styles.backBtnContainer}>
                 <Text/>
                 <Text

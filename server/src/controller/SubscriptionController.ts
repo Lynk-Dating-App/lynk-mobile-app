@@ -66,92 +66,92 @@ export default class SubscriptionController {
         return Promise.resolve(response);
     }
 
-    @TryCatch
-    @HasPermission([USER_PERMISSION])
-    public async premiumPurple_subscription (req: Request) {
-      const red_plan = await this.doPremiumPurple_subscription(req)
+    // @TryCatch
+    // @HasPermission([USER_PERMISSION])
+    // public async subscription (req: Request) {
+    //   const transation = await this.doSubscribe(req)
 
-      const response: HttpResponse<any> = {
-        code: HttpStatus.OK.code,
-        message: HttpStatus.OK.value,
-        result: red_plan,
-      };
+    //   const response: HttpResponse<any> = {
+    //     code: HttpStatus.OK.code,
+    //     message: HttpStatus.OK.value,
+    //     result: transation,
+    //   };
   
-      return Promise.resolve(response);
-    }
+    //   return Promise.resolve(response);
+    // }
 
-    private async doPremiumPurple_subscription(req: Request) {
-        //@ts-ignore
-        const userId = req.user._id
-        const { error, value } = Joi.object<IUserModel>({
-            planType: Joi.string().required().label("plan type")
-        }).validate(req.body);
-        if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+    // private async doSubscribe(req: Request) {
+    //     //@ts-ignore
+    //     const userId = req.user._id
+    //     const { error, value } = Joi.object<IUserModel>({
+    //         planType: Joi.string().required().label("plan type")
+    //     }).validate(req.body);
+    //     if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
 
-        const user = await datasources.userDAOService.findById(userId);
-        if(!user)
-            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+    //     const user = await datasources.userDAOService.findById(userId);
+    //     if(!user)
+    //         return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
 
-        const plan = await datasources.subscriptionDAOService.findByAny({ name: value.planType });
-        if(!plan)
-            return Promise.reject(CustomAPIError.response("Plan not found", HttpStatus.NOT_FOUND.code));
+    //     const plan = await datasources.subscriptionDAOService.findByAny({ name: value.planType });
+    //     if(!plan)
+    //         return Promise.reject(CustomAPIError.response("Plan not found", HttpStatus.NOT_FOUND.code));
 
-        const actualData = JSON.stringify(plan);
-        redisService.saveToken(PREMIUM_PURPLE_PLAN, actualData, 3600);
+    //     const actualData = JSON.stringify(plan);
+    //     redisService.saveToken("lynk_plan", actualData, 3600);
 
-        //initialize payment
-        const metadata = {
-            cancel_action: `${process.env.PAYMENT_GW_CB_URL}/transactions?status=cancelled`,
-        };
+    //     //initialize payment
+    //     const metadata = {
+    //         cancel_action: `${process.env.PAYMENT_GW_CB_URL}/transactions?status=cancelled`,
+    //     };
+        
+    //     axiosClient.defaults.baseURL = `${process.env.PAYMENT_GW_BASE_URL}`;
+    //     axiosClient.defaults.headers.common['Authorization'] = `Bearer ${process.env.PAYMENT_GW_SECRET_KEY}`;
+        
+    //     let endpoint = '/balance';
 
-        axiosClient.defaults.baseURL = `${process.env.PAYMENT_GW_BASE_URL}`;
-        axiosClient.defaults.headers.common['Authorization'] = `Bearer ${process.env.PAYMENT_GW_SECRET_KEY}`;
-    
-        let endpoint = '/balance';
+    //     const balanceResponse = await axiosClient.get(endpoint);
+    //     if (balanceResponse.data.data.balance === 0)
+    //     return Promise.reject(
+    //         CustomAPIError.response('Insufficient Balance. Please contact support.', HttpStatus.BAD_REQUEST.code),
+    //     );
+        
+    //     endpoint = '/transaction/initialize';
 
-        const balanceResponse = await axiosClient.get(endpoint);
-        if (balanceResponse.data.data.balance === 0)
-        return Promise.reject(
-            CustomAPIError.response('Insufficient Balance. Please contact support.', HttpStatus.BAD_REQUEST.code),
-        );
+    //     const callbackUrl = `${process.env.PAYMENT_GW_CB_URL}/`;
+    //     const amount = plan.price as number;
+    //     let serviceCharge = 0.015 * amount;
+        
+    //     if (amount >= 2500) {
+    //         serviceCharge = 0.015 * amount + 100;
+    //     }
 
-        endpoint = '/transaction/initialize';
+    //     if (serviceCharge >= 2000) serviceCharge = 2000;
 
-        const callbackUrl = `${process.env.PAYMENT_GW_CB_URL}/`;
-        const amount = plan.price as number;
-        let serviceCharge = 0.015 * amount;
+    //     const _amount = Math.round((serviceCharge + amount) * 100);
+ 
+    //     const initResponse = await axiosClient.post(`${endpoint}`, {
+    //         email: user.email,
+    //         amount: _amount,
+    //         callback_url: callbackUrl,
+    //         metadata,
+    //         channels: PAYMENT_CHANNELS,
+    //     });
 
-        if (amount >= 2500) {
-            serviceCharge = 0.015 * amount + 100;
-        }
+    //     const data = initResponse.data.data;
 
-        if (serviceCharge >= 2000) serviceCharge = 2000;
+    //     const txnValues: Partial<ITransactionModel> = {
+    //         reference: data.reference,
+    //         authorizationUrl: data.authorization_url,
+    //         type: 'Payment',
+    //         status: initResponse.data.message,
+    //         amount: plan.price as number,
+    //         user: user._id
+    //     };
 
-        const _amount = Math.round((serviceCharge + amount) * 100);
+    //     const transaction = await datasources.transactionDAOService.create(txnValues as ITransactionModel);
 
-        const initResponse = await axiosClient.post(`${endpoint}`, {
-            // email: user.email,
-            amount: _amount,
-            callback_url: callbackUrl,
-            metadata,
-            channels: PAYMENT_CHANNELS,
-        });
-
-        const data = initResponse.data.data;
-
-        const txnValues: Partial<ITransactionModel> = {
-            reference: data.reference,
-            authorizationUrl: data.authorization_url,
-            type: 'Payment',
-            status: initResponse.data.message,
-            amount: plan.price as number,
-            user: user._id
-        };
-
-        const transaction = await datasources.transactionDAOService.create(txnValues as ITransactionModel);
-
-        return transaction;
-    }
+    //     return transaction;
+    // }
 
     @TryCatch
     public async initTransactionCallback(req: Request) {
@@ -180,7 +180,7 @@ export default class SubscriptionController {
 
         const data = axiosResponse.data.data;
 
-        const redisDataPurple = await redisService.getToken(PREMIUM_PURPLE_PLAN);
+        const redisDataPurple = await redisService.getToken("lynk_plan");
 
         //for the purple monthly subscription
         if(redisDataPurple) {
@@ -189,17 +189,22 @@ export default class SubscriptionController {
             const { name, duration }: any = planData;
             const currentDate = new Date();
             const futureDate = new Date(currentDate);
-                
-            const updateValue = {
-                subscription: {
-                    plan: name,
-                    startDate: new Date(),
-                    endDate: futureDate.setMonth(futureDate.getMonth() + duration)
-                },
-                isExpired: false
-            }
 
-            await datasources.userDAOService.update({ _id: user }, updateValue);
+            if(name === 'premium') {
+                const updateValue = {
+                    subscription: {
+                        plan: name,
+                        startDate: new Date(),
+                        endDate: futureDate.setMonth(futureDate.getMonth() + duration)
+                    },
+                    isExpired: false,
+                    planType: name
+                }
+    
+                await datasources.userDAOService.update({ _id: user }, updateValue);
+            } else {
+                await datasources.userDAOService.update({ _id: user }, { planType: name });
+            }
         }
         
         const $transaction = {
@@ -223,7 +228,7 @@ export default class SubscriptionController {
             $transaction
         );
 
-        await redisService.deleteRedisKey(PREMIUM_PURPLE_PLAN);
+        await redisService.deleteRedisKey("lynk_plan");
 
         const response: HttpResponse<void> = {
             code: HttpStatus.OK.code,
@@ -232,6 +237,72 @@ export default class SubscriptionController {
 
         return Promise.resolve(response);
     };
+
+    @TryCatch
+    public async subscription(req: Request) {
+        //@ts-ignore
+        const userId = req.user._id
+
+        const { error, value } = Joi.object<any>({
+            amount: Joi.number().required().label('Amount'),
+            reference: Joi.string().required().label('Reference'),
+            status: Joi.string().required().label('status'),
+            message: Joi.string().required().label('message'),
+            planType: Joi.string().required().label('plan type'),
+        }).validate(req.body);
+        if (error) return Promise.reject(
+            CustomAPIError.response(
+                error.details[0].message, HttpStatus.BAD_REQUEST.code));
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response('User does not exist', HttpStatus.NOT_FOUND.code));
+
+        const plan = await datasources.subscriptionDAOService.findByAny({ name: value.planType });
+            if(!plan)
+                return Promise.reject(CustomAPIError.response("Plan not found", HttpStatus.NOT_FOUND.code));
+
+
+        const $transaction = {
+            reference: value.reference,
+            amount: value.amount,
+            status: value.status,
+            message: value.message,
+            type: `Payment for ${value.planType} plan`,
+            user: user._id,
+            paidAt: new Date()
+        };
+
+        const transaction = await datasources.transactionDAOService.create($transaction as ITransactionModel);
+
+        if(transaction) {
+            const currentDate = new Date();
+            const futureDate = new Date(currentDate);
+
+            if(plan.name === 'premium') {
+                const updateValue = {
+                    subscription: {
+                        plan: plan.name,
+                        startDate: new Date(),
+                        endDate: plan.duration !== null && futureDate.setMonth(futureDate.getMonth() + plan.duration)
+                    },
+                    isExpired: false,
+                    planType: plan.name
+                }
+    
+                await datasources.userDAOService.update({ _id: user }, updateValue);
+            } else {
+                await datasources.userDAOService.update({ _id: user }, { planType: plan.name });
+            }
+        }
+
+        const response: HttpResponse<ISubscriptionModel> = {
+            code: HttpStatus.OK.code,
+            message: "Transaction was successful"
+          };
+      
+        return Promise.resolve(response);
+    }
 
     @TryCatch
     public async updateTransaction(req: Request) {

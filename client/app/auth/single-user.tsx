@@ -1,21 +1,27 @@
-import { Dimensions, Image, ImageBackground, Modal, Platform, RefreshControl, StyleSheet, TouchableOpacity } from "react-native"
+import { ActivityIndicator, Dimensions, Image, ImageBackground, Modal, Platform, RefreshControl, StyleSheet, TouchableOpacity } from "react-native"
 import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
-import { COLORS, FONT, SIZES, icons, images } from "../../constants";
+import { COLORS, FONT, SIZES, icons } from "../../constants";
 import { BlurView } from "expo-blur";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { capitalizeEachWord, capitalizeFirstLetter, location_km, wordBreaker } from "../../Utils/Generic";
+import { capitalizeEachWord, capitalizeFirstLetter, characterBreaker, location_km, wordBreaker } from "../../Utils/Generic";
 import { useEffect, useState } from "react";
 import _ from 'lodash';
 import useAppSelector from "../../hook/useAppSelector";
 import useAppDispatch from "../../hook/useAppDispatch";
-import { getUserAction, likeUserAction, unLikeUserAction } from "../../store/actions/userAction";
-import { clearFavUserStatus, clearGetUserStatus, clearLikeStatus, clearUnLikeStatus, setFromUserId } from "../../store/reducers/userReducer";
+import { createChatAction, favUserAction, getUserAction, likeUserAction, unLikeFrmMatchAction, unLikeUserAction } from "../../store/actions/userAction";
+import { clearCreateChatStatus, clearFavUserStatus, clearGetUserStatus, clearLikeStatus, clearUnLikeStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setPhotoUri } from "../../store/reducers/userReducer";
 import Snackbar from "../../helpers/Snackbar";
 import useUser from "../../hook/useUser";
 import settings from "../../config/settings";
+import axiosClient from '../../config/axiosClient';
+import ReusableModal from "../../components/Modal/ReusableModal";
+import AppBtn from "../../components/common/button/AppBtn";
+import tw from 'twrnc';
+import { StatusBar } from "expo-status-bar";
 
 const { width, height } = Dimensions.get('window');
+const API_ROOT = settings.api.rest;
 
 const SingleUser = () => {
     const router = useRouter();
@@ -28,17 +34,15 @@ const SingleUser = () => {
     const [isError, setIsError] = useState<boolean>(false);
     const [success, setSuccess] = useState<string>('');
     const [isSuccess, setIsSuccess] = useState<boolean>(false);
-    const { fromUser } = useLocalSearchParams();
+    const [canChat, setCanChat] = useState<boolean>(false);
+    const [likeLoading, setLikeLoading] = useState<boolean>(false);
+    const { from } = useLocalSearchParams();
     const {user} = useUser();
+    const [openModal, setOpenModal] = useState<boolean>(false);
+    const [brkDesc, setBrkDesc] = useState<number>(100);
 
     const userReducer = useAppSelector(state => state.userReducer);
     const dispatch = useAppDispatch();
-
-    const imagesArray = [
-        {src: images.girl2}, {src: images.girl3},
-        {src: images.girl2}, {src: images.girl3},
-        {src: images.girl3}
-    ]
 
     const renderImage = (image: any, index: number) => (
         <TouchableOpacity
@@ -65,6 +69,41 @@ const SingleUser = () => {
           console.log('Open modal for image upload');
         }
     };
+
+    const handleChat = async () => {
+        dispatch(createChatAction({firstId: user?._id, secondId: userData?._id}))
+    }
+
+    const like = async () => {
+        let intervalId: NodeJS.Timeout;
+        setLikeLoading(true)
+        try {
+            const response = await axiosClient.put(`${API_ROOT}/like-user/${userData?._id}`);
+            if(response.data.code === 200) {
+                dispatch(setPhotoUri({photo: userData?.profileImageUrl, userId: userData?._id}))
+                setCanChat(response.data.result.likened)
+                setIsSuccess(true)
+                setSuccess(`Successfully liked ${capitalizeFirstLetter(userData?.firstName)}'s profile.`)
+                intervalId = setTimeout(() => {
+                    setIsSuccess(false)
+                    setSuccess('')
+                },6000)
+            }
+
+            setLikeLoading(false)
+        } catch (error) {
+            setIsError(true)
+            setError(error.response.data.message)
+            intervalId = setTimeout(() => {
+                setIsError(false)
+                setError('')
+            },6000)
+            setLikeLoading(false)
+        }
+
+        clearInterval(intervalId)
+        
+    }
 
     useEffect(() => {
         const imgWithDimensions = userData?.gallery.map((img: any, index: number) => ({
@@ -108,11 +147,34 @@ const SingleUser = () => {
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
-        if(userReducer.unlikeStatus === 'completed') {
+        if(userReducer.unlikeUserFrmMatchStatus === 'completed') {
           dispatch(setFromUserId(''))
           router.push('/(tabs)/one')
+        } else if(userReducer.unlikeUserFrmMatchStatus === 'failed') {
+            setIsError(true)
+            setError(userReducer.unlikeUserFrmMatchError)
+            intervalId = setTimeout(() => {
+                setIsError(false)
+                setError('')
+            },6000)
+            dispatch(clearUnLikeUserFrmMatchStatus())
+        }
+
+        return () => {
+            clearInterval(intervalId);
+        }
+    },[userReducer.unlikeUserFrmMatchStatus]);
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+
+        if(userReducer.unlikeStatus === 'completed') {
+          dispatch(setFromUserId(''))
+          router.back()
+          setOpenModal(false)
         } else if(userReducer.unlikeStatus === 'failed') {
             setIsError(true)
+            setOpenModal(false)
             setError(userReducer.unlikeError)
             intervalId = setTimeout(() => {
                 setIsError(false)
@@ -130,6 +192,7 @@ const SingleUser = () => {
         let intervalId: NodeJS.Timeout;
 
         if(userReducer.likeStatus === 'completed') {
+            dispatch(setPhotoUri({photo: userData?.profileImageUrl, userId: userData?._id}))
             setIsSuccess(true)
             setSuccess(`Successfully liked ${capitalizeFirstLetter(userData?.firstName)}'s profile.`)
             intervalId = setTimeout(() => {
@@ -139,7 +202,7 @@ const SingleUser = () => {
             dispatch(clearLikeStatus())
         } else if(userReducer.likeStatus === 'failed') {
             setIsError(true)
-            setError(userReducer.unlikeError)
+            setError(userReducer.likeError)
             intervalId = setTimeout(() => {
                 setIsError(false)
                 setError('')
@@ -178,11 +241,40 @@ const SingleUser = () => {
         }
     },[userReducer.favUserStatus]);
 
+    useEffect(() => {
+        if(userData?.likedUsers?.includes(user?._id) && user?.likedUsers?.includes(userData?._id)) {
+            setCanChat(true)
+        }
+    },[userData, user]);
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+
+        if(userReducer.createChatStatus === 'completed') {
+            router.push('/(tabs)/three')
+            dispatch(clearCreateChatStatus())
+        } else if(userReducer.createChatStatus === 'failed') {
+            setIsError(true)
+            setError(userReducer.createChatError)
+
+            intervalId = setTimeout(() => {
+                setIsError(false)
+                setError('')
+            },6000)
+            dispatch(clearCreateChatStatus())
+        }
+
+        return () => {
+            clearInterval(intervalId);
+        }
+    },[userReducer.createChatStatus]);
+
     return (
         <SafeAreaView style={{flex: 1}}>
             <ScrollView
+                showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.container}
-                refreshControl={<RefreshControl refreshing={false} onRefresh={() => console.log('refresh')}/>}
+                refreshControl={<RefreshControl refreshing={userReducer.getUserStatus === 'loading'} onRefresh={() => getUserAction(userReducer.fromUserId)}/>}
             >
                 <ImageBackground
                     source={{uri: `${settings.api.baseURL}/${userData?.profileImageUrl}`}}
@@ -210,45 +302,62 @@ const SingleUser = () => {
                 <View style={styles.container2}>
                     <View style={styles.likesContainer}>
                         <TouchableOpacity
-                            onPress={() => dispatch(unLikeUserAction(userData?._id))}
+                            onPress={() => {
+                                from === 'one-screen' && dispatch(unLikeFrmMatchAction(userData?._id))
+                                from === 'like-screen' && setOpenModal(true)
+                            }}
                             style={styles.dislikeBtn}
                         >
-                            <FontAwesome
+                            {userReducer.unlikeUserFrmMatchStatus !== 'loading' && (<FontAwesome
                                 name="close"
                                 size={30}
                                 color={'red'}
-                            />
+                            />)}
+                            {userReducer.unlikeUserFrmMatchStatus === 'loading' && (<ActivityIndicator size={'small'} color={COLORS.primary}/>)}
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={() => dispatch(likeUserAction(userData?._id))}
+                            onPress={() => dispatch(likeUserAction(userData._id))}
                             style={styles.likeBtn}
                         >
-                            <FontAwesome
+                            {!likeLoading && (<FontAwesome
                                 name="heart"
                                 size={60}
                                 color={'white'}
-                            />
+                            />)}
+                            {likeLoading && (<ActivityIndicator size={'large'} color={'white'}/>)}
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={() => console.log('up')}
+                            onPress={() => dispatch(favUserAction(userData?._id))}
                             style={styles.dislikeBtn}
                         >
-                            <FontAwesome
+                            {userReducer.favUserStatus !== 'loading' && (<FontAwesome
                                 name="star"
                                 size={30}
                                 color={'green'}
-                            />
+                            />)}
+                            {userReducer.favUserStatus === 'loading' && (<ActivityIndicator size={'small'} color={COLORS.primary}/>)}
                         </TouchableOpacity>
                     </View>
                     <View style={styles.section1}>
                         <View style={{display: 'flex', flexDirection: 'column'}}>
-                            <Text
-                                style={{
-                                    color: 'black',
-                                    fontFamily: FONT.bold,
-                                    fontSize: SIZES.xLarge
-                                }}
-                            >{capitalizeFirstLetter(userData?.firstName)}, {userData?.age}</Text>
+                            <View style={tw`flex flex-row`}>
+                                <Text
+                                    style={{
+                                        color: 'black',
+                                        fontFamily: FONT.bold,
+                                        fontSize: SIZES.xLarge
+                                    }}
+                                >{capitalizeFirstLetter(userData?.firstName)}, {userData?.age}</Text>
+                                <View
+                                    style={{
+                                        width: 10,
+                                        height: 10,
+                                        borderRadius: 50,
+                                        backgroundColor: userData?.planType === "premium" ? COLORS.primary : userData?.planType
+                                    }}
+                                />
+                            </View>
+                            
                             <Text
                                 style={{
                                     fontFamily: FONT.medium,
@@ -257,16 +366,52 @@ const SingleUser = () => {
                                 }}
                             >{capitalizeFirstLetter(userData?.jobType)}</Text>
                         </View>
-                        <TouchableOpacity onPress={() => console.log('chat')}
+                        <TouchableOpacity onPress={handleChat}
                             style={styles.sendBtn}
+                            disabled={!canChat}
                         >
-                            <FontAwesome
+                            {userReducer.createChatStatus !== 'loading' && (<FontAwesome
                                 name='send'
                                 size={20}
-                                color={COLORS.primary}
-                            />
+                                color={!canChat ? COLORS.gray : COLORS.primary}
+                            />)}
+                            {userReducer.createChatStatus === 'loading' && <ActivityIndicator color={COLORS.primary}/>}
                         </TouchableOpacity>
                     </View>
+
+                    <View style={styles.section3}>
+                        <Text
+                            style={{
+                            fontFamily: FONT.bold,
+                            fontSize: SIZES.medium
+                            }}
+                        >
+                            Job Description
+                        </Text>
+                        
+                        <Text
+                            style={{
+                                color: COLORS.tertiary,
+                                fontFamily: FONT.medium,
+                                fontSize: SIZES.small
+                            }}
+                        >
+                            {characterBreaker(capitalizeFirstLetter(userData?.jobDescription), brkDesc)}{brkDesc < userData?.jobDescription.length ? '...' : ''}
+                        </Text>
+                        {brkDesc < userData?.jobDescription.length && (<TouchableOpacity 
+                            onPress={() => setBrkDesc(userData?.jobDescription.length)}
+                        >
+                        <Text
+                            style={{
+                                fontFamily: FONT.extraBold,
+                                fontSize: 14,
+                                color: COLORS.primary,
+                                marginTop: 8
+                            }}
+                        >Read more</Text>
+                        </TouchableOpacity>)}
+                    </View>
+
                     <View style={styles.section2}>
                         <View style={{display: 'flex', flexDirection: 'column'}}>
                             <Text
@@ -471,6 +616,121 @@ const SingleUser = () => {
                 onHide={() => setIsSuccess(false)}
                 type='success'
             />
+            <ReusableModal
+                modalVisible={openModal}
+                setModalVisible={setOpenModal}
+                style={{
+                    backgroundColor: 'white',
+                    padding: 10,
+                    borderRadius: 20,
+                    width: '90%',
+                    height: '50%'
+                }}
+                animationViewStyle={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+                modalHeightKeyboardClose={'50%'}
+                modalHeightKeyboardOpen={Platform.select({ios: '50%', android: '55%'})}
+            >
+                <View
+                    style={{
+                        backgroundColor: 'transparent',
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        alignItems: 'flex-end',
+                        marginTop: 10, marginRight: 10
+                    }}
+                >
+                    <TouchableOpacity
+                        onPress={() => {
+                            setOpenModal(false)
+                        }}
+                    >
+                        <FontAwesome
+                            name="close"
+                            size={20}
+                            color={COLORS.primary}
+                        />
+                    </TouchableOpacity>
+                </View>
+                <View
+                    style={{
+                        backgroundColor: 'transparent',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flex: 1,
+                    }}
+                >
+                    <Text 
+                        style={{
+                            color: 'black',
+                            fontFamily: FONT.regular,
+                            fontSize: SIZES.medium,
+                            alignSelf: 'center',
+                            textAlign: 'center'
+                        }}
+                    >
+                        {`You are about to unlike ${capitalizeFirstLetter(userData?.firstName)}'s profile. Please note that this action is irreversible, and once done, you won't be able to restore the previous state.`}
+                    </Text>
+                    <View 
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            flexDirection: 'row',
+                            gap: 10, marginTop: 30
+                        }}
+                    >
+                        <AppBtn
+                            handlePress={() => setOpenModal(false)}
+                            isText={true}
+                            btnTitle={'Cancel'} 
+                            btnWidth={'40%'} 
+                            btnHeight={60} 
+                            btnBgColor={COLORS.primary}
+                            btnTextStyle={{
+                                fontSize: SIZES.medium,
+                                fontFamily: FONT.bold
+                            }}
+                            btnStyle={{
+                                marginBottom: 10,
+                                marginTop: 30,
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
+                        />
+                        <AppBtn
+                            handlePress={() => dispatch(unLikeUserAction(userData?._id))}
+                            isText={true}
+                            btnTitle={'Okay'} 
+                            btnWidth={'40%'} 
+                            btnHeight={60} 
+                            btnBgColor={COLORS.primary}
+                            btnTextStyle={{
+                                fontSize: SIZES.medium,
+                                fontFamily: FONT.bold
+                            }}
+                            btnStyle={{
+                                marginBottom: 10,
+                                marginTop: 30,
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
+                            spinner={userReducer.unlikeStatus === 'loading'}
+                            spinnerColor='white'
+                            spinnerStyle={{
+                                marginLeft: 10
+                            }}
+                        />
+                    </View>
+                </View>
+            </ReusableModal>
         </SafeAreaView>
     )
 }
@@ -576,14 +836,18 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         borderWidth: 0.3,
         borderColor: COLORS.gray2,
-        width: 70,
+        minWidth: 70,
+        width: 'auto',
+        maxWidth: 120,
         height: 30,
-        backgroundColor: COLORS.lightPrimary
+        backgroundColor: COLORS.lightPrimary,
+        paddingHorizontal: 4
     },
     container: {
         display: 'flex',
         height: 'auto',
-        width: width
+        width: width,
+        // marginTop: Platform.select({android: 30, ios: 0})
     },
     backButton: {
         width: 35,
@@ -596,7 +860,7 @@ const styles = StyleSheet.create({
         marginTop: Platform.select({android: 50, ios: 20}),
         marginLeft: 20,
         borderWidth: 0.3,
-        borderColor: 'white'
+        borderColor: 'white',
     },
     container2: {
         width: width,

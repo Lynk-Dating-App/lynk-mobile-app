@@ -16,8 +16,8 @@ export const updatePlanHandler = async (req: Request, res: Response) =>  {
     res.status(response.code).json(response);
 };
 
-export const premiumPurpleSubscriptionHandler = authenticateRouteWrapper(async (req, res) =>  {
-    const response = await subscriptionController.premiumPurple_subscription(req);
+export const subscriptionHandler = authenticateRouteWrapper(async (req, res) =>  {
+    const response = await subscriptionController.subscription(req);
 
     res.status(response.code).json(response);
 });

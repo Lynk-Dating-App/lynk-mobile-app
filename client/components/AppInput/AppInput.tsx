@@ -14,7 +14,7 @@ interface IAppInputProps {
     placeholderTop: string;
     hasPLaceHolder: boolean;
     placeholder: string;
-    value: any;
+    value?: any;
     onChangeText?: any;
     className?: any;
     type?: string;
@@ -37,18 +37,22 @@ interface IAppInputProps {
     headerStyle?: any;
     errorTextStyle?: any;
     showError?: boolean;
+    onSubmitEditing?: any;
+    showPassIconStyle?: any;
 }
 
 interface IPhoneProps {
   setFormattedValue: any,
   containerStyle?: any,
-  textContainerStyle?: any
+  textContainerStyle?: any,
+  formattedValue?: string
 }
 
 interface SelectProps {
   onValueChange: any;
   value: any;
   data: any;
+  style?: any;
   hasPLaceHolder: boolean,
   placeholderTop: string,
   headerStyle?: any,
@@ -77,7 +81,9 @@ const AppInput = ({
   secureTextEntry = false,
   touched, error,
   headerStyle, errorTextStyle,
-  showError = true
+  showError = true,
+  onSubmitEditing,
+  showPassIconStyle
 }: IAppInputProps) => {
 
   const [pwdfield, setPwdfield] = useState(false);
@@ -112,13 +118,14 @@ const AppInput = ({
           maxLength={maxLength}
           returnKeyType={returnKeyType}
           secureTextEntry={pwdfield ? true : false}
+          onSubmitEditing={onSubmitEditing}
         />
           {secureTextEntry && (
             <TouchableOpacity onPress={(e) => togglePassword(e, !pwdfield)}
-              style={{
+              style={[{
                 position: 'absolute', 
                 alignSelf: 'flex-end'
-              }}
+              }, showPassIconStyle]}
             >
               {pwdfield ? (
                 <FontAwesome
@@ -181,7 +188,8 @@ export const Select = ({
   selectError,
   showSelectError = true,
   selectWidth = 90/100 * width,
-  placeholderLabel
+  placeholderLabel,
+  style
 }: SelectProps) => {
 
   const placeholder = {
@@ -191,10 +199,10 @@ export const Select = ({
   };
   return (
     <View
-      style={{
+      style={[{
         backgroundColor: 'transparent',
         paddingLeft: 5
-      }}
+      }, style]}
     >
       {hasPLaceHolder && <InputHeader text={placeholderTop} style={headerStyle} />}
       <RNPickerSelect
@@ -211,7 +219,8 @@ export const Select = ({
             borderColor: selectError ? 'red' : COLORS.gray2,
             borderRadius: 15,
             paddingHorizontal: 10,
-            width: selectWidth
+            width: selectWidth,
+            backgroundColor: "#fafafc"
           },
           inputIOS: {
             height: 55,
@@ -220,7 +229,8 @@ export const Select = ({
             borderColor: selectError ? 'red' : COLORS.gray2,
             borderRadius: 15,
             paddingHorizontal: 10,
-            width: selectWidth
+            width: selectWidth,
+            backgroundColor: "#fafafc"
           }
         }}
 
@@ -244,7 +254,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.gray2,
     borderRadius: 15,
     paddingHorizontal: 10,
-    marginRight: -10
+    marginRight: -10,
+    backgroundColor: '#fafafc'
   },
   container: {
     backgroundColor: 'transparent',

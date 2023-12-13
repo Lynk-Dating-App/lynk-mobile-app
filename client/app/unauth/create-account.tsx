@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Dimensions, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { View, Text } from '../../components/Themed';
+import { Alert, Button, Dimensions, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, SafeAreaView, ScrollView } from '../../components/Themed';
 import AppBtn from '../../components/common/button/AppBtn';
 import { useRouter } from 'expo-router';
 import { COLORS, FONT, SIZES, icons } from '../../constants';
@@ -64,7 +64,7 @@ const CreateAccount = () => {
     },[authReducer.userExistStatus]);
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}}>
+        <SafeAreaView style={{flex: 1}}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
@@ -255,11 +255,7 @@ const CreateAccount = () => {
 };
 
 const styles = StyleSheet.create({
-    containerKey: {
-        flex: 1,
-    },
     container: {
-        backgroundColor: 'transparent',
         width: width,
         display: 'flex',
         justifyContent: 'center',

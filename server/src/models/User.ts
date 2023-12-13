@@ -17,7 +17,7 @@ interface IUser {
   passwordResetCode: string;
   createdAt: Date;
   updatedAt: Date;
-  previousPassword: string;
+  currentPassword: string;
   googleId: string | null;
   instagramId: string | null;
   facebookId: string | null;
@@ -35,17 +35,17 @@ interface IUser {
   jobDescription: string | null,
   about: string | null,
   height: string | null,
-  age: number,
+  age: string,
   state: string,
   preference: {
     pAbout: string | null,
     pMinAge: string | null,
     pMaxAge: string | null,
-    pState: string | null,
+    // pState: string | null,
     pMinHeight: string | null,
     pMaxHeight: string | null,
     pGender: string | null,
-  }
+  },
   level: number,
   videoUrl: string | null,
   videoUploadedAt: Date | null
@@ -66,7 +66,19 @@ interface IUser {
   build: string | null,
   interests: string[],
   dob: Date,
-  publicKey: string | null
+  publicKey: string | null,
+  education: string | null,
+  religion: string | null,
+  religiousInvolvement: string | null,
+  relationshipPreference: string | null,
+  personalityTemperament: string | null,
+  officeName: string | null,
+  officeAddress: string | null,
+  socialHandles: [{
+    handle: string,
+    social: string
+  }] | null,
+  sexualPreference: string | null
 }
 
 const userSchema = new Schema<IUser>({
@@ -101,13 +113,13 @@ const userSchema = new Schema<IUser>({
   jobDescription: { type: String },
   about: { type: String, allowNull: true },
   height: { type: String, allowNull: true },
-  age: { type: Number },
+  age: { type: String },
   state: { type: String },
   preference: {
     pAbout: { type: String, allowNull: true },
-    pMinAge: { type: Number, allowNull: true },
-    pMaxAge: { type: Number, allowNull: true },
-    pState: { type: String, allowNull: true },
+    pMinAge: { type: String, allowNull: true },
+    pMaxAge: { type: String, allowNull: true },
+    // pState: { type: String, allowNull: true },
     pMinHeight: { type: String, allowNull: true },
     pMaxHeight: { type: String, allowNull: true },
     pGender: { type: String, allowNull: true }
@@ -135,6 +147,18 @@ const userSchema = new Schema<IUser>({
   build: { type: String, allowNull: true },
   dob: { type: Date },
   publicKey: { type: String, allowNull: true },
+  education: {type: String, allowNull: true},
+  religion: {type: String, allowNull: true},
+  religiousInvolvement: {type: String, allowNull: true},
+  relationshipPreference: {type: String, allowNull: true},
+  personalityTemperament: {type: String, allowNull: true},
+  officeName: {type: String, allowNull: true},
+  officeAddress: {type: String, allowNull: true},
+  socialHandles: [{
+    handle: {type: String, allowNull: true},
+    social: {type: String, allowNull: true}
+  }],
+  sexualPreference: {type: String, allowNull: true}
 });
 
 userSchema.index({ location: '2dsphere' });
@@ -145,14 +169,14 @@ const User = mongoose.model<IUserModel>('User', userSchema as any);
 
 export const $changePassword: Joi.SchemaMap = {
   password: Joi.string()
-    .regex(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,20}$/)
+    .regex(/^(?=.*\d)(?=.*[a-z])(?=.*\W)(?=.*[A-Z])(?=.*[a-zA-Z]).{8,20}$/)
     .messages({
       'string.pattern.base': `Password does not meet requirements.`,
     })
     .required()
     .label('password'),
   confirmPassword: Joi.ref("password"),
-  previousPassword: Joi.string().required().label('previous password')
+  currentPassword: Joi.string().required().label('previous password')
 };
 
 export const $resetPassword: Joi.SchemaMap = {
@@ -204,16 +228,22 @@ export const $saveUserSchema: Joi.SchemaMap = {
 export const $updateUserSchema: Joi.SchemaMap = {
   firstName: Joi.string().label('first name'),
   lastName: Joi.string().label('last name'),
+  about: Joi.string().label('about'),
+  height: Joi.string().label('height'),
+  state: Joi.string().label('state'),
+  age: Joi.string().label('age'),
+  address: Joi.string().label('address'),
+  officeName: Joi.string().label('officeName'),
+  officeAddress: Joi.string().label('officeAddress'),
+  religion: Joi.string().label('religion'),
+  religiousInvolvement: Joi.string().label('religiousInvolvement'),
+  interests: Joi.any().label('interests'),
+  sexualPreference: Joi.string().label('sexualPreference'),
+  relationshipPreference: Joi.string().label('relationshipPreference'),
+  personalityTemperament: Joi.string().label('personalityTemperament'),
+  education: Joi.string().label('education'),
   email: Joi.string().label('email'),
-  about: Joi.string().required().label('about'),
-  height: Joi.string().required().label('height'),
-  profileImageUrl: Joi.string().label('profile image'),
-  phone: Joi.string().label('phone'),
-  jobType: Joi.string().required().label('job type'),
-  jobDescription: Joi.string().required().label('job description'),
-  state: Joi.string().required().label('state'),
-  age: Joi.string().required().label('age'),
-  address: Joi.string().label('address')
+  phone: Joi.string().label('phone')
 };
 
 export const $updateJobDescription: Joi.SchemaMap = {

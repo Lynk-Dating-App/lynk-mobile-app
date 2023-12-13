@@ -6,19 +6,18 @@ import {
   Dimensions, Image, 
   Platform, 
   RefreshControl, 
-  ScrollView, StyleSheet, 
+  StyleSheet, 
   TouchableOpacity 
 } from 'react-native';
-import { Text, View } from '../../components/Themed';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { getTokenFromSecureStore, removeTokenFromSecureStore } from '../../components/ExpoStore/SecureStore';
+import { SafeAreaView, ScrollView, Text, View } from '../../components/Themed';
+import { getTokenFromSecureStore, removeTokenFromSecureStore, saveTokenToSecureStore } from '../../components/ExpoStore/SecureStore';
 import settings from '../../config/settings';
 import { router, useFocusEffect } from 'expo-router';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
 import { clearSignInStatus } from '../../store/reducers/authReducer';
 import * as Location from 'expo-location';
-import { COLORS, FONT, SIZES, icons, images } from '../../constants';
+import { COLORS, FONT, SIZES, icons } from '../../constants';
 import ImageSwiper from '../../components/ImageSwiper/ImageSwiper';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import ReusableModal from '../../components/Modal/ReusableModal';
@@ -30,15 +29,20 @@ import useMatch from '../../hook/useMatch';
 import { decode as base64Decode } from 'base-64';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
-import { getMatchesAction } from '../../store/actions/userAction';
+import { getMatchesAction, getUserNotificationsAction } from '../../store/actions/userAction';
 import axiosClient from '../../config/axiosClient';
 import socket from '../../config/socket';
-import { clearLikeStatus, clearUnLikeStatus, setFromUserId } from '../../store/reducers/userReducer';
+import { clearFavUserStatus, clearGetAllUserNotificationStatus, clearLikeStatus, clearUnLikeStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setOnlineUsers } from '../../store/reducers/userReducer';
 import * as Notifications from 'expo-notifications';
+import Snackbar from '../../helpers/Snackbar';
+import { StatusBar } from 'expo-status-bar';
+import { retrieveData, storeData } from '../../components/LocalStorage/LocalStorage';
+import tw from 'twrnc';
+import { INotification } from '@app-models';
 //@ts-ignore
-// import {BACKGROUND_FETCH_TASK} from '@env';
-const API_ROOT = settings.api.rest;
+import { BIOMETRIC_LOGIN_KEY } from '@env';
 
+const API_ROOT = settings.api.rest;
 const { height, width } = Dimensions.get('window');
 
 interface Match {
@@ -52,6 +56,7 @@ interface Match {
   distance: number;
   userId: string;
   state: string;
+  profileVisibility: boolean;
 }
 
 interface IFilter {
@@ -78,7 +83,7 @@ const requestPermissions = async () => {
 
       // Register the combined background task
       await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-        minimumInterval: 900, // 15 minutes, adjust as needed
+        minimumInterval: 300, // 5 minutes, adjust as needed
         stopOnTerminate: false,
         startOnBoot: true,
       });
@@ -117,22 +122,26 @@ TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
   }
   if (data) {
     const { locations }: any = data;
-    console.log('Background location:', locations[0].coords.latitude);
+    storeData('lastLocation', JSON.stringify(locations))
+    console.log('Background location:', locations[0].coords.latitude, locations[0].coords.longitude);
     // Perform actions with the locations captured in the background
   }
 });
 
-TaskManager.defineTask(BACKGROUND_FETCH_TASK, async ({ data, error }) => {
+TaskManager.defineTask(BACKGROUND_FETCH_TASK, async ({ error }) => {
   if (error) {
     console.error('Background fetch task error:', error);
     return;
   }
+  
+  const storedLocationString = await retrieveData('lastLocation') 
+  if(storedLocationString) {
+    const storedLocation = JSON.parse(storedLocationString)
+    console.log(storedLocation, 'stored locations')
 
-  if(data) {
-    const { locations }: any = data;
     await axiosClient.put(`${API_ROOT}/update-user-location`, {
-      latitude: locations[0].coords.latitude,
-      longitude: locations[0].coords.longitude
+      latitude: storedLocation[0].coords.latitude,
+      longitude: storedLocation[0].coords.longitude
     });
   }
 
@@ -161,6 +170,9 @@ const TabOneScreen = () => {
   const responseListener = useRef(null);
   const appState = useRef(AppState.currentState);
   const [appStateVisible, setAppStateVisible] = useState(appState.current);
+  const [error, setError] = useState<string>('');
+  const [isError, setIsError] = useState<boolean>(false);
+  const [notifications, setNotifications] = useState<INotification[]>([]);
 
   const dispatch = useAppDispatch();
   const authReducer = useAppSelector(state => state.authReducer);
@@ -291,7 +303,8 @@ const TabOneScreen = () => {
         image: match.profileImageUrl,
         distance: +match.distance,
         gender: match.gender,
-        state: match.state
+        state: match.state,
+        profileVisibility: match.profileVisibility
       };
     });
 
@@ -367,7 +380,7 @@ const TabOneScreen = () => {
 
   useEffect(() => {
     socket.on('likeDislike', (data) => {
-      showAlert(data.message);
+      // showAlert(data.message);
       // appStateVisible === 'background' || appStateVisible === 'inactive' && 
       schedulePushNotification(data);
     });
@@ -377,16 +390,27 @@ const TabOneScreen = () => {
     };  
   }, [socket.connected]);
 
-  const showAlert = (message: string) => {
-    alert(message);
-  };
+  useEffect(() => {
+    socket.on('getOnlineUsers', (data) => {
+      dispatch(setOnlineUsers(data))
+    });
+
+    return () => {
+      socket.off('getOnlineUsers');
+    }; 
+  },[socket.connected]);
+
+  // const showAlert = (message: string) => {
+  //   alert(message);
+  // };
   
   const schedulePushNotification = async (data: any) => {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Someone liked your profile.",
+        title: "Lynk",
         body: data.message,
-        data: data
+        data: data,
+        sound: 'default'
       },
       trigger: { seconds: 2 },
     });
@@ -398,7 +422,7 @@ const TabOneScreen = () => {
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      router.push({pathname: '/auth/single-user', params: {fromUser: 'user-liked'}});
+      router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}});
     });
 
     return () => {
@@ -425,27 +449,139 @@ const TabOneScreen = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    if(userReducer.unlikeUserFrmMatchStatus === 'failed') {
+      setIsError(true)
+      setError(userReducer.unlikeUserFrmMatchError)
+      intervalId = setTimeout(() => {
+        setIsError(false)
+        setError('')
+      },6000)
+      dispatch(clearUnLikeUserFrmMatchStatus())
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    }
+  },[userReducer.unlikeUserFrmMatchStatus]);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    if(userReducer.favUserStatus === 'failed') {
+      setIsError(true)
+      setError(userReducer.favUserError)
+      intervalId = setTimeout(() => {
+          setIsError(false)
+          setError('')
+      },6000)
+      dispatch(clearFavUserStatus())
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    }
+  },[userReducer.favUserStatus]);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    if(userReducer.likeStatus === 'failed') {
+      setIsError(true)
+      setError(userReducer.likeError)
+      intervalId = setTimeout(() => {
+          setIsError(false)
+          setError('')
+      },6000)
+      dispatch(clearLikeStatus())
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    }
+  },[userReducer.likeStatus]);
+
+  useEffect(() => {
+    dispatch(getUserNotificationsAction())
+  },[])
+
+  useEffect(() => {
+    if(userReducer.getAllUserNotificationStatus === 'completed') {
+      const notifications = userReducer.notifications.filter(notification => notification.status === false);
+      const sorted = notifications.sort((a: any, b: any) => b.dateCreated - a.dateCreated);
+      setNotifications(sorted)
+      dispatch(clearGetAllUserNotificationStatus())
+    } else if(userReducer.getAllUserNotificationStatus === 'failed') {
+      dispatch(clearGetAllUserNotificationStatus())
+    }
+  },[userReducer.getAllUserNotificationStatus]);
+
+  useEffect(() => {
+
+    const checkToken = async () => {
+      const id = await getTokenFromSecureStore(BIOMETRIC_LOGIN_KEY);
+      console.log(id, 'id')
+      if(id !== null && id !== userReducer.loggedInuser?._id) {
+        saveTokenToSecureStore(BIOMETRIC_LOGIN_KEY, userReducer.loggedInuser?._id)
+      }
+    }
+    
+    checkToken()
+  },[userReducer.loggedInuser]);
+
   return (
     <SafeAreaView style={{flex: 1}}>
       <View style={styles.containerTop}>
         <Text style={styles.title}>
           Discovery
-          <Button title='logout' onPress={handleLogout}/>
-          <Button title='user' onPress={() => router.push('/auth/single-user')}/>
         </Text>
-        {!modalVisible && (<TouchableOpacity
-          onPress={() => 
-            setModalVisible(true)
-          }
+        <View
+          style={tw`flex flex-row justify-center items-center gap-5`}
         >
-          <Image
-            source={icons.btn_filter}
-            style={{
-              width: 35,
-              height: 35
-            }}
-          />
-        </TouchableOpacity>)}
+          <TouchableOpacity
+            onPress={() => router.push('/auth/notifications')}
+            style={{ marginTop: Platform.select({android: 20, ios: 10}) }}
+          >
+            <FontAwesome
+              name='bell'
+              size={25}
+              color={COLORS.primary}
+            />
+            {notifications.length !== 0 && (<View
+              style={[{
+                width: 20,
+                height: 20,
+                backgroundColor: 'red',
+                borderRadius: 50,
+                position: 'absolute',
+                marginLeft: 15
+              }, tw`flex justify-center items-center`]}
+            >
+              <Text
+                style={{
+                  fontFamily: FONT.bold,
+                  color: 'white',
+                  fontSize: SIZES.small
+                }}
+              >{notifications.length > 9 ? '9+' : notifications.length}</Text>
+            </View>)}
+          </TouchableOpacity>
+
+          {!modalVisible && (<TouchableOpacity style={{marginTop: Platform.select({android: 20, ios: 10})}}
+            onPress={() => 
+              setModalVisible(true)
+            }
+          >
+            <Image
+              source={icons.btn_filter}
+              style={{
+                width: 35,
+                height: 35
+              }}
+            />
+          </TouchableOpacity>)}
+          
+        </View>
+        
         {modalVisible && (<ReusableModal
             modalVisible={modalVisible}
             setModalVisible={setModalVisible}
@@ -455,7 +591,7 @@ const TabOneScreen = () => {
               borderTopStartRadius: 30,
               borderTopEndRadius: 30,
               width: '100%',
-              height: Platform.select({android: '65%', ios: '80%'})
+              height: "auto"
             }}
             animationViewStyle={{
               flex: 1,
@@ -711,18 +847,32 @@ const TabOneScreen = () => {
           </View>
         </View>
       </ScrollView>
+      <Snackbar
+        isVisible={isError} 
+        message={error}
+        onHide={() => setIsError(false)}
+        type='error'
+      />
+      <StatusBar style='dark'/>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  dropdown: {
+    height: 50,
+    borderColor: 'gray',
+    borderWidth: 0.5,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   imgContainer: {
-    height: height,
+    height: height
   },
   dislikeBtn: {
     width: 60,
@@ -759,7 +909,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: SIZES.xxLarge,
     fontFamily: FONT.extraBold,
-    marginVertical: 10
+    marginVertical: 10,
+    marginTop: Platform.select({android: 30, ios: 0})
   },
   separator: {
     marginVertical: 30,

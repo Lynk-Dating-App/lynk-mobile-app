@@ -49,7 +49,7 @@ const About = () => {
             ...values,
             ...data,
         }
-        console.log(payload, 'load')
+ 
         dispatch(updateProfileDetailAction(payload))
     }
 
@@ -95,14 +95,13 @@ const About = () => {
     },[authReducer.updateProfileDetailStatus]);
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}}>
+        <SafeAreaView style={{flex: 1}}>
             <KeyboardAvoidingView
                 style={styles.containerKey}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <ScrollView showsVerticalScrollIndicator={false}
                     style={{
-                        backgroundColor: 'transparent',
                         paddingHorizontal: 20
                     }}
                 >

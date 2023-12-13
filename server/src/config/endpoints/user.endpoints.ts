@@ -43,14 +43,24 @@ import {
     updateUserProfileImageHandler,
     unLikeUserFromMatchHandler,
     favouritesHandler,
-    getLoggedInUserHandler
+    getLoggedInUserHandler,
+    getUsersWithIdsHandler,
+    getMatchAndLikedByUsersHandler,
+    createChatHandler,
+    findUserChatsHandler,
+    findChatHandler,
+    createChatMessageHandler,
+    getChatMessagesHandler,
+    fetchFavUsersHandler,
+    getSingleNotificationHandler,
+    updateNotificationHandler
 } from '../../routes/userRoute';
 
 const userEndpoints: RouteEndpoints = [
     {
         name: 'update-user',
         method: 'put',
-        path: '/user-update/:userId',
+        path: '/user-update',
         handler: updateUserHandler
     },
     {
@@ -92,7 +102,7 @@ const userEndpoints: RouteEndpoints = [
     {
         name: 'change user password',
         method: 'put',
-        path: '/change-user-password/:userId',
+        path: '/change-user-password',
         handler: changeUserPasswordHandler
     },
     {
@@ -118,6 +128,18 @@ const userEndpoints: RouteEndpoints = [
         method: 'get',
         path: '/users',
         handler: getUsersHandler
+    },
+    {
+        name: 'fetch users with ids',
+        method: 'post',
+        path: '/users-with-ids',
+        handler: getUsersWithIdsHandler
+    },
+    {
+        name: 'fetch matched and liked users',
+        method: 'get',
+        path: '/users-matched-liked-users/:userId',
+        handler: getMatchAndLikedByUsersHandler
     },
     {
         name: 'get user',
@@ -270,6 +292,18 @@ const userEndpoints: RouteEndpoints = [
         handler: deleteNotificationsHandler
     },
     {
+        name: 'get single notification',
+        method: 'get',
+        path: '/get-single-notification/:notificationId',
+        handler: getSingleNotificationHandler
+    },
+    {
+        name: 'update notification',
+        method: 'put',
+        path: '/update-notification/:notificationId',
+        handler: updateNotificationHandler
+    },
+    {
         name: 'all notifications',
         method: 'get',
         path: '/all-notifications',
@@ -277,7 +311,7 @@ const userEndpoints: RouteEndpoints = [
     },
     {
         name: 'get user chats',
-        method: 'get',
+        method: 'post',
         path: '/get-user-chats',
         handler: getUserChatsHandler
     },
@@ -286,6 +320,36 @@ const userEndpoints: RouteEndpoints = [
         method: 'delete',
         path: '/delete-chat/:chatId',
         handler: deleteChatsHandler
+    },
+    {
+        name: 'create chat',
+        method: 'post',
+        path: '/create-chat',
+        handler: createChatHandler
+    },
+    {
+        name: 'find chat',
+        method: 'get',
+        path: '/find-user-chats/:userId',
+        handler: findUserChatsHandler
+    },
+    {
+        name: 'find chat',
+        method: 'get',
+        path: '/find-chat/:firstId/:secondId',
+        handler: findChatHandler
+    },
+    {
+        name: 'create chat message',
+        method: 'post',
+        path: '/create-chat-message',
+        handler: createChatMessageHandler
+    },
+    {
+        name: 'get chat messages',
+        method: 'get',
+        path: '/get-chat-messages/:chatId',
+        handler: getChatMessagesHandler
     },
     {
         name: 'send sign up token',
@@ -304,6 +368,12 @@ const userEndpoints: RouteEndpoints = [
         method: 'post',
         path: '/check-user',
         handler: checkUserHandler
+    },
+    {
+        name: 'fetch fav users',
+        method: 'get',
+        path: '/favourite-users',
+        handler: fetchFavUsersHandler
     }
 ];
 

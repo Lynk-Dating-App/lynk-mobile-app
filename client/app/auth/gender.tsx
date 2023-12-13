@@ -53,8 +53,8 @@ const Gender = () => {
     }, []);
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: 'transparent'}}>
-            <ScrollView showsVerticalScrollIndicator={false} style={{backgroundColor: 'transparent'}}>
+        <SafeAreaView style={{flex: 1}}>
+            <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.container}>
                     <Text
                         style={{

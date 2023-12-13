@@ -19,6 +19,7 @@
       "bundleIdentifier": "lynk",
       "usesAppleSignIn": true,
       "infoPlist": {
+        "NSFaceIDUsageDescription": "Face ID is used to authenticate the user.",
         "NSLocationWhenInUseUsageDescription": "Lynk need your location to provide you with your match.",
         "NSLocationAlwaysUsageDescription": "Lynk need your location for background updates and improved user experience."
       }

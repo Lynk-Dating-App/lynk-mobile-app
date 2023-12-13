@@ -14,6 +14,7 @@ const GALLERY = 'auth:GALLERY';
 const RESET_PASSWORD = 'auth:RESET_PASSWORD';
 const ENTER_PASSWORD_CODE = 'auth:ENTER_PASSWORD_CODE';
 const ENTER_PASSWORD_AFTER_RESET = 'auth:ENTER_PASSWORD_AFTER_RESET';
+const SIGN_IN_WITH_BIOMETRIC = 'auth:SIGN_IN_WITH_BIOMETRIC';
 
 const API_ROOT = settings.api.rest;
 
@@ -77,6 +78,11 @@ export const signInAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(SIGN
     const response = await axiosClient.post(`${API_ROOT}/sign-in-user`, args);
     return response.data;
 });
+
+export const signInWithBiometricAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(SIGN_IN_WITH_BIOMETRIC, async (args: any) => {
+    const response = await axiosClient.post(`${API_ROOT}/sign-in-user-with-biometric`, {userId: args});
+    return response.data;
+}); 
 
 export const resetPasswordAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(RESET_PASSWORD, async (args: any) => {
     const response = await axiosClient.post(`${API_ROOT}/password-reset-user`, args);
