@@ -9,7 +9,9 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "ts:check": "tsc",
-    "build": "eas build"
+    "build": "eas build",
+    "start:clear-cach": "npx expo -c",
+    "build:test": "eas update"
   },
   "jest": {
     "preset": "jest-expo"

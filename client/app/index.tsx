@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Dimensions, Image, ScrollView, StyleSheet } from 'react-native';
-import { Text, View } from '../components/Themed';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Dimensions, Image, StyleSheet } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View } from '../components/Themed';
 import { useRouter } from 'expo-router';
 import AppBtn from '../components/common/button/AppBtn';
 import { COLORS, FONT, SIZES, images } from '../constants';
