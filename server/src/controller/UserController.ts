@@ -394,11 +394,11 @@ export default class UserController {
 
         const matchingUsers = await User.find({
             _id: { $in: ids}
-        }).select('firstName profileImageUrl age likedUsers _id');
+        }).select('firstName profileImageUrl age likedUsers _id profileVisibility');
         
         const likedByUsers = await User.find({
             _id: { $in: user.likedByUsers }
-        }).select('firstName profileImageUrl age likedUsers _id');
+        }).select('firstName profileImageUrl age likedUsers _id profileVisibility');
 
         // Function to filter out users present in both arrays
         const filterMatchingUsers = (user: any) => {
@@ -2390,35 +2390,22 @@ export default class UserController {
             ))
         }));
 
-        const allUsers = users.map(_user => ({
+        const allUsers = users
             //@ts-ignore
-            ..._user._doc,
-            distance: _user.location.coordinates[1] === -1 && _user.location.coordinates[0] === -1 ? 0 :
+            .filter(_user => _user._doc.gender !== user.gender)
+            .map(_user => ({
+                //@ts-ignore
+                ..._user._doc,
+                distance: (_user.location.coordinates[1] === -1 && _user.location.coordinates[0] === -1) ? 0 :
                 Math.ceil(Generic.location_km(
                     user.location.coordinates[1],
                     user.location.coordinates[0],
                     _user.location.coordinates[1],
                     _user.location.coordinates[0]
                 ))
-        }));
-       
-        const finallAll = allUsers.filter(_user => _user.gender !== user.gender)
-        
-        // const allUsers = users
-        //     .filter(_user => _user._doc.gender !== user.gender)
-        //     .map(_user => ({
-        //         //@ts-ignore
-        //         ..._user._doc,
-        //         distance: (_user.location.coordinates[1] === -1 && _user.location.coordinates[0] === -1) ? 0 :
-        //         Math.ceil(Generic.location_km(
-        //             user.location.coordinates[1],
-        //             user.location.coordinates[0],
-        //             _user.location.coordinates[1],
-        //             _user.location.coordinates[0]
-        //         ))
-        //     }));
+            }));
 
-        return finalMatches.length > 0 ? finalMatches : finallAll;
+        return finalMatches.length > 0 ? finalMatches : allUsers;
     }
       
 

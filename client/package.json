@@ -10,7 +10,7 @@
     "test": "jest --watchAll",
     "ts:check": "tsc",
     "build": "eas build",
-    "start:clear-cach": "npx expo -c",
+    "start:clear-cache": "npx expo -c",
     "build:test": "eas update"
   },
   "jest": {
@@ -73,6 +73,7 @@
     "react-native-safe-area-context": "4.6.3",
     "react-native-screens": "~3.22.0",
     "react-native-snap-carousel": "^3.9.1",
+    "react-native-swipe-list-view": "^3.2.9",
     "react-native-switch": "^1.5.1",
     "react-native-web": "~0.19.6",
     "react-native-webview": "13.2.2",

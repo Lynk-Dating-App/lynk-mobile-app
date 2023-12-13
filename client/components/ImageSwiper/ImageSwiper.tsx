@@ -270,7 +270,8 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
           : (
             <View
               style={{
-                height: 58/100 * height
+                height: 58/100 * height,
+                backgroundColor: 'transparent'
               }}
             >
               <Image
@@ -278,7 +279,9 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                 style={{
                   width: '100%',
                   height: '100%',
-                  borderRadius: 20
+                  borderRadius: 20,
+                  borderColor: COLORS.gray2,
+                  borderWidth: 0.3
                 }}
                 resizeMode='cover'
               />
@@ -289,7 +292,8 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                   height: '100%',
                   borderRadius: 20,
                   display: 'flex',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  backgroundColor: 'transparent'
                 }}
               >
                 <View />

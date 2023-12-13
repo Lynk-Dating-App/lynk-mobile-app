@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, Platform, StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Platform, RefreshControl, StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
 import { SafeAreaView, Text, View } from '../../components/Themed';
 import { COLORS, FONT, SIZES } from '../../constants';
 import { BlurView } from 'expo-blur';
@@ -14,6 +14,8 @@ import useAppSelector from '../../hook/useAppSelector';
 import { favUserAction, likeUserAction, unLikeUserAction } from '../../store/actions/userAction';
 import { clearFavUserStatus, clearLikeStatus, clearUnLikeStatus, setFromUserId, setPhotoUri } from '../../store/reducers/userReducer';
 import Snackbar from '../../helpers/Snackbar';
+import { IMatch } from '@app-models';
+import tw from 'twrnc';
 
 const { width } = Dimensions.get('window');
 const API_ROOT = settings.api.rest;
@@ -43,12 +45,24 @@ export default function TabTwoScreen() {
     }
   };
 
+  const handleViewUser = (item: IMatch) => {
+    if(item.profileVisibility === false) return
+    dispatch(setFromUserId(item._id))
+    router.push({pathname: '/auth/single-user', params: {from: 'like-screen'}})
+  }
+
+  const handleUnlike = (item: IMatch) => {
+    if(!userReducer.loggedInuser?.likedUsers.includes(item._id)) return
+    setName(item.firstName)
+    dispatch(unLikeUserAction(item._id))
+  }
+
   useFocusEffect(
     useCallback(() => {
-    if(user?._id !== undefined) {
-      fetchLikedUsers(user?._id);
-    }
-  }, [user?._id])
+      if(user?._id !== undefined) {
+        fetchLikedUsers(user?._id);
+      }
+    }, [user?._id])
   )
 
   useEffect(() => {
@@ -156,6 +170,12 @@ export default function TabTwoScreen() {
   return (
     <SafeAreaView style={{flex: 1}}>
       <FlatList
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading} 
+            onRefresh={() => fetchLikedUsers(user?._id)}
+          />
+        }
         data={fetchedUsers}
         numColumns={2}
         showsVerticalScrollIndicator={false} 
@@ -176,10 +196,7 @@ export default function TabTwoScreen() {
         renderItem={({ item, index }) => (
           <View style={styles.imageContainer} key={item._id}>
             <TouchableOpacity
-              onPress={() => {
-                dispatch(setFromUserId(item._id))
-                router.push({pathname: '/auth/single-user', params: {from: 'like-screen'}})
-              }}
+              onPress={() => handleViewUser(item)}
               style={{
                 width: '100%',
                 height: '100%',
@@ -217,19 +234,40 @@ export default function TabTwoScreen() {
                 }}
               >{capitalizeFirstLetter(item.firstName)}, {item.age}</Text>
             </View>
+            {!item.profileVisibility && (<BlurView
+              intensity={30}
+              style={[{
+                position: 'absolute',
+                height: '100%',
+                width: '100%',
+                borderRadius: 20,
+                overflow: 'hidden'
+              }, tw`flex justify-center items-center flex-col`]}
+            >
+              <FontAwesome
+                name='eye-slash'
+                size={80}
+                color={'white'}
+              />
+              <Text
+                style={{
+                  fontFamily: FONT.bold,
+                  fontSize: SIZES.small,
+                  color: COLORS.white
+                }}
+              >{`You can not view ${capitalizeFirstLetter(item?.firstName)}'s profile.`}</Text>
+            </BlurView>)}
             <BlurView intensity={50} style={styles.blurView}>
               <TouchableHighlight
-                onPress={() => {
-                  setName(item.firstName)
-                  dispatch(unLikeUserAction(item._id))
-                }}
+                disabled={!userReducer.loggedInuser?.likedUsers.includes(item._id)}
+                onPress={() => handleUnlike(item)}
                 underlayColor={COLORS.primary}
                 style={styles.unlike}
               >
                 <FontAwesome
                   name='close'
                   size={25}
-                  color={'white'}
+                  color={userReducer.loggedInuser?.likedUsers.includes(item._id) ? 'white' : COLORS.primary}
                 />
               </TouchableHighlight>
               <TouchableHighlight

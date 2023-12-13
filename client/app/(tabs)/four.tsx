@@ -1122,7 +1122,7 @@ export default function TabFourScreen() {
             </View>
           </View>
 
-          <View style={styles.section3}>
+          {/* <View style={styles.section3}>
             <View
               style={{
                 display: 'flex',
@@ -1193,7 +1193,7 @@ export default function TabFourScreen() {
               ))}
             </View>
             
-          </View>
+          </View> */}
 
           <View style={styles.section2}>
             <View

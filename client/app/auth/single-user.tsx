@@ -396,10 +396,10 @@ const SingleUser = () => {
                                 fontSize: SIZES.small
                             }}
                         >
-                            {characterBreaker(capitalizeFirstLetter(userData?.jobDescription), brkDesc)}{brkDesc < userData?.jobDescription.length ? '...' : ''}
+                            {characterBreaker(capitalizeFirstLetter(userData?.jobDescription), brkDesc)}{brkDesc < userData?.jobDescription?.length ? '...' : ''}
                         </Text>
-                        {brkDesc < userData?.jobDescription.length && (<TouchableOpacity 
-                            onPress={() => setBrkDesc(userData?.jobDescription.length)}
+                        {brkDesc < userData?.jobDescription?.length && (<TouchableOpacity 
+                            onPress={() => setBrkDesc(userData?.jobDescription?.length)}
                         >
                         <Text
                             style={{
@@ -466,7 +466,7 @@ const SingleUser = () => {
                         >
                             {capitalizeFirstLetter(wordBreaker(userData?.about, sentenceCount))}{sentenceCount !== userData?.about.length && '...'}
                         </Text>
-                        {sentenceCount !== userData?.about.length && (<Text onPress={() => setSentenceCount(userData?.about.length)}
+                        {sentenceCount !== userData?.about?.length && (<Text onPress={() => setSentenceCount(userData?.about?.length)}
                             style={{
                                 fontFamily: FONT.extraBold,
                                 fontSize: 14,

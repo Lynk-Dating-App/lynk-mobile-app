@@ -57,6 +57,7 @@ interface Match {
   userId: string;
   state: string;
   profileVisibility: boolean;
+  gender?: string; 
 }
 
 interface IFilter {
@@ -339,18 +340,15 @@ const TabOneScreen = () => {
       (!filter?.minDistance || !filter?.maxDistance || (item.distance >= filter?.minDistance && item.distance <= filter?.maxDistance)) &&
       (!filter?.minAge || !filter?.maxAge || (item.age >= filter?.minAge && item.age <= filter?.maxAge))
     );
-  
+
     setFinalData(filteredData);
   }, [filter, actualMatch]);
 
   useEffect(() => {
-    console.log('fired')
-
     // requestForegroundPermissions()
     requestPermissions()
 
     return () => {
-
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
       BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
     };
@@ -501,10 +499,6 @@ const TabOneScreen = () => {
   },[userReducer.likeStatus]);
 
   useEffect(() => {
-    dispatch(getUserNotificationsAction())
-  },[])
-
-  useEffect(() => {
     if(userReducer.getAllUserNotificationStatus === 'completed') {
       const notifications = userReducer.notifications.filter(notification => notification.status === false);
       const sorted = notifications.sort((a: any, b: any) => b.dateCreated - a.dateCreated);
@@ -516,7 +510,6 @@ const TabOneScreen = () => {
   },[userReducer.getAllUserNotificationStatus]);
 
   useEffect(() => {
-
     const checkToken = async () => {
       const id = await getTokenFromSecureStore(BIOMETRIC_LOGIN_KEY);
       console.log(id, 'id')
@@ -527,6 +520,12 @@ const TabOneScreen = () => {
     
     checkToken()
   },[userReducer.loggedInuser]);
+
+  useFocusEffect(
+      useCallback(() => {
+        dispatch(getUserNotificationsAction())
+    },[])
+  );
 
   return (
     <SafeAreaView style={{flex: 1}}>
