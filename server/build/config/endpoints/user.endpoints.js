@@ -1,380 +1,324 @@
-import { appCommonTypes } from '../../@types/app-common';
-import RouteEndpoints = appCommonTypes.RouteEndpoints;
-import {
-    changeUserPasswordHandler,
-    deleteUserAddressHandler,
-    deleteUserHandler,
-    getSingleUserAddressHandler,
-    getUserHandler,
-    getUsersHandler,
-    resetUserPasswordHandler,
-    saveUserAddressHandler,
-    saveUserPasswordHandler,
-    updateUserAddressHandler,
-    updateUserHandler,
-    updateUserStatusHandler,
-    enterResetCodeHandler,
-    upgradePlanHandler,
-    toggleProfileVisibilityHandler,
-    updateJobDescriptionHandler,
-    updatePreferenceHandler,
-    uploadVideoHandler,
-    findMatchHandler,
-    likeUserHandler,
-    unLikeUserHandler,
-    viewUserProfileHandler,
-    newJobHandler,
-    getJobsHandler,
-    getJobHandler,
-    updateJobHandler,
-    deleteJobHandler,
-    updateLocationHandler,
-    galleryHandler,
-    deletePhotoFromGalleryHandler,
-    getUserNotificationsHandler,
-    deleteNotificationsHandler,
-    getAllNotificationsHandler,
-    getUserChatsHandler,
-    deleteChatsHandler,
-    sendSignUpTokenHandler,
-    validateSignUpTokenHandler,
-    checkUserHandler,
-    updateUserDetailHandler,
-    updateUserProfileImageHandler,
-    unLikeUserFromMatchHandler,
-    favouritesHandler,
-    getLoggedInUserHandler,
-    getUsersWithIdsHandler,
-    getMatchAndLikedByUsersHandler,
-    createChatHandler,
-    findUserChatsHandler,
-    findChatHandler,
-    createChatMessageHandler,
-    getChatMessagesHandler,
-    fetchFavUsersHandler,
-    getSingleNotificationHandler,
-    updateNotificationHandler
-} from '../../routes/userRoute';
-
-const userEndpoints: RouteEndpoints = [
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const userRoute_1 = require("../../routes/userRoute");
+const userEndpoints = [
     {
         name: 'update-user',
         method: 'put',
         path: '/user-update',
-        handler: updateUserHandler
+        handler: userRoute_1.updateUserHandler
     },
     {
         name: 'update-user-profile-detail',
         method: 'put',
         path: '/user-update-profile-detail',
-        handler: updateUserDetailHandler
+        handler: userRoute_1.updateUserDetailHandler
     },
     {
         name: 'update-user-profile-image',
         method: 'put',
         path: '/user-update-profile-image',
-        handler: updateUserProfileImageHandler
+        handler: userRoute_1.updateUserProfileImageHandler
     },
     {
         name: 'upgrade-plan',
         method: 'post',
         path: '/upgrade-plan',
-        handler: upgradePlanHandler
+        handler: userRoute_1.upgradePlanHandler
     },
     {
         name: 'toggle-profile-visibility',
         method: 'put',
         path: '/toggle-profile-visibility',
-        handler: toggleProfileVisibilityHandler
+        handler: userRoute_1.toggleProfileVisibilityHandler
     },
     {
         name: 'update user status',
         method: 'put',
         path: '/user-status-update/:userId',
-        handler: updateUserStatusHandler
+        handler: userRoute_1.updateUserStatusHandler
     },
     {
         name: 'delete user',
         method: 'delete',
         path: '/delete-user/:userId',
-        handler: deleteUserHandler
+        handler: userRoute_1.deleteUserHandler
     },
     {
         name: 'change user password',
         method: 'put',
         path: '/change-user-password',
-        handler: changeUserPasswordHandler
+        handler: userRoute_1.changeUserPasswordHandler
     },
     {
         name: 'save user password after reset',
         method: 'put',
         path: '/password-reset/save-password',
-        handler: saveUserPasswordHandler
+        handler: userRoute_1.saveUserPasswordHandler
     },
     {
         name: 'reset user password',
         method: 'post',
         path: '/password-reset-user',
-        handler: resetUserPasswordHandler
+        handler: userRoute_1.resetUserPasswordHandler
     },
     {
         name: 'enter password reset code',
         method: 'post',
         path: '/enter-password-reset-code',
-        handler: enterResetCodeHandler
+        handler: userRoute_1.enterResetCodeHandler
     },
     {
         name: 'fetch users',
         method: 'get',
         path: '/users',
-        handler: getUsersHandler
+        handler: userRoute_1.getUsersHandler
     },
     {
         name: 'fetch users with ids',
         method: 'post',
         path: '/users-with-ids',
-        handler: getUsersWithIdsHandler
+        handler: userRoute_1.getUsersWithIdsHandler
     },
     {
         name: 'fetch matched and liked users',
         method: 'get',
         path: '/users-matched-liked-users/:userId',
-        handler: getMatchAndLikedByUsersHandler
+        handler: userRoute_1.getMatchAndLikedByUsersHandler
     },
     {
         name: 'get user',
         method: 'get',
         path: '/user/:userId',
-        handler: getUserHandler
+        handler: userRoute_1.getUserHandler
     },
     {
         name: 'get logged in user',
         method: 'get',
         path: '/logged-in-user',
-        handler: getLoggedInUserHandler
+        handler: userRoute_1.getLoggedInUserHandler
     },
     {
         name: 'save user address',
         method: 'post',
         path: '/user-address',
-        handler: saveUserAddressHandler
+        handler: userRoute_1.saveUserAddressHandler
     },
     {
         name: 'get user address',
         method: 'get',
         path: '/user-address/:userAddressId',
-        handler: getSingleUserAddressHandler
+        handler: userRoute_1.getSingleUserAddressHandler
     },
     {
         name: 'update user address',
         method: 'put',
         path: '/user-address/:userAddressId',
-        handler: updateUserAddressHandler
+        handler: userRoute_1.updateUserAddressHandler
     },
     {
         name: 'update job description',
         method: 'put',
         path: '/job-description-update',
-        handler: updateJobDescriptionHandler
+        handler: userRoute_1.updateJobDescriptionHandler
     },
     {
         name: 'delete user address',
         method: 'delete',
         path: '/user-address/:userAddressId',
-        handler: deleteUserAddressHandler
+        handler: userRoute_1.deleteUserAddressHandler
     },
     {
         name: 'update preference',
         method: 'put',
         path: '/user-preference',
-        handler: updatePreferenceHandler
+        handler: userRoute_1.updatePreferenceHandler
     },
     {
         name: 'upload video',
         method: 'put',
         path: '/upload-user-video/:userId',
-        handler: uploadVideoHandler
+        handler: userRoute_1.uploadVideoHandler
     },
     {
         name: 'find match',
         method: 'get',
         path: '/find-match',
-        handler: findMatchHandler
+        handler: userRoute_1.findMatchHandler
     },
     {
         name: 'like user',
         method: 'put',
         path: '/like-user/:likedUserId',
-        handler: likeUserHandler
+        handler: userRoute_1.likeUserHandler
     },
     {
         name: 'unlike user',
         method: 'put',
         path: '/unlike-user/:unLikedUserId',
-        handler: unLikeUserHandler
+        handler: userRoute_1.unLikeUserHandler
     },
     {
         name: 'unlike user from match',
         method: 'put',
         path: '/unlike-user-from-match/:unLikedUserId',
-        handler: unLikeUserFromMatchHandler
+        handler: userRoute_1.unLikeUserFromMatchHandler
     },
     {
         name: 'fav user',
         method: 'put',
         path: '/fav-user/:favId',
-        handler: favouritesHandler
+        handler: userRoute_1.favouritesHandler
     },
     {
         name: 'view user profile',
         method: 'post',
         path: '/view-user-profile',
-        handler: viewUserProfileHandler
+        handler: userRoute_1.viewUserProfileHandler
     },
     {
         name: 'create job',
         method: 'post',
         path: '/new-job',
-        handler: newJobHandler
+        handler: userRoute_1.newJobHandler
     },
     {
         name: 'get jobs',
         method: 'get',
         path: '/read-jobs',
-        handler: getJobsHandler
+        handler: userRoute_1.getJobsHandler
     },
     {
         name: 'get job',
         method: 'get',
         path: '/read-job/:jobId',
-        handler: getJobHandler
+        handler: userRoute_1.getJobHandler
     },
     {
         name: 'update job',
         method: 'put',
         path: '/update-job/:jobId',
-        handler: updateJobHandler
+        handler: userRoute_1.updateJobHandler
     },
     {
         name: 'delete job',
         method: 'delete',
         path: '/delete-job/:jobId',
-        handler: deleteJobHandler
+        handler: userRoute_1.deleteJobHandler
     },
     {
         name: 'update user location',
         method: 'put',
         path: '/update-user-location',
-        handler: updateLocationHandler
+        handler: userRoute_1.updateLocationHandler
     },
     {
         name: 'gallery',
         method: 'put',
         path: '/gallery',
-        handler: galleryHandler
+        handler: userRoute_1.galleryHandler
     },
     {
         name: 'delete photo in gallery',
         method: 'put',
         path: '/delete-photo-gallery',
-        handler: deletePhotoFromGalleryHandler
+        handler: userRoute_1.deletePhotoFromGalleryHandler
     },
     {
         name: 'get user notifications',
         method: 'get',
         path: '/user-notifications',
-        handler: getUserNotificationsHandler
+        handler: userRoute_1.getUserNotificationsHandler
     },
     {
         name: 'delete notification',
         method: 'delete',
         path: '/delete-notification/:notificationId',
-        handler: deleteNotificationsHandler
+        handler: userRoute_1.deleteNotificationsHandler
     },
     {
         name: 'get single notification',
         method: 'get',
         path: '/get-single-notification/:notificationId',
-        handler: getSingleNotificationHandler
+        handler: userRoute_1.getSingleNotificationHandler
     },
     {
         name: 'update notification',
         method: 'put',
         path: '/update-notification/:notificationId',
-        handler: updateNotificationHandler
+        handler: userRoute_1.updateNotificationHandler
     },
     {
         name: 'all notifications',
         method: 'get',
         path: '/all-notifications',
-        handler: getAllNotificationsHandler
+        handler: userRoute_1.getAllNotificationsHandler
     },
     {
         name: 'get user chats',
         method: 'post',
         path: '/get-user-chats',
-        handler: getUserChatsHandler
+        handler: userRoute_1.getUserChatsHandler
     },
     {
         name: 'delete chat',
         method: 'delete',
         path: '/delete-chat/:chatId',
-        handler: deleteChatsHandler
+        handler: userRoute_1.deleteChatsHandler
     },
     {
         name: 'create chat',
         method: 'post',
         path: '/create-chat',
-        handler: createChatHandler
+        handler: userRoute_1.createChatHandler
     },
     {
         name: 'find chat',
         method: 'get',
         path: '/find-user-chats/:userId',
-        handler: findUserChatsHandler
+        handler: userRoute_1.findUserChatsHandler
     },
     {
         name: 'find chat',
         method: 'get',
         path: '/find-chat/:firstId/:secondId',
-        handler: findChatHandler
+        handler: userRoute_1.findChatHandler
     },
     {
         name: 'create chat message',
         method: 'post',
         path: '/create-chat-message',
-        handler: createChatMessageHandler
+        handler: userRoute_1.createChatMessageHandler
     },
     {
         name: 'get chat messages',
         method: 'get',
         path: '/get-chat-messages/:chatId',
-        handler: getChatMessagesHandler
+        handler: userRoute_1.getChatMessagesHandler
     },
     {
         name: 'send sign up token',
         method: 'post',
         path: '/send-sign-up-token',
-        handler: sendSignUpTokenHandler
+        handler: userRoute_1.sendSignUpTokenHandler
     },
     {
         name: 'validate sign up token',
         method: 'post',
         path: '/validate-sign-up-token',
-        handler: validateSignUpTokenHandler
+        handler: userRoute_1.validateSignUpTokenHandler
     },
     {
         name: 'check if user exist',
         method: 'post',
         path: '/check-user',
-        handler: checkUserHandler
+        handler: userRoute_1.checkUserHandler
     },
     {
         name: 'fetch fav users',
         method: 'get',
         path: '/favourite-users',
-        handler: fetchFavUsersHandler
+        handler: userRoute_1.fetchFavUsersHandler
     }
 ];
-
-export default userEndpoints;
+exports.default = userEndpoints;
