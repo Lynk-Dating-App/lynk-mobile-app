@@ -98,7 +98,7 @@
     },
     "owner": "lynk_app",
     "runtimeVersion": {
-      "policy": "sdkVersion"
+      "policy": "1.0.0"
     }
   }
 }
