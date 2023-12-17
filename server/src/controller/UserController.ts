@@ -1532,7 +1532,7 @@ export default class UserController {
     @HasPermission([USER_PERMISSION])
     public async gallery (req: Request) {
         const user = await this.doGallery(req);
-        console.log(user)
+
         const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
             message: 'Successfully uploaded image.',
