@@ -1,0 +1,30 @@
+[
+    {
+        "name": "black",
+        "slug": "BLACK",
+        "price": null,
+        "duration": null,
+        "durationUnit": null
+    },
+    {
+        "name": "red",
+        "slug": "RED",
+        "price": 5000,
+        "duration": null,
+        "durationUnit": null
+    },
+    {
+        "name": "purple",
+        "slug": "PURPLE",
+        "price": 30000,
+        "duration": null,
+        "durationUnit": null
+    },
+    {
+        "name": "premium",
+        "slug": "PREMIUM",
+        "price": 500,
+        "duration": 1,
+        "durationUnit": "month"
+    }
+]
