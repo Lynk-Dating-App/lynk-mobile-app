@@ -108,7 +108,7 @@ const requestForegroundPermissions = async () => {
 
     // Register the combined background task
     BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-      minimumInterval: 1, // 5 minutes, adjust as needed
+      minimumInterval: 300, // 5 minutes
       stopOnTerminate: false,
       startOnBoot: true,
     });
@@ -345,6 +345,7 @@ const TabOneScreen = () => {
   }, [filter, actualMatch]);
 
   useEffect(() => {
+    console.log('fired')
     // requestForegroundPermissions()
     requestPermissions()
 

@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "lynk",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -16,31 +16,34 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "lynk",
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSFaceIDUsageDescription": "Allow Lynk to use Face ID.",
         "NSLocationWhenInUseUsageDescription": "Lynk need your location to provide you with your match.",
-        "NSLocationAlwaysUsageDescription": "Lynk need your location for background updates and improved user experience."
-      }
+        "NSLocationAlwaysUsageDescription": "Lynk need your location for background updates and improved user experience.",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["com.googleusercontent.apps.464515501760-rk14ot0a8l5tm0ie5h0co5brcc9hjfp9"]
+          }
+        ]
+      },
+      "bundleIdentifier": "lynk"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.lynk_app.lynk",
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "package": "com.lynk_app.lynk"
     },
     "web": {
       "bundler": "metro",

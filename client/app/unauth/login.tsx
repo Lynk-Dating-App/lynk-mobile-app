@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { 
     Alert,
+    Button,
     Dimensions, 
     Image, 
     Platform,
@@ -30,9 +31,12 @@ import { decode as base64Decode } from 'base-64';
 import { StatusBar } from 'expo-status-bar';
 import { clearDeactivateAccountStatus, clearUpdateUserStatus } from '../../store/reducers/userReducer';
 //@ts-ignore
-import { BIOMETRIC_LOGIN_KEY } from '@env';
+import { BIOMETRIC_LOGIN_KEY, IOS_CLIENT_ID, ANDROID_CLIENT_ID } from '@env';
 import tw from 'twrnc';
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
 
+WebBrowser.maybeCompleteAuthSession();
 const { width, height } = Dimensions.get('window');
 
 const schema = Yup.object().shape({
@@ -80,11 +84,16 @@ const Login = () => {
     const [count, setCount] = useState<number>(120);
     const [formattedValue, setFormattedValue] = useState("");
     const [biometricId, setBiometricId] = useState<string>("");
+    const [userInfo, setUserInfo] = useState(null);
     
     const otpRef = useRef<any>(null);
     const dispatch = useAppDispatch();
     const authReducer = useAppSelector(state => state.authReducer);
     const userReducer = useAppSelector(state => state.userReducer);
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        iosClientId: "464515501760-rk14ot0a8l5tm0ie5h0co5brcc9hjfp9.apps.googleusercontent.com",
+        webClientId: "464515501760-dakf7f3am3n67ufrq6mf2dhgoqppii85.apps.googleusercontent.com"
+    })
 
     const fallBackToDefaultAuth = () => {
         console.log('fall back to password auth')
@@ -490,41 +499,6 @@ const Login = () => {
                             flexDirection: 'column'
                         }}
                     >
-                        {/* {isBiometricSupport && (<View
-                            style={{
-                                backgroundColor: 'transparent',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                flexDirection: 'column',
-                                gap: 35
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    fontFamily: FONT.medium,
-                                    fontSize: SIZES.medium,
-                                    color: COLORS.tertiary,
-                                    marginTop: 20
-                                }}
-                            >
-                                - or -
-                            </Text>
-                            <TouchableHighlight
-                                underlayColor={COLORS.gray2}
-                                onPress={() => handleBiometricAuth()}
-                            >
-                                <Image
-                                    source={images.face_id}
-                                    style={{
-                                        width: 30,
-                                        height: 30
-                                    }}
-                                    resizeMode='contain'
-                                />
-                            </TouchableHighlight>
-                        </View>)} */}
-                        
                         <View
                             style={{
                                 backgroundColor: 'transparent',
@@ -552,6 +526,9 @@ const Login = () => {
                                     marginLeft: 2
                                 }}
                             >Sign Up</Text>
+                            {/* <TouchableOpacity onPress={() => promptAsync()}>
+                                <Text>google</Text>
+                            </TouchableOpacity> */}
                         </View>
                     </View>
                     

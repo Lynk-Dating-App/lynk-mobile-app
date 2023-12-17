@@ -253,7 +253,8 @@ export default function TabTwoScreen() {
                 style={{
                   fontFamily: FONT.bold,
                   fontSize: SIZES.small,
-                  color: COLORS.white
+                  color: COLORS.white,
+                  textAlign: 'center'
                 }}
               >{`You can not view ${capitalizeFirstLetter(item?.firstName)}'s profile.`}</Text>
             </BlurView>)}
