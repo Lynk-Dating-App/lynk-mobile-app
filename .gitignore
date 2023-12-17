@@ -60,7 +60,7 @@ keys
 .vscode
 .idea
 .env*
-# build
+server/build
 *.rdb
 .DS_Store
 yarn.lock
