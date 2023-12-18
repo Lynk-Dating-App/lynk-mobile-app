@@ -86,7 +86,7 @@ const Gallery = () => {
             type: `${imageObject.type}/${imageObject.uri.split('.')[1]}`,
             size: imageObject.fileSize
         }));
-        
+
         dispatch(galleryAction(newArr))
 
     }
@@ -210,7 +210,6 @@ const Gallery = () => {
                                     style={{ 
                                         width: '90%', 
                                         height: '60%',
-                                        position: 'absolute',
                                         borderRadius: 20
                                     }}
                                 />
@@ -219,13 +218,15 @@ const Gallery = () => {
                             )}
                             <View
                                 style={{
-                                    position: 'relative',
-                                    alignSelf: 'flex-end',
-                                    marginTop: -430,
-                                    marginRight: 30,
+                                    position: 'absolute',
                                     backgroundColor: 'transparent',
                                     flexDirection: 'row',
-                                    gap: 20
+                                    width: '90%', 
+                                    height: '60%',
+                                    gap: 20,
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'flex-start',
+                                    padding: 10
                                 }}
                             >
                                 <TouchableOpacity 

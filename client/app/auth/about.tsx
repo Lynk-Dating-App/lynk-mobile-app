@@ -12,8 +12,8 @@ import { stateLga } from '../../constants/states';
 import { removeData, retrieveData, storeData } from '../../components/LocalStorage/LocalStorage';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
-import { clearUpdateProfileDetailStatus } from '../../store/reducers/authReducer';
-import { updateProfileDetailAction } from '../../store/actions/authActions';
+import { clearSignInStatus, clearUpdateProfileDetailStatus } from '../../store/reducers/authReducer';
+import { signInAction, updateProfileDetailAction } from '../../store/actions/authActions';
 import Snackbar from '../../helpers/Snackbar';
 import ReusableModal from '../../components/Modal/ReusableModal';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -59,7 +59,6 @@ const About = () => {
             ...values,
             ...data,
         }
- 
         dispatch(updateProfileDetailAction(payload))
     };
 
@@ -104,6 +103,7 @@ const About = () => {
         if(authReducer.updateProfileDetailStatus === 'completed') {
             removeData("profile-data")
             router.push('/auth/gallery')
+            dispatch(clearSignInStatus())
             dispatch(clearUpdateProfileDetailStatus())
         } else if(authReducer.updateProfileDetailStatus === 'failed') {
             setIsError(true)

@@ -10,6 +10,7 @@ import { sendSignUpTokenAction, signUpAction, validateSignUpTokenAction } from "
 import useAppDispatch from "../../hook/useAppDispatch";
 import { clearSendSignUpTokenStatus, clearSignUpStatus, clearValidateSignUpTokenStatus } from "../../store/reducers/authReducer";
 import { removeData, retrieveData } from "../../components/LocalStorage/LocalStorage";
+import { setSignInAfterSignUp } from "../../store/reducers/userReducer";
 
 const { width, height } = Dimensions.get('window');
 
@@ -74,6 +75,10 @@ const TokenPage = () => {
 
     useEffect(() => {
         if(authReducer.validateSignUpTokenStatus === 'completed') {
+             dispatch(setSignInAfterSignUp({
+                emailOrPhone: userData.phone,
+                password: userData.password
+             }))
             dispatch(signUpAction(userData));
             dispatch(clearValidateSignUpTokenStatus());
         } else if(authReducer.validateSignUpTokenStatus === 'failed') {
@@ -182,6 +187,9 @@ const TokenPage = () => {
                         }}
                         // disabled={count > 1}
                     >Send again</Text>
+                    <Text style={{color: 'green', fontFamily: FONT.bold}}>
+                        {authReducer.token}
+                    </Text>
                 </View>
                 {(authReducer.signUpStatus === 'loading' || authReducer.validateSignUpTokenStatus === 'loading')
                 && (<ActivityIndicator size="large" color={'black'} />)}

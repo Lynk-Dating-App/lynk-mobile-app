@@ -64,6 +64,7 @@ interface IAuthState {
     galleryError?: string;
 
     permissions: IPermission[];
+    token: string;
 };
 
 const initialState: IAuthState = {
@@ -113,7 +114,8 @@ const initialState: IAuthState = {
     gallerySuccess: '',
     galleryStatus: 'idle',
 
-    permissions: []
+    permissions: [],
+    token: ''
 };
 
 const authSlice = createSlice({
@@ -195,6 +197,8 @@ const authSlice = createSlice({
             .addCase(sendSignUpTokenAction.fulfilled, (state, action) => {
                 state.sendSignUpTokenStatus = 'completed';
                 state.sendSignUpTokenSuccess = action.payload.message;
+
+                state.token = action.payload.result;
             })
             .addCase(sendSignUpTokenAction.rejected, (state, action) => {
                 state.sendSignUpTokenStatus = 'failed';

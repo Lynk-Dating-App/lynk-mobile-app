@@ -133,8 +133,8 @@ export default function TabFourScreen() {
         const imageUri = result.assets?.[0];
         
         if (imageUri) {
-          type === 'progileImage' ? setImageUri(imageUri) : setImageGalleryUri(imageUri)
-          type === 'progileImage' && setImagePreview(imageUri)
+          type === 'profileImage' ? setImageUri(imageUri) : setImageGalleryUri(imageUri)
+          type === 'profileImage' && setImagePreview(imageUri)
         } else {
           console.log('No image URI found in the assets array.');
         }
@@ -463,7 +463,7 @@ export default function TabFourScreen() {
                 }}
               />)}
             </View>
-            <TouchableOpacity onPressIn={() => openImagePicker('progileImage')}>
+            <TouchableOpacity onPressIn={() => openImagePicker('profileImage')}>
               {userReducer.uploadUserProfileImageStatus === 'loading' 
                   ? <ActivityIndicator
                       style={{
@@ -1375,7 +1375,6 @@ export default function TabFourScreen() {
                   style={{ 
                       width: '90%', 
                       height: '60%',
-                      position: 'absolute',
                       borderRadius: 20
                   }}
               />
@@ -1384,13 +1383,15 @@ export default function TabFourScreen() {
           )}
           <View
             style={{
-              position: 'relative',
-              alignSelf: 'flex-end',
-              marginTop: Platform.select({ios: -330, android: -380}),
-              marginRight: 30,
+              position: 'absolute',
+              justifyContent: 'flex-end',
+              alignItems: 'flex-start',
               backgroundColor: 'transparent',
+              height: '60%',
+              width: '90%',
               flexDirection: 'row',
-              gap: 20
+              gap: 20,
+              padding: 10
             }}
           >
             <TouchableOpacity 

@@ -181,6 +181,11 @@ interface IUserState {
     profileVisible: boolean;
     notificationObject: INotification;
     notifications: INotification[];
+    signInAfterSignUp: {
+        emailOrPhone: string,
+        password: string
+    };
+    signInAfterSignUp2: boolean
 };
 
 const initialState: IUserState = {
@@ -330,7 +335,12 @@ const initialState: IUserState = {
     plans: [],
     profileVisible: false,
     notificationObject: null,
-    notifications: []
+    notifications: [],
+    signInAfterSignUp: {
+        emailOrPhone: '',
+        password: ''
+    },
+    signInAfterSignUp2: false
 };
 
 const userSlice = createSlice({
@@ -543,6 +553,17 @@ const userSlice = createSlice({
         setNotification(state: IUserState, action) {
             state.notification = [...state.notification, action.payload]
         },
+
+        setSignInAfterSignUp(state: IUserState, action) {
+            state.signInAfterSignUp = { 
+                emailOrPhone: action.payload.emailOrPhone,
+                password: action.payload.password
+            }
+        },
+
+        setSignInAfterSignUp2(state: IUserState, action) {
+            state.signInAfterSignUp2 = action.payload
+        }
     },
 
     extraReducers: builder => {
@@ -1117,7 +1138,8 @@ export const {
     clearDeleteUserNotificationStatus,
     clearGetSingleNotificationStatus,
     clearGetAllUserNotificationStatus,
-    clearUpdateNotificationStatus
+    clearUpdateNotificationStatus, setSignInAfterSignUp,
+    setSignInAfterSignUp2
 } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, Text, View } from '../../components/Themed';
 import { COLORS, FONT, SIZES, images } from '../../constants';
 import { useRouter } from 'expo-router';
@@ -7,13 +7,14 @@ import AppBtn from '../../components/common/button/AppBtn';
 import * as Notifications from 'expo-notifications';
 //@ts-ignore
 import { PROJECT_ID } from '@env'; 
-import { removeTokenFromSecureStore } from '../../components/ExpoStore/SecureStore';
-import settings from '../../config/settings';
 import { Platform } from 'react-native';
+import useAppDispatch from '../../hook/useAppDispatch';
+import { setSignInAfterSignUp2 } from '../../store/reducers/userReducer';
 
 const Notification = () => {
     const projectId = PROJECT_ID;
     const router = useRouter();
+    const dispatch = useAppDispatch();
     
     const registerForPushNotificationsAsync = async () => {
         try {
@@ -51,6 +52,7 @@ const Notification = () => {
             // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
             token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
             console.log('Push token:', token);
+            dispatch(setSignInAfterSignUp2(true))
     
         //   const { data: token } = await Notifications.getExpoPushTokenAsync({
         //     projectId
@@ -66,7 +68,10 @@ const Notification = () => {
             <View style={styles.backBtnContainer}>
                 <Text/>
                 <Text
-                    onPress={() => router.push('/auth/home')}
+                    onPress={() => {
+                        router.push('/unauth/login')
+                        dispatch(setSignInAfterSignUp2(true))
+                    }}
                     style={{
                         fontFamily: FONT.bold,
                         color: COLORS.primary,
@@ -111,7 +116,7 @@ const Notification = () => {
                 <AppBtn
                     handlePress={async () => {
                         registerForPushNotificationsAsync()
-                        await removeTokenFromSecureStore(settings.auth.admin);
+                        // await removeTokenFromSecureStore(settings.auth.admin);
                         router.push('/unauth/login')
                     }}
                     isText={true}

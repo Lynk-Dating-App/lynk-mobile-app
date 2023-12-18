@@ -32,7 +32,7 @@ import * as TaskManager from 'expo-task-manager';
 import { getMatchesAction, getUserNotificationsAction } from '../../store/actions/userAction';
 import axiosClient from '../../config/axiosClient';
 import socket from '../../config/socket';
-import { clearFavUserStatus, clearGetAllUserNotificationStatus, clearLikeStatus, clearUnLikeStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setOnlineUsers } from '../../store/reducers/userReducer';
+import { clearFavUserStatus, clearGetAllUserNotificationStatus, clearLikeStatus, clearUnLikeStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setOnlineUsers, setSignInAfterSignUp, setSignInAfterSignUp2 } from '../../store/reducers/userReducer';
 import * as Notifications from 'expo-notifications';
 import Snackbar from '../../helpers/Snackbar';
 import { StatusBar } from 'expo-status-bar';
@@ -238,11 +238,6 @@ const TabOneScreen = () => {
     setModalVisible(false)
     setFilter(payload)
   }
-
-  const handleLogout = async () => {
-    await removeTokenFromSecureStore(settings.auth.admin);
-    router.push('/unauth/login')
-  }
   
   const alertComponent = (title: string, mess: string, btnTxt: string, btnFunc: any) => {
     return Alert.alert(title, mess, [
@@ -323,6 +318,11 @@ const TabOneScreen = () => {
 
             if(decodedPayloadJSON.level < 2) {
               router.push('/auth/gender')
+            } else {
+              dispatch(setSignInAfterSignUp({
+                emailOrPhone: '',
+                password: ''
+              }))
             }
         } catch (error) {
           console.error(error);
@@ -520,7 +520,8 @@ const TabOneScreen = () => {
 
   useFocusEffect(
       useCallback(() => {
-        dispatch(getUserNotificationsAction())
+        dispatch(getUserNotificationsAction());
+        dispatch(setSignInAfterSignUp2(false))
     },[])
   );
 

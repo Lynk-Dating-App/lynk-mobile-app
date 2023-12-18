@@ -607,8 +607,8 @@ export default class UserController {
         if(user) 
             return Promise.reject(CustomAPIError.response("User with phone already exist", HttpStatus.BAD_REQUEST.code));
 
-        if(phone.length !== 13) 
-            return Promise.reject(CustomAPIError.response("Invalid Phone number.", HttpStatus.BAD_REQUEST.code));
+        // if(phone.length !== 13) 
+        //     return Promise.reject(CustomAPIError.response("Invalid Phone number.", HttpStatus.BAD_REQUEST.code));
 
         const token = Generic.generatePasswordResetCode(4);
         const data = {
@@ -638,7 +638,8 @@ export default class UserController {
 
         const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
-            message: `A token has been sent to your phone. ${token}`
+            message: `A token has been sent to your phone. ${token}`,
+            result: token
         };
 
         return Promise.resolve(response);
@@ -2088,10 +2089,10 @@ export default class UserController {
                 const userId = req.user._id;
                 const { error, value } = Joi.object<any>({
                     age: Joi.number().label('Age'),
-                    bio: Joi.string().label('Bio'),
+                    bio: Joi.string().allow('').label('Bio'),
                     build: Joi.string().optional().allow('').label('Build'),
                     dob: Joi.date().required().label('Dob'),
-                    interests: Joi.any().required().label('Interests'),
+                    interests: Joi.any().label('Interests'),
                     lastName: Joi.string().required().label('Last name'),
                     firstName: Joi.string().required().label('First name'),
                     occupation: Joi.string().required().label('Occupation'),

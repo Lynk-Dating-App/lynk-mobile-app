@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
 import AppBtn from "../../components/common/button/AppBtn";
 import { COLORS, FONT, SIZES, icons, images } from "../../constants";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { 
     Dimensions, Image, 
     KeyboardAvoidingView, 
@@ -19,6 +19,9 @@ import Snackbar from "../../helpers/Snackbar";
 import * as ImagePicker from 'expo-image-picker';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { extractFileNameFromUri } from "../../Utils/Generic";
+import { getTokenFromSecureStore } from "../../components/ExpoStore/SecureStore";
+import settings from "../../config/settings";
+import { decode as base64Decode } from 'base-64';
 
 const { width } = Dimensions.get('window');
 
@@ -296,7 +299,6 @@ const ProfileDetail = () => {
                                     display="inline"
                                     date={selectedDate}
                                     onConfirm={Platform.OS === 'android' ? (date) => {
-                                        console.log(date, 'checks date android')
                                         setFieldValue('dob', date)
                                         setSelectedDate(date)
                                         hideDatePicker()
@@ -305,10 +307,9 @@ const ProfileDetail = () => {
                                         hideDatePicker()
                                     }}
                                     onChange={Platform.OS === 'ios' ? (date) => {
-                                        console.log(date, 'checks date ios')
                                         setFieldValue('dob', date)
                                         setSelectedDate(date)
-                                        hideDatePicker()
+                                        // hideDatePicker()
                                     } : undefined}
                                     buttonTextColorIOS={'white'}
                                     customConfirmButtonIOS={() => (
@@ -337,23 +338,6 @@ const ProfileDetail = () => {
                                         borderRadius: 10,
                                         padding: 4
                                     }}
-                                    // customHeaderIOS={() => (
-                                    //     <View style={{ 
-                                    //             backgroundColor: 'transparent', 
-                                    //             padding: 20
-                                    //         }}
-                                    //     >
-                                    //       <Text 
-                                    //         style={{ 
-                                    //             fontFamily: FONT.bold, 
-                                    //             color: COLORS.primary, 
-                                    //             alignSelf: 'center'
-                                    //         }}
-                                    //     >
-                                    //         {selectedDate.toDateString()}
-                                    //       </Text>
-                                    //     </View>
-                                    //   )}
                                 />
                                 <AppBtn
                                     handlePress={() => handleSubmit()}

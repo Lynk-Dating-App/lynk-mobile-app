@@ -1,18 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { 
     Alert,
-    Button,
     Dimensions, 
     Image, 
     Platform,
-    StyleSheet, 
-    TouchableHighlight, 
+    StyleSheet,
     TouchableOpacity
 } from "react-native";
 import { View, Text, SafeAreaView, ScrollView } from '../../components/Themed';
 import AppBtn from '../../components/common/button/AppBtn';
 import { useRouter } from 'expo-router';
-import { COLORS, FONT, SIZES, icons, images } from '../../constants';
+import { COLORS, FONT, SIZES, icons } from '../../constants';
 import AppInput, { Phone } from '../../components/AppInput/AppInput';
 import { Formik } from 'formik';
 import * as Yup from "yup";
@@ -29,7 +27,7 @@ import { getTokenFromSecureStore } from '../../components/ExpoStore/SecureStore'
 import settings from '../../config/settings';
 import { decode as base64Decode } from 'base-64';
 import { StatusBar } from 'expo-status-bar';
-import { clearDeactivateAccountStatus, clearUpdateUserStatus } from '../../store/reducers/userReducer';
+import { clearDeactivateAccountStatus, clearUpdateUserStatus, setSignInAfterSignUp } from '../../store/reducers/userReducer';
 //@ts-ignore
 import { BIOMETRIC_LOGIN_KEY, IOS_CLIENT_ID, ANDROID_CLIENT_ID } from '@env';
 import tw from 'twrnc';
@@ -118,6 +116,7 @@ const Login = () => {
             password: values.password
          }
 
+         dispatch(setSignInAfterSignUp(payload))
          dispatch(signInAction(payload))
     }
 
@@ -373,6 +372,15 @@ const Login = () => {
           clearInterval(intervalId);
         }
     },[userReducer.deactivateAccountStatus]);
+
+    useEffect(() => {
+        if(userReducer.signInAfterSignUp2) {
+            dispatch(signInAction({
+                emailOrPhone: userReducer.signInAfterSignUp.emailOrPhone,
+                password: userReducer.signInAfterSignUp.password
+            }))
+        }
+    },[userReducer.signInAfterSignUp2])
 
     return (
         <SafeAreaView style={[{flex: 1}]}>
