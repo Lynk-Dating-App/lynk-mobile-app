@@ -118,7 +118,7 @@ const Gallery = () => {
                 <View style={styles.backBtnContainer}>
                     <Text/>
                     <Text
-                        onPress={() => router.push('/auth/profile-detail')}
+                        onPress={() => router.push('/auth/notification')}
                         style={{
                             fontFamily: FONT.bold,
                             color: COLORS.primary,

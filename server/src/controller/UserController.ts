@@ -2087,7 +2087,7 @@ export default class UserController {
                 //@ts-ignore
                 const userId = req.user._id;
                 const { error, value } = Joi.object<any>({
-                    age: Joi.number().required().label('Age'),
+                    age: Joi.number().label('Age'),
                     bio: Joi.string().required().label('Bio'),
                     build: Joi.string().optional().allow('').label('Build'),
                     dob: Joi.date().required().label('Dob'),
