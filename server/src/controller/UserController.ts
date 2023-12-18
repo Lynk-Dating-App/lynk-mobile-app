@@ -2091,14 +2091,14 @@ export default class UserController {
                     age: Joi.number().label('Age'),
                     bio: Joi.string().allow('').label('Bio'),
                     build: Joi.string().optional().allow('').label('Build'),
-                    dob: Joi.date().required().label('Dob'),
+                    dob: Joi.date().optional().label('Dob'),
                     interests: Joi.any().label('Interests'),
-                    lastName: Joi.string().required().label('Last name'),
-                    firstName: Joi.string().required().label('First name'),
-                    occupation: Joi.string().required().label('Occupation'),
-                    state: Joi.string().required().label('State'),
-                    gender: Joi.string().required().label('Gender'),
-                    height: Joi.string().required().label('Height'),
+                    lastName: Joi.string().optional().label('Last name'),
+                    firstName: Joi.string().optional().label('First name'),
+                    occupation: Joi.string().optional().label('Occupation'),
+                    state: Joi.string().optional().label('State'),
+                    gender: Joi.string().optional().label('Gender'),
+                    height: Joi.string().optional().label('Height'),
                     profileImageUrl: Joi.string().label('profile image')
                 }).validate(fields);
                 if(error) return reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
