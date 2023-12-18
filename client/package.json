@@ -11,7 +11,7 @@
     "ts:check": "tsc",
     "build": "eas build",
     "start:clear-cache": "npx expo -c",
-    "build:test": "eas update",
+    "build:test": "eas update --clear-cache",
     "sha-cert": "eas credentials"
   },
   "jest": {
