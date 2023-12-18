@@ -398,10 +398,6 @@ const TabOneScreen = () => {
       socket.off('getOnlineUsers');
     }; 
   },[socket.connected]);
-
-  // const showAlert = (message: string) => {
-  //   alert(message);
-  // };
   
   const schedulePushNotification = async (data: any) => {
     await Notifications.scheduleNotificationAsync({
