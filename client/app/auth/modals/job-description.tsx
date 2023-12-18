@@ -289,7 +289,7 @@ export default function JobDescription () {
                     borderBottomStartRadius:20,
                     borderBottomEndRadius:20,
                     width: '90%',
-                    height: Platform.select({android: '70%', ios: '60%'})
+                    height: 'auto'
                 }}
                 animationViewStyle={{
                     flex: 1,
@@ -345,7 +345,7 @@ export default function JobDescription () {
                             }
                             onSubmit={(values: any) => {
                                 const payload = {
-                                    name: capitalizeEachWord(values.name)
+                                    name: capitalizeEachWord(values.name.replace(/[^\w\s]/g, '').trim())
                                 }
                                 dispatch(addJobAction(payload))
                             }}

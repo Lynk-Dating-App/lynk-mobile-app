@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed"
-import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { Alert, Dimensions, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '../../constants';
 import { Formik } from 'formik';
 import * as Yup from "yup";
@@ -15,6 +15,11 @@ import useAppSelector from '../../hook/useAppSelector';
 import { clearUpdateProfileDetailStatus } from '../../store/reducers/authReducer';
 import { updateProfileDetailAction } from '../../store/actions/authActions';
 import Snackbar from '../../helpers/Snackbar';
+import ReusableModal from '../../components/Modal/ReusableModal';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { capitalizeEachWord } from '../../Utils/Generic';
+import { addJobAction } from '../../store/actions/userAction';
+import { clearAddJobStatus } from '../../store/reducers/userReducer';
 
 const { width } = Dimensions.get('window');
 
@@ -40,8 +45,13 @@ const About = () => {
     const [isError, setIsError] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [data, setData] = useState<any>(null);
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [success, setSuccess] = useState<string>('');
+    const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
     const dispatch = useAppDispatch();
     const authReducer = useAppSelector(state => state.authReducer);
+    const userReducer = useAppSelector(state => state.userReducer);
 
     const handleSubmit = (values: any) => {
 
@@ -51,7 +61,16 @@ const About = () => {
         }
  
         dispatch(updateProfileDetailAction(payload))
-    }
+    };
+
+    const alertComponent = (title: string, mess: string, btnTxt: string, btnFunc: any) => {
+        return Alert.alert(title, mess, [
+            {
+              text: btnTxt,
+              onPress: btnFunc
+            }
+        ]);
+      };
 
     useEffect(() => {
         const newState = [];
@@ -93,6 +112,58 @@ const About = () => {
         }
 
     },[authReducer.updateProfileDetailStatus]);
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+    
+        if(userReducer.addJobStatus === 'completed') {
+          setModalVisible(false);
+          setIsSuccess(true)
+          setSuccess(userReducer.addJobSuccess)
+    
+          intervalId = setTimeout(() => {
+            setIsSuccess(false)
+            setSuccess('')
+            setModalVisible(false);
+          },6000);
+          dispatch(clearAddJobStatus())
+
+        } else if(userReducer.addJobStatus === 'failed') {
+          setIsError(true)
+          setError(userReducer.addJobError)
+          intervalId = setTimeout(() => {
+            setIsError(false)
+            setError('')
+          },6000);
+          dispatch(clearAddJobStatus())
+        }
+    
+        return () => {
+          clearInterval(intervalId);
+        }
+    },[userReducer.addJobStatus]);
+
+    useEffect(() => {
+        if (success !== '' || error !== '') {
+          return alertComponent(
+            '',
+            success || error,
+            'Ok',
+            () => console.log('pressed')
+          );
+        };
+    },[success, error]);
+
+    useEffect(() => {
+        const intervalId = setTimeout(() => {
+            setError('')
+            setSuccess('')
+        },6000);
+
+        return () => {
+            clearInterval(intervalId);
+        }
+    },[error, success])
 
     return (
         <SafeAreaView style={{flex: 1}}>
@@ -175,6 +246,36 @@ const About = () => {
                                     selectError={errors.occupation}
                                     placeholderLabel='Select an occupation...'
                                 />)}
+                                <View
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'flex-start',
+                                        alignItems: 'flex-start',
+                                        width: 90/100 * width,
+                                        flexDirection: 'row',
+                                        flexWrap: 'wrap',
+                                        marginTop: -15,
+                                        marginBottom: 10
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                        fontFamily: FONT.regular,
+                                        fontSize: SIZES.small,
+                                        color: COLORS.gray,
+                                        marginLeft: 10
+                                        }}
+                                    >If your occupation is not in the list, click</Text>
+                                    <Text
+                                        onPress={() => setModalVisible(true)}
+                                        style={{
+                                            fontFamily: FONT.extraBold,
+                                            fontSize: SIZES.small,
+                                            color: COLORS.primary,
+                                            marginLeft: 10
+                                        }}
+                                    >add occupation</Text>
+                                </View>
 
                                 <View 
                                     style={{
@@ -272,11 +373,146 @@ const About = () => {
                     </Formik>
                 </ScrollView>
             </KeyboardAvoidingView>
+            {modalVisible && (<ReusableModal
+                modalVisible={modalVisible}
+                setModalVisible={setModalVisible}
+                style={{
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderTopStartRadius:20,
+                    borderTopEndRadius:20,
+                    borderBottomStartRadius:20,
+                    borderBottomEndRadius:20,
+                    width: '90%',
+                    height: 'auto'
+                }}
+                animationViewStyle={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <ScrollView
+                    showsVerticalScrollIndicator={false} 
+                    contentContainerStyle={{
+                        display: 'flex', 
+                        paddingTop: Platform.select({android: 20, ios: 0}), 
+                        // height: 'auto'
+                    }}
+                >
+                    <KeyboardAvoidingView
+                        style={{flex: 1}}
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    >
+                        <View
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                flexDirection: 'row',
+                                marginBottom: 30
+                            }}
+                        >
+                            <Text
+                                style={{
+                                fontFamily: FONT.extraBold,
+                                fontSize: SIZES.large,
+                                }}
+                            >Add occupation</Text>
+                            <TouchableOpacity
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <FontAwesome
+                                    name="close"
+                                    size={30}
+                                    color={COLORS.primary}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        <Formik
+                            initialValues={{ 
+                                name: ''
+                            }}
+                            validationSchema={
+                                Yup.object().shape({
+                                name: Yup.string().required().label("job type")
+                                })
+                            }
+                            onSubmit={(values: any) => {
+                                const payload = {
+                                    name: capitalizeEachWord(values.name.replace(/[^\w\s]/g, '').trim())
+                                }
+                                dispatch(addJobAction(payload))
+                            }}
+                        >
+                            {({ handleChange, handleSubmit, values, errors, touched }) => (
+                                <View style={styles.formContainer}>
+                                    <AppInput
+                                        placeholder={''}
+                                        hasPLaceHolder={true}
+                                        placeholderTop={'Job Name'}
+                                        value={values.jobType}
+                                        style={{
+                                            width: '95%',
+                                            borderColor: errors.jobType ? 'red' : COLORS.gray2
+                                        }}
+                                        headerStyle={{
+                                            fontFamily: FONT.semiBold,
+                                            fontSize: SIZES.medium,
+                                            marginLeft: 10,
+                                            color: COLORS.gray
+                                        }}
+                                        errorTextStyle={{
+                                            marginLeft: 1
+                                        }}
+                                        onChangeText={handleChange('name')}
+                                        error={errors.jobType}
+                                        touched={touched.jobType}
+                                        showError={false}
+                                    />
+                                    <AppBtn
+                                        handlePress={() => handleSubmit()}
+                                        isText={true}
+                                        btnTitle={'Save'} 
+                                        btnWidth={'95%'} 
+                                        btnHeight={60} 
+                                        btnBgColor={COLORS.primary}
+                                        btnTextStyle={{
+                                            fontSize: SIZES.medium,
+                                            fontFamily: FONT.bold
+                                        }}
+                                        btnStyle={{
+                                            marginBottom: 20,
+                                            marginTop: 40,
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            alignSelf: 'center'
+                                        }}
+                                        spinner={userReducer.addJobStatus === 'loading'}
+                                        spinnerColor='white'
+                                        spinnerStyle={{
+                                            marginLeft: 10
+                                        }}
+                                    />
+                                </View>
+                            )}
+                        </Formik>
+                    </KeyboardAvoidingView>
+                </ScrollView>
+            </ReusableModal>)}
             <Snackbar
                 isVisible={isError} 
                 message={error}
                 onHide={() => setIsError(false)}
                 type='error'
+            />
+            <Snackbar
+                isVisible={isSuccess} 
+                message={success}
+                onHide={() => setIsSuccess(false)}
+                type='success'
             />
         </SafeAreaView>
     )
