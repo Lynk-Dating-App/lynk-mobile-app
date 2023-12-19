@@ -94,11 +94,11 @@ const ProfileDetail = () => {
             ...data
         }
         
-        if(payload.profileImageUrl === "") {
-            setIsError(true)
-            setError("Profile image is required.")
-            return 
-        }
+        // if(payload.profileImageUrl === "") {
+        //     setIsError(true)
+        //     setError("Profile image is required.")
+        //     return 
+        // }
 
         storeData("profile-data", JSON.stringify(payload))
         router.push('/auth/about')

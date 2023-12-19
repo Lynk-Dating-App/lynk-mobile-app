@@ -2099,7 +2099,7 @@ export default class UserController {
                     state: Joi.string().optional().label('State'),
                     gender: Joi.string().optional().label('Gender'),
                     height: Joi.string().optional().label('Height'),
-                    profileImageUrl: Joi.string().label('profile image')
+                    profileImageUrl: Joi.any().label('profile image')
                 }).validate(fields);
                 if(error) return reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
 

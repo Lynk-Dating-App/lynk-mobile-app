@@ -59,6 +59,7 @@ const About = () => {
             ...values,
             ...data,
         }
+
         dispatch(updateProfileDetailAction(payload))
     };
 

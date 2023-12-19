@@ -5,7 +5,7 @@ import AppBtn from "../../components/common/button/AppBtn";
 import { COLORS, FONT, SIZES } from "../../constants";
 import { useRouter } from "expo-router";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { getTokenFromSecureStore } from "../../components/ExpoStore/SecureStore";
+import { getTokenFromSecureStore, removeTokenFromSecureStore } from "../../components/ExpoStore/SecureStore";
 import settings from "../../config/settings";
 import { jwtDecode } from "jwt-decode";
 import { decode as base64Decode } from 'base-64';
@@ -52,11 +52,18 @@ const Gender = () => {
         fetchData();
     }, []);
 
+    const handleLogout = async () => {
+        await removeTokenFromSecureStore(settings.auth.admin);
+        router.push('/unauth/login')
+      };
+    
+
     return (
         <SafeAreaView style={{flex: 1}}>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.container}>
                     <Text
+                        onPress={handleLogout}
                         style={{
                             marginTop: 80,
                             fontFamily: FONT.extraBold,

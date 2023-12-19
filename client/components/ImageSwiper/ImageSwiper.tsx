@@ -225,7 +225,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                   style={{
                     color: 'white',
                     fontFamily: FONT.extraBold,
-                    fontSize: card?.firstName.length + card?.lastName.length > 8 ? SIZES.xLarge : SIZES.xxLarge,
+                    fontSize: card?.firstName?.length + card?.lastName?.length > 8 ? SIZES.xLarge : SIZES.xxLarge,
                     elevation: 5,
                   }}
                 >{capitalizeFirstLetter(card?.firstName)} {`${capitalizeFirstLetter(card?.lastName)},`} {card?.age}</Text>

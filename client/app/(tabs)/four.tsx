@@ -499,14 +499,14 @@ export default function TabFourScreen() {
               <Text
                 style={{
                   fontFamily: FONT.extraBold,
-                  fontSize: user?.firstName.length + user?.lastName.length > 10 ? SIZES.xLarge : SIZES.xxLarge
+                  fontSize: user?.firstName?.length + user?.lastName?.length > 10 ? SIZES.xLarge : SIZES.xxLarge
                 }}
               >{capitalizeFirstLetter(user?.firstName)} {`${capitalizeFirstLetter(user?.lastName)},`} {user?.age}
               </Text>
               <Text
                 style={{
                   fontFamily: FONT.regular,
-                  fontSize: user?.jobType.length > 10 ? SIZES.large : SIZES.xLarge,
+                  fontSize: user?.jobType?.length > 10 ? SIZES.large : SIZES.xLarge,
                   color: COLORS.tertiary
                 }}
               >
@@ -619,9 +619,9 @@ export default function TabFourScreen() {
                 color: COLORS.tertiary
               }}
             >
-              {characterBreaker(capitalizeFirstLetter(user?.about), brkAbout)}{brkAbout !== user?.about.length && '...'}
+              {characterBreaker(capitalizeFirstLetter(user?.about), brkAbout)}{brkAbout !== user?.about?.length && '...'}
             </Text>
-            {brkAbout !== user?.about.length && (<TouchableOpacity 
+            {brkAbout !== user?.about?.length && (<TouchableOpacity 
               onPress={() => setBrkAbout(user?.about.length)}
             >
               <Text
