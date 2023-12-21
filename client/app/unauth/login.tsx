@@ -524,7 +524,7 @@ const Login = () => {
                                     fontSize: 14,
                                     color: COLORS.tertiary
                                 }}
-                            >Don't have an account? Checking SOMETHING</Text>
+                            >Don't have an account?</Text>
                             <Text
                                 onPress={() => router.push('/unauth/sign-up')}
                                 style={{
