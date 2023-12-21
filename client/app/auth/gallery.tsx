@@ -11,7 +11,8 @@ import useAppSelector from '../../hook/useAppSelector';
 import { galleryAction } from '../../store/actions/authActions';
 import Snackbar from '../../helpers/Snackbar';
 import { clearGalleryStatus } from '../../store/reducers/authReducer';
-import { extractFileNameFromUri } from '../../Utils/Generic';
+import { alertComponent, extractFileNameFromUri } from '../../Utils/Generic';
+import * as FileSystem from 'expo-file-system';
 
 const Gallery = () => {
     const router = useRouter();
@@ -36,12 +37,34 @@ const Gallery = () => {
           };
       
           const result = await ImagePicker.launchImageLibraryAsync(options);
+
+          if (result.canceled) {
+            return alertComponent(
+              'Image',
+              'Upload cancelled',
+              'Ok',
+              () => console.log('pressed')
+            )
+          }
       
           if (!result.canceled) {
             // Use the assets array to get the image URI
             const imageUri = result.assets?.[0];
             
             if (imageUri) {
+                const fileInfo = await FileSystem.getInfoAsync(imageUri.uri);
+          
+                const maxFileSize = 1 * 1024 * 1024; //1 MB
+                if (fileInfo.exists) {
+                    if(fileInfo.size > maxFileSize) {
+                        return alertComponent(
+                        'Image size',
+                        'Selected image exceeds the maximum allowed size. Image size should not be more that 1MB',
+                        'Ok',
+                        () => console.log('pressed')
+                        );
+                    }
+                }
                 setImagesArray([...imagesArray, imageUri]);
                 setImagePreview(imageUri)
             } else {
@@ -83,8 +106,7 @@ const Gallery = () => {
         const newArr = image.map((imageObject: any) => ({
             uri: imageObject.uri,
             name: imageObject.fileName || extractFileNameFromUri(imageObject.uri),
-            type: `${imageObject.type}/${imageObject.uri.split('.')[1]}`,
-            size: imageObject.fileSize
+            type: `${imageObject.type}/${imageObject.uri.split('.')[1]}`
         }));
 
         dispatch(galleryAction(newArr))
@@ -117,17 +139,18 @@ const Gallery = () => {
             <ScrollView>
                 <View style={styles.backBtnContainer}>
                     <Text/>
-                    <Text
-                        onPress={() => router.push('/auth/notification')}
-                        style={{
-                            fontFamily: FONT.bold,
-                            color: COLORS.primary,
-                            fontSize: SIZES.medium,
-                            marginRight: 30
-                        }}
-                    >
-                        Skip
-                    </Text>
+                    <TouchableOpacity onPress={() => router.push('/auth/notification')}>
+                        <Text
+                            style={{
+                                fontFamily: FONT.bold,
+                                color: COLORS.primary,
+                                fontSize: SIZES.medium,
+                                marginRight: 30
+                            }}
+                        >
+                            Skip
+                        </Text>
+                    </TouchableOpacity>
                 </View>
                 <View style={styles.container}>
                     <Text

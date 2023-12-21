@@ -173,8 +173,8 @@ export const getJobsAction = asyncThunkWrapper<ApiResponseSuccess<any>, void>(GE
 
 export const updateProfileImageAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(UPDATE_PROFILE_IMAGE, async (args: any) => {
     const formData = new FormData();
-    if (args.profileImageUrl) formData.append('profileImageUrl', args.profileImageUrl);
-
+    formData.append('profileImageUrl', args.profileImageUrl);
+    
     const response = await axiosClient.put(`${API_ROOT}/user-update-profile-image`, formData);
 
     return response.data;

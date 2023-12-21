@@ -76,7 +76,7 @@ const TokenPage = () => {
     useEffect(() => {
         if(authReducer.validateSignUpTokenStatus === 'completed') {
              dispatch(setSignInAfterSignUp({
-                emailOrPhone: userData.phone,
+                emailOrPhone: userData.email,
                 password: userData.password
              }))
             dispatch(signUpAction(userData));

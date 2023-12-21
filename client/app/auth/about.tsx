@@ -54,7 +54,6 @@ const About = () => {
     const userReducer = useAppSelector(state => state.userReducer);
 
     const handleSubmit = (values: any) => {
-
         const payload = {
             ...values,
             ...data,

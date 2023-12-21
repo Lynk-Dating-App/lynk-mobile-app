@@ -43,7 +43,7 @@ export const isUserExistAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>
 
 export const updateProfileDetailAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(UPDATE_USER_PROFILE_DETAIL, async (args: any) => {
     const formData = new FormData();
-    if (args.profileImageUrl) formData.append('profileImageUrl', args.profileImageUrl);
+    // if (args.profileImageUrl) formData.append('profileImageUrl', args.profileImageUrl);
     formData.append('dob', args.dob);
     formData.append('firstName', args.firstName);
     formData.append('lastName', args.lastName);

@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
 import AppBtn from "../../components/common/button/AppBtn";
 import { COLORS, FONT, SIZES, icons, images } from "../../constants";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { 
+    ActivityIndicator,
     Dimensions, Image, 
     KeyboardAvoidingView, 
     Modal, Platform, 
@@ -18,10 +19,11 @@ import { retrieveData, storeData } from "../../components/LocalStorage/LocalStor
 import Snackbar from "../../helpers/Snackbar";
 import * as ImagePicker from 'expo-image-picker';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { extractFileNameFromUri } from "../../Utils/Generic";
-import { getTokenFromSecureStore } from "../../components/ExpoStore/SecureStore";
-import settings from "../../config/settings";
-import { decode as base64Decode } from 'base-64';
+import { alertComponent, extractFileNameFromUri } from "../../Utils/Generic";
+import * as FileSystem from 'expo-file-system';
+import useAppDispatch from "../../hook/useAppDispatch";
+import { updateProfileImageAction } from "../../store/actions/userAction";
+import useAppSelector from "../../hook/useAppSelector";
 
 const { width } = Dimensions.get('window');
 
@@ -41,6 +43,9 @@ const ProfileDetail = () => {
     const [viewImage, setViewImage] = useState<boolean>(false);
     const [imagePreview, setImagePreview] = useState(null);
 
+    const dispatch = useAppDispatch();
+    const userReducer = useAppSelector(state => state.userReducer);
+
     const showDatePicker = () => {
         setDatePickerVisibility(true);
     };
@@ -49,30 +54,97 @@ const ProfileDetail = () => {
         setDatePickerVisibility(false);
     };
 
+    // const openImagePicker = async () => {
+    //     try {
+    //       const options: ImagePicker.ImagePickerOptions = {
+    //         mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    //         allowsEditing: true,
+    //         aspect: [4, 3],
+    //         quality: 1,
+    //       };
+      
+    //       const result = await ImagePicker.launchImageLibraryAsync(options);
+      
+    //       if (!result.canceled) {
+    //         // Use the assets array to get the image URI
+    //         const imageUri = result.assets?.[0];
+            
+    //         if (imageUri) {
+    //             setImagePreview(imageUri)
+    //         } else {
+    //           console.log('No image URI found in the assets array.');
+    //         }
+    //       }
+    //     } catch (error) {
+    //       console.error('Error picking an image:', error);
+    //     }
+    // };
+
     const openImagePicker = async () => {
         try {
           const options: ImagePicker.ImagePickerOptions = {
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 1,
+            quality: 1
           };
       
           const result = await ImagePicker.launchImageLibraryAsync(options);
+          
+          if (result.canceled) {
+            return alertComponent(
+              'Image',
+              'Upload cancelled',
+              'Ok',
+              () => console.log('pressed')
+            )
+          }
       
           if (!result.canceled) {
-            // Use the assets array to get the image URI
             const imageUri = result.assets?.[0];
-            
+    
             if (imageUri) {
-                setImagePreview(imageUri)
+    
+              const fileInfo = await FileSystem.getInfoAsync(imageUri.uri);
+              
+              const maxFileSize = 1 * 1024 * 1024; //1 MB
+              if (fileInfo.exists) {
+                if(fileInfo.size > maxFileSize) {
+                    return alertComponent(
+                      'Image size',
+                      'Selected image exceeds the maximum allowed size. Image size should not be more that 1MB',
+                      'Ok',
+                      () => console.log('pressed')
+                    );
+                }
+              }
+    
+              handleImageProfile(imageUri);
+              setImagePreview(imageUri)
+              
             } else {
               console.log('No image URI found in the assets array.');
             }
           }
         } catch (error) {
           console.error('Error picking an image:', error);
+          return alertComponent(
+            'Image',
+            'Upload failed',
+            'Ok',
+            () => console.log('pressed')
+          );
         }
+    };
+
+    const handleImageProfile = async (pickerResult: any) => {
+    const profileImageUrl = {
+        uri: pickerResult.uri,
+        name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
+        type: `${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
+    };
+
+    dispatch(updateProfileImageAction({ profileImageUrl }));
     };
 
     const handleSubmit = (values: any) => {
@@ -85,12 +157,6 @@ const ProfileDetail = () => {
 
         const payload = {
             ...values,
-            profileImageUrl: imagePreview !== null ? {
-                uri: imagePreview.uri,
-                name: imagePreview.fileName || extractFileNameFromUri(imagePreview.uri),
-                type: `${imagePreview.type}/${imagePreview.uri.split('.')[1]}`,
-                size: imagePreview.fileSize
-            } : '',
             ...data
         }
         
@@ -196,23 +262,36 @@ const ProfileDetail = () => {
                                     position: 'absolute',
                                     zIndex: 1,
                                 }}
-                                // onProgress={onProgress}
                             />)}
                         </TouchableOpacity>
                         <TouchableOpacity onPressIn={openImagePicker}>
-                            <Image 
-                                source={icons.cameraIcon}
-                                resizeMode='cover'
-                                style={{
-                                    height: 40,
-                                    width: 40,
-                                    borderRadius: 50,
-                                    position: 'absolute',
-                                    marginTop: 95,
-                                    marginLeft: 200,
-                                    zIndex: 2
-                                }}
-                            />
+                            {userReducer.uploadUserProfileImageStatus === 'loading' 
+                                ? <ActivityIndicator color={'white'}
+                                    style={{
+                                        position: 'absolute',
+                                        marginTop: 95,
+                                        marginLeft: 220,
+                                        zIndex: 2,
+                                        backgroundColor: COLORS.primary,
+                                        height: 40,
+                                        width: 40,
+                                        borderRadius: 50,
+                                    }}
+                                    />
+                                : <Image
+                                    source={icons.cameraIcon}
+                                    resizeMode='cover'
+                                    style={{
+                                        height: 40,
+                                        width: 40,
+                                        borderRadius: 50,
+                                        position: 'absolute',
+                                        marginTop: 95,
+                                        marginLeft: 220,
+                                        zIndex: 2
+                                    }}
+                                    />
+                            }
                         </TouchableOpacity>
                     </View>
                     

@@ -1,4 +1,15 @@
 import moment from 'moment';
+import ImageResizer from '@bam.tech/react-native-image-resizer';
+import { Alert } from 'react-native';
+
+export const alertComponent = (title: string, mess: string, btnTxt: string, btnFunc: any) => {
+  return Alert.alert(title, mess, [
+      {
+        text: btnTxt,
+        onPress: btnFunc
+      }
+  ]);
+};
 
 export function capitalizeEachWord(string: string) {
     return string ? string
@@ -62,6 +73,27 @@ export const location_km = (userALat?: number, userALon?: number, userBLat?: num
 
   return distance;
 }
+
+export const fetchImageFromUri = async (uri: any) => {
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  return blob;
+};
+
+export const resizeImage = async (
+  uri: any, maxWidth: number, maxHeight: number, format: any, quality: number, 
+  rotation?: number, outputPath?: any, keepMeta?: boolean,
+) => {
+  return new Promise((resolve, reject) => {
+    ImageResizer.createResizedImage(uri, maxWidth, maxHeight, format, quality, rotation = 0, outputPath, keepMeta = false )
+      .then((resizedImageUri) => {
+        resolve(resizedImageUri);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
 
 export const toRadians = (degrees: number) => {
   return degrees * (Math.PI / 180);

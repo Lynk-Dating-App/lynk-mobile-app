@@ -82,7 +82,6 @@ const Login = () => {
     const [count, setCount] = useState<number>(120);
     const [formattedValue, setFormattedValue] = useState("");
     const [biometricId, setBiometricId] = useState<string>("");
-    const [userInfo, setUserInfo] = useState(null);
     
     const otpRef = useRef<any>(null);
     const dispatch = useAppDispatch();
@@ -90,7 +89,8 @@ const Login = () => {
     const userReducer = useAppSelector(state => state.userReducer);
     const [request, response, promptAsync] = Google.useAuthRequest({
         iosClientId: "464515501760-rk14ot0a8l5tm0ie5h0co5brcc9hjfp9.apps.googleusercontent.com",
-        webClientId: "464515501760-dakf7f3am3n67ufrq6mf2dhgoqppii85.apps.googleusercontent.com"
+        webClientId: "464515501760-dakf7f3am3n67ufrq6mf2dhgoqppii85.apps.googleusercontent.com",
+        androidClientId: "464515501760-ocvquoa0m7lhn2cj9o12i3mtfidjng7l.apps.googleusercontent.com"
     })
 
     const fallBackToDefaultAuth = () => {
@@ -380,7 +380,7 @@ const Login = () => {
                 password: userReducer.signInAfterSignUp.password
             }))
         }
-    },[userReducer.signInAfterSignUp2])
+    },[userReducer.signInAfterSignUp2]);
 
     return (
         <SafeAreaView style={[{flex: 1}]}>

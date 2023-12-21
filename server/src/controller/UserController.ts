@@ -2102,13 +2102,13 @@ export default class UserController {
                     profileImageUrl: Joi.any().label('profile image')
                 }).validate(fields);
                 if(error) return reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
-
+               
                 const user = await datasources.userDAOService.findById(userId);
                 if(!user)
                     return reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
 
                 const profile_image = files.profileImageUrl as File;
-                
+
                 const basePath = `${UPLOAD_BASE_PATH}/user`;
 
                 let _profileImageUrl = ''
@@ -2140,12 +2140,11 @@ export default class UserController {
                     }
                 }
 
-                // const interests = JSON.stringify(value.interests);
-
                 const payload = {
                     ...value,
                     about: value.bio,
                     jobType: value.occupation,
+                    interests: value.interests.split(','),
                     level: 2,
                     profileImageUrl: profile_image && _profileImageUrl
                 }
@@ -2164,11 +2163,11 @@ export default class UserController {
                 //@ts-ignore
                 const userId = req.user._id;
 
-                const { error, value } = Joi.object<IUserModel>({
-                    profileImageUrl: Joi.string().label('profile image')
+                const { error, value } = Joi.object<any>({
+                    profileImageUrl: Joi.any().label('profile image')
                 }).validate(fields);
                 if(error) return reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
-                
+
                 const user = await datasources.userDAOService.findById(userId);
                 if(!user) return reject(CustomAPIError.response('User not found', HttpStatus.NOT_FOUND.code));
 
@@ -2188,10 +2187,10 @@ export default class UserController {
                     if (!allowedFileTypes.includes(profile_image.mimetype as string)) {
                         return reject(CustomAPIError.response(MESSAGES.image_type_error, HttpStatus.BAD_REQUEST.code));
                     }
-            
+
                     _profileImageUrl = await Generic.getImagePath({
                         tempPath: profile_image.filepath,
-                        filename: profile_image.originalFilename as string,
+                        filename: profile_image.originalFilename as string, //value.filename as string,
                         basePath,
                     });
                 };

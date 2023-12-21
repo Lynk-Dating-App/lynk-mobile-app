@@ -29,7 +29,6 @@ const Interests = () => {
     const [gender, setGender] = useState<any>(null);
 
     const handleActive = (name: string) => {
-        // Toggle the selection of interests
         setActiveInterests((active) =>
             active.includes(name)
                 ? active.filter((item) => item !== name)
@@ -47,6 +46,7 @@ const Interests = () => {
             gender: gender.gender,
             interests: activeInterests
         }
+
         storeData("profile-data", JSON.stringify(payload))
         router.push('/auth/profile-detail')
     }
@@ -97,11 +97,6 @@ const Interests = () => {
                             gap: 10,
                         }}
                     >
-                        {/* <FontAwesome
-                            name={item.interest.icon as any}
-                            size={20}
-                            color={active === index ? 'white' : COLORS.primary}
-                        /> */}
                         <Image
                             source={activeInterests.includes(item.interest.value) ? item.interest.iconWhite : item.interest.icon }
                             resizeMode='cover'

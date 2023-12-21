@@ -17,7 +17,7 @@ import {
 import AppInput from '../../components/AppInput/AppInput';
 import { COLORS, FONT, SIZES, icons, images } from '../../constants';
 import * as ImagePicker from 'expo-image-picker';
-import { capitalizeEachWord, capitalizeFirstLetter, extractFileNameFromUri, wordBreaker } from '../../Utils/Generic';
+import { alertComponent, capitalizeEachWord, capitalizeFirstLetter, extractFileNameFromUri, fetchImageFromUri, wordBreaker } from '../../Utils/Generic';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { characterBreaker } from '../../Utils/Generic';
 import _ from 'lodash';
@@ -33,6 +33,7 @@ import { clearDeactivateAccountStatus, clearDeleteImageFromGalleryStatus, clearS
 import { clearSubscribeStatus } from '../../store/reducers/subscriptionReducer';
 import tw from 'twrnc';
 import { removeTokenFromSecureStore } from '../../components/ExpoStore/SecureStore';
+import * as FileSystem from 'expo-file-system';
 
 const {width, height} = Dimensions.get('window');
 const religion = [
@@ -106,8 +107,6 @@ export default function TabFourScreen() {
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [officeAddressBrk, setOfficeAddressBrk] = useState(20);
   const [officeNameBrk, setOfficeNameBrk] = useState(10);
-  const [imageUri, setImageUri] = useState(null);
-  const [galleryImageUri, setImageGalleryUri] = useState(null);
   const [imageArray, setImageArray] = useState<string[]>([]);
   const [deactivateAccount, setDeactivateAccount] = useState<boolean>(false);
   const [confirmDeactivation, setConfirmDeactivation] = useState<string>('');
@@ -123,24 +122,54 @@ export default function TabFourScreen() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 1
       };
   
       const result = await ImagePicker.launchImageLibraryAsync(options);
+      
+      if (result.canceled) {
+        return alertComponent(
+          'Image',
+          'Upload cancelled',
+          'Ok',
+          () => console.log('pressed')
+        )
+      }
   
       if (!result.canceled) {
-        // Use the assets array to get the image URI
         const imageUri = result.assets?.[0];
-        
+
         if (imageUri) {
-          type === 'profileImage' ? setImageUri(imageUri) : setImageGalleryUri(imageUri)
+
+          const fileInfo = await FileSystem.getInfoAsync(imageUri.uri);
+          
+          const maxFileSize = 1 * 1024 * 1024; //1 MB
+          if (fileInfo.exists) {
+            if(fileInfo.size > maxFileSize) {
+                return alertComponent(
+                  'Image size',
+                  'Selected image exceeds the maximum allowed size. Image size should not be more that 1MB',
+                  'Ok',
+                  () => console.log('pressed')
+                );
+            }
+          }
+
+          type === 'profileImage' ? handleImageProfile(imageUri) : handleImageGallery(imageUri)
           type === 'profileImage' && setImagePreview(imageUri)
+          
         } else {
           console.log('No image URI found in the assets array.');
         }
       }
     } catch (error) {
       console.error('Error picking an image:', error);
+      return alertComponent(
+        'Image',
+        'Upload failed',
+        'Ok',
+        () => console.log('pressed')
+      );
     }
   };
 
@@ -229,31 +258,40 @@ export default function TabFourScreen() {
     }
   },[userReducer.updatePreferenceStatus]);
 
-  useEffect(() => {
-    if(imageUri !== null) {
-      const profileImageUrl = {
-        uri: imageUri.uri,
-        name: imageUri.fileName || extractFileNameFromUri(imageUri.uri),
-        type: `${imageUri.type}/${imageUri.uri.split('.')[1]}`,
-        size: imageUri.fileSize
-      } 
+  const handleImageProfile = async (pickerResult: any) => {
+    // try {
+    //   const token = await getTokenFromSecureStore(settings.auth.admin)
+    //   const response = await FileSystem.uploadAsync(`${settings.api.baseURL}${settings.api.rest}/user-update-profile-image`, pickerResult.uri, {
+    //     fieldName: 'profileImageUrl',
+    //     httpMethod: 'PUT',
+    //     uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+    //     headers: {
+    //       Authorization: `Bearer ${token}`
+    //     }
+    //   }
+    //   );
+    //   console.log(JSON.stringify(response, null, 4));
+    // } catch (error) {
+    //   console.log(error);
+    // }
+    const profileImageUrl = {
+      uri: pickerResult.uri,
+      name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
+      type: `${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
+    };
 
-      dispatch(updateProfileImageAction({profileImageUrl}))
-    }
-  },[imageUri]);
+    dispatch(updateProfileImageAction({ profileImageUrl }));
+  };
 
-  useEffect(() => {
-    if(galleryImageUri !== null) {
-      const profileImageUrl = {
-        uri: galleryImageUri.uri,
-        name: galleryImageUri.fileName || extractFileNameFromUri(galleryImageUri.uri),
-        type: `${galleryImageUri.type}/${galleryImageUri.uri.split('.')[1]}`,
-        size: galleryImageUri.fileSize
-      } 
+  const handleImageGallery = async (pickerResult: any) => {
+    const profileImageUrl = {
+      uri: pickerResult.uri,
+      name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
+      type: `${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
+    };
 
-      dispatch(saveGalleryImageAction({profileImageUrl}))
-    }
-  },[galleryImageUri]);
+    dispatch(saveGalleryImageAction({profileImageUrl}))
+  };
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -262,11 +300,9 @@ export default function TabFourScreen() {
       dispatch(clearSaveImageToGalleryStatus())
       imageArray.push(userReducer.savedImage)
 
-      setImageGalleryUri(null)
     } else if(userReducer.saveImageToGalleryStatus === 'failed') {
       setIsError(true)
       setError(userReducer.saveImageToGalleryError)
-      setImageGalleryUri(null)
 
       intervalId = setTimeout(() => {
         setIsError(false)
@@ -291,7 +327,6 @@ export default function TabFourScreen() {
     } else if(userReducer.deleteImageFromGalleryStatus === 'failed') {
       setIsError(true)
       setError(userReducer.deleteImageFromGalleryError)
-      setImageGalleryUri(null)
 
       intervalId = setTimeout(() => {
         setIsError(false)
@@ -311,11 +346,10 @@ export default function TabFourScreen() {
     if(userReducer.uploadUserProfileImageStatus === 'completed') {
       dispatch(clearUploadUserProfileImageStatus())
       dispatch(getUserAction(user?._id))
-      setImageUri(null)
+
     } else if(userReducer.uploadUserProfileImageStatus === 'failed') {
       setIsError(true)
       setError(userReducer.uploadUserProfileImageError)
-      setImageUri(null)
 
       intervalId = setTimeout(() => {
         setIsError(false)
@@ -465,7 +499,7 @@ export default function TabFourScreen() {
             </View>
             <TouchableOpacity onPressIn={() => openImagePicker('profileImage')}>
               {userReducer.uploadUserProfileImageStatus === 'loading' 
-                  ? <ActivityIndicator
+                  ? <ActivityIndicator color={'white'}
                       style={{
                         position: 'absolute',
                         marginTop: 95,
@@ -686,6 +720,15 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
+            {!user?.jobDescription && (<Text
+              style={{
+                fontFamily: FONT.regular,
+                fontSize: SIZES.medium,
+                color: COLORS.gray2
+              }}
+            >
+              Job description....
+            </Text>)}
           </View>
 
           <View style={styles.section2}>
@@ -718,6 +761,15 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
+            {!user?.address && (<Text
+              style={{
+                fontFamily: FONT.regular,
+                fontSize: SIZES.medium,
+                color: COLORS.gray2
+              }}
+            >
+              Address....
+            </Text>)}
           </View>
 
           <View style={styles.section2}>
@@ -752,6 +804,15 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
+            {!user?.officeName && (<Text
+              style={{
+                fontFamily: FONT.regular,
+                fontSize: SIZES.medium,
+                color: COLORS.gray2
+              }}
+            >
+              Office name....
+            </Text>)}
           </View>
 
           <View style={styles.section2}>
@@ -786,6 +847,15 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
+            {!user?.officeAddress && (<Text
+              style={{
+                fontFamily: FONT.regular,
+                fontSize: SIZES.medium,
+                color: COLORS.gray2
+              }}
+            >
+              Office address....
+            </Text>)}
           </View>
 
           <View style={styles.section3}>
