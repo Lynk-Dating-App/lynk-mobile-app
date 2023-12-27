@@ -1330,6 +1330,10 @@ export default class UserController {
         // Remove userId from the likedByUsers array of unLikedUser
         await unLikedUser.updateOne({ $pull: { likedByUsers: userId } });
 
+        //Delete the unliked user from chat list
+        const filter = { members: { $all: [userId, unLikedUserId]}};
+        await datasources.chatDAOService.deleteByAny(filter);
+
         const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
             message: `Successfully unliked ${unLikedUser.firstName}'s profile.`,
@@ -2042,8 +2046,7 @@ export default class UserController {
                     }
 
                     const outputPath = await Generic.compressImage(
-                        galleryImage.filepath, 
-                        galleryImage.originalFilename as string
+                        galleryImage.filepath
                     );
     
                     // Save each image and get the image path
@@ -2242,12 +2245,11 @@ export default class UserController {
                     }
 
                     const outputPath = await Generic.compressImage(
-                        profile_image.filepath, 
-                        profile_image.originalFilename as string
+                        profile_image.filepath
                     );
 
                     _profileImageUrl = await Generic.getImagePath({
-                        tempPath: outputPath,//profile_image.filepath,
+                        tempPath: outputPath,
                         filename: profile_image.originalFilename as string,
                         basePath,
                     });

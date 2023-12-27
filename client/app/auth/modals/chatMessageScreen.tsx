@@ -25,14 +25,6 @@ const ChatMessageScreen = () => {
     const [imageModal, setImageModal] = useState<boolean>(false);
     const flatListRef = useRef(null);
 
-    const _handleSendMessage = () => {
-        dispatch(createChatMessageAction({
-            chatId: userReducer.chatUsers.chat._id,
-            senderId: user?._id,
-            message: input
-        }))
-    }
-
     const renderHeader = () => (
         <View
           style={{
@@ -183,25 +175,6 @@ const ChatMessageScreen = () => {
           dispatch(clearGetChatMessagesStatus())
       }
     },[userReducer.getChatMessagesStatus]);
-
-    // useEffect(() => {
-    //   if(userReducer.createChatMessageStatus === 'completed') {
-    //       dispatch(getChatMessagesAction(userReducer.chatUsers.chat._id))
-          
-    //       const payload = {
-    //         // chatId: userReducer.chatUsers.chat._id,
-    //         // senderId: user?._id,
-    //         message: input,
-    //         receiverId: userReducer.chatUsers._id
-    //       }
-    //       socket.emit('sendPrivateMessage', payload)
-    //       dispatch(clearCreateChatMessageStatus());
-    //       setInput('')
-    //   } else if(userReducer.createChatMessageStatus === 'failed') {
-    //       console.log('failed to send message')
-    //       dispatch(clearCreateChatMessageStatus())
-    //   }
-    // },[userReducer.createChatMessageStatus]);
 
     const handleSendMessage = () => {
       const payload = {

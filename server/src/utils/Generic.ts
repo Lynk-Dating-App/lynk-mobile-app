@@ -139,8 +139,8 @@ export default class Generic {
   //   }
   // }
 
-  public static async compressImage(imagePath: string, originalFilename: string): Promise<string> {
-    let outputPath = originalFilename;
+  public static async compressImage(imagePath: string): Promise<string> {
+    let outputPath = path.join("../uploads/user", "profile_image.jpg");
     
     try {
         const image = await Jimp.read(imagePath);

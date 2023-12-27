@@ -4,15 +4,16 @@ import { SafeAreaView, Text, View } from '../../components/Themed';
 import useUser from '../../hook/useUser';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
-import { findUserChatsAction, getLikedAndLikedByUsersAction } from '../../store/actions/userAction';
+import { createChatAction, findUserChatsAction, getLikedAndLikedByUsersAction } from '../../store/actions/userAction';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { COLORS, FONT, SIZES, images } from '../../constants';
 import AppInput from '../../components/AppInput/AppInput';
 import settings from '../../config/settings';
 import { capitalizeFirstLetter, characterBreaker, dateDifference } from '../../Utils/Generic';
-import { clearGetLikedAndLikedByUsersStatus, setChatUsers, setOnlineUsers } from '../../store/reducers/userReducer';
+import { clearCreateChatStatus, clearGetLikedAndLikedByUsersStatus, setChatUsers, setOnlineUsers } from '../../store/reducers/userReducer';
 import socket from '../../config/socket';
 import tw from 'twrnc';
+import Snackbar from '../../helpers/Snackbar';
 
 const { width } = Dimensions.get('window');
 
@@ -23,18 +24,24 @@ export default function TabThreeScreen() {
   const dispatch = useAppDispatch();
   const userReducer = useAppSelector(state => state.userReducer);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isError, setIsError] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const filteredData = userReducer.chatMembers.filter((item: any) =>
     item.firstName?.toLowerCase().includes(searchQuery)
   );
 
+  const handleChat = async (id: string) => {
+    dispatch(createChatAction({firstId: user?._id, secondId: id}))
+  }
+
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => console.log('message', item.key)}
+    <TouchableOpacity onPress={() => handleChat(item.key)}
       style={tw`flex justify-center flex-column items-center gap-3`}>
        <View 
         style={[{
           marginHorizontal: 10,
-          backgroundColor: userReducer.onlineUsers.find((data) => data.userId === item.userId) ? COLORS.primary : COLORS.gray2,
+          backgroundColor: userReducer.onlineUsers.find((data) => data.userId === item.key) ? COLORS.primary : COLORS.gray2,
           borderRadius: 50
         },tw`flex justify-center items-center h-20 w-20`]}
       >
@@ -71,6 +78,28 @@ export default function TabThreeScreen() {
       dispatch(getLikedAndLikedByUsersAction());
     },[userReducer.loggedInuser])
   );
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if(userReducer.createChatStatus === 'completed') {
+        dispatch(findUserChatsAction(userReducer.loggedInuser?._id))
+        dispatch(clearCreateChatStatus())
+    } else if(userReducer.createChatStatus === 'failed') {
+        setIsError(true)
+        setError(userReducer.createChatError)
+
+        intervalId = setTimeout(() => {
+            setIsError(false)
+            setError('')
+        },6000)
+        dispatch(clearCreateChatStatus())
+    }
+
+    return () => {
+        clearInterval(intervalId);
+    }
+  },[userReducer.createChatStatus]);
 
   useEffect(() => {
     socket.on('messageSentAck', (data) => {
@@ -141,7 +170,7 @@ export default function TabThreeScreen() {
         style={{
           marginHorizontal: 10,
         }}
-        keyExtractor={(item) => item.key}
+        keyExtractor={(item) => item._id}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
           <Text
@@ -172,7 +201,7 @@ export default function TabThreeScreen() {
                 style={[{
                   width: 60,
                   height: 60,
-                  backgroundColor: userReducer.onlineUsers.find((data) => data.userId === item.userId) ? COLORS.primary : COLORS.gray2,
+                  backgroundColor: userReducer.onlineUsers.find((data) => data.userId === item._id) ? COLORS.primary : COLORS.gray2,
                   borderRadius: 50,
                   marginLeft: 20
                 },tw`flex justify-center items-center`]}
@@ -316,6 +345,12 @@ export default function TabThreeScreen() {
             </View>
           )
         )}
+      />
+      <Snackbar
+        isVisible={isError} 
+        message={error}
+        onHide={() => setIsError(false)}
+        type='error'
       />
     </SafeAreaView>
   );
