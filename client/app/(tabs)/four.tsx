@@ -547,7 +547,7 @@ export default function TabFourScreen() {
                         fontSize: SIZES.medium
                       }}
                     >
-                      Enable jdncsd so dsnoisdnf sdfndoi sdfnsdifnds fdsfd.
+                      Tell me weting go dey here.
                     </Text>
                   }
                   placement="right"

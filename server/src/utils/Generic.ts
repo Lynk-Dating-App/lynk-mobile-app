@@ -14,7 +14,7 @@ import CustomAPIError from '../exceptions/CustomAPIError';
 import HttpStatus from '../helpers/HttpStatus';
 import { NextFunction, Request } from 'express';
 import UserToken from '../models/UserToken';
-import sharp from 'sharp';
+import * as Jimp from 'jimp';
 
 interface IGetImagePath {
   basePath: string;
@@ -123,34 +123,38 @@ export default class Generic {
     return sign(payload, key);
   }
 
-  // public static compressImage(imagePath: string, mimetype: string) {
-  //   let outputPath = `profile_imgage${new Date()}.jpeg`;
-  //   if(mimetype === "image/jpeg" || mimetype === "image/jpg") {
-  //     sharp(imagePath)
+  //THIS USES SHARP TO COMPRESS IMAGE
+  // public static async _compressImage(imagePath: string, originalFilename: string) {
+  //   let outputPath = originalFilename;
+  //   try {
+  //     await sharp(imagePath)
   //       .resize(700, 620)
   //       .jpeg({ quality: 80 })
-  //       .toFile(outputPath, (err, info) => { console.log('Success') });
-  //   } else if (mimetype === "image/png") {
-  //     sharp(imagePath)
-  //       .resize(700, 620)
-  //       .png({ quality: 80 })
-  //       .toFile(outputPath, (err, info) => { console.log('Success') });
+  //       .toFile(outputPath);
+  
+  //     return outputPath;
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw error; // Rethrow the error to handle it upstream
   //   }
-  //   return outputPath;
   // }
 
-  public static async compressImage(imagePath: string, originalFilename: string) {
+  public static async compressImage(imagePath: string, originalFilename: string): Promise<string> {
     let outputPath = originalFilename;
+    
     try {
-      await sharp(imagePath)
-        .resize(700, 620)
-        .jpeg({ quality: 80 })
-        .toFile(outputPath);
-  
-      return outputPath;
+        const image = await Jimp.read(imagePath);
+
+        // Resize the image
+        image.resize(700, 620);
+
+        // Save the compressed image
+        await image.quality(80).writeAsync(outputPath);
+
+        return outputPath;
     } catch (error) {
-      console.error(error);
-      throw error; // Rethrow the error to handle it upstream
+        console.error(error);
+        throw error; // Rethrow the error to handle it upstream
     }
   }
 
