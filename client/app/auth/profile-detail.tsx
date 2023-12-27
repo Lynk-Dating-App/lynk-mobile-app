@@ -305,7 +305,7 @@ const ProfileDetail = () => {
                                         borderRadius: 50,
                                         position: 'absolute',
                                         marginTop: 95,
-                                        marginLeft: 220,
+                                        marginLeft: 200,
                                         zIndex: 2
                                     }}
                                     />

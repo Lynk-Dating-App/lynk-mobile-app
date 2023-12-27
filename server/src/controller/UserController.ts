@@ -59,6 +59,7 @@ import { IChatModel } from "../models/ChatModel";
 const redisService = new RedisService();
 const sendMailService = new SendMailService();
 const form = formidable({ uploadDir: UPLOAD_BASE_PATH });
+form.setMaxListeners(15);
 
 export default class UserController {
     private readonly passwordEncoder: BcryptPasswordEncoder | undefined;
