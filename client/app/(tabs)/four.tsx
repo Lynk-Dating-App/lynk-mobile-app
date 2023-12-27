@@ -550,7 +550,7 @@ export default function TabFourScreen() {
                       Tell me weting go dey here.
                     </Text>
                   }
-                  placement="right"
+                  placement="bottom"
                   onClose={() => setTooltip(false)}
                 >
                   <TouchableOpacity
