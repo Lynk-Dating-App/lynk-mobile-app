@@ -14,6 +14,7 @@ import CustomAPIError from '../exceptions/CustomAPIError';
 import HttpStatus from '../helpers/HttpStatus';
 import { NextFunction, Request } from 'express';
 import UserToken from '../models/UserToken';
+import sharp from 'sharp';
 
 interface IGetImagePath {
   basePath: string;
@@ -120,6 +121,37 @@ export default class Generic {
   public static generateJwt(payload: CustomJwtPayload) {
     const key = <string>settings.jwt.key;
     return sign(payload, key);
+  }
+
+  // public static compressImage(imagePath: string, mimetype: string) {
+  //   let outputPath = `profile_imgage${new Date()}.jpeg`;
+  //   if(mimetype === "image/jpeg" || mimetype === "image/jpg") {
+  //     sharp(imagePath)
+  //       .resize(700, 620)
+  //       .jpeg({ quality: 80 })
+  //       .toFile(outputPath, (err, info) => { console.log('Success') });
+  //   } else if (mimetype === "image/png") {
+  //     sharp(imagePath)
+  //       .resize(700, 620)
+  //       .png({ quality: 80 })
+  //       .toFile(outputPath, (err, info) => { console.log('Success') });
+  //   }
+  //   return outputPath;
+  // }
+
+  public static async compressImage(imagePath: string, originalFilename: string) {
+    let outputPath = originalFilename;
+    try {
+      await sharp(imagePath)
+        .resize(700, 620)
+        .jpeg({ quality: 80 })
+        .toFile(outputPath);
+  
+      return outputPath;
+    } catch (error) {
+      console.error(error);
+      throw error; // Rethrow the error to handle it upstream
+    }
   }
 
   public static async generateJWT (payload: CustomJwtPayload) {

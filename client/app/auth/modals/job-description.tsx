@@ -28,7 +28,7 @@ export default function JobDescription () {
     const [success, setSuccess] = useState<string>('');
     const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
-    const { jobsData } = useVarious();
+    const { jobsData, setReload } = useVarious();
     const router = useRouter();
     const dispatch = useAppDispatch();
     const userReducer = useAppSelector(state => state.userReducer);
@@ -38,8 +38,9 @@ export default function JobDescription () {
     
         if(userReducer.addJobStatus === 'completed') {
           setModalVisible(false);
-          setIsSuccess(true)
-          setSuccess(userReducer.addJobSuccess)
+          setReload(true);
+        //   setIsSuccess(true)
+        //   setSuccess(userReducer.addJobSuccess)
     
           intervalId = setTimeout(() => {
             setIsSuccess(false)

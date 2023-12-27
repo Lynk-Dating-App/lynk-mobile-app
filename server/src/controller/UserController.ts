@@ -53,12 +53,10 @@ import IPreference = appModelTypes.IPreference
 import { INotificationModel } from "../models/Notification";
 import ChatMessage, { IChatMessageModel } from "../models/ChatMessages";
 import moment = require("moment");
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { IChatModel } from "../models/ChatModel";
-// import RabbitMqService from "../services/RabbitMqService";
 
 const redisService = new RedisService();
-// const rabbitMqService = new RabbitMqService();
 const sendMailService = new SendMailService();
 const form = formidable({ uploadDir: UPLOAD_BASE_PATH });
 
@@ -1178,6 +1176,51 @@ export default class UserController {
 
     @TryCatch
     @HasPermission([USER_PERMISSION])
+    public async likedAndLikedByUsers(req: Request) {
+        //@ts-ignore
+        const userId = req.user._id;
+      
+        const user = await datasources.userDAOService.findById(userId);
+        if (!user)
+          return Promise.reject(
+            CustomAPIError.response('User not found', HttpStatus.NOT_FOUND.code)
+          );
+      
+        const users = await datasources.userDAOService.findAll({
+          $and: [
+            {
+              _id: {
+                $in: user.likedUsers.map((userId) => new mongoose.Types.ObjectId(userId))
+              }
+            },
+            {
+              _id: {
+                $in: user.likedByUsers.map((userId) => new mongoose.Types.ObjectId(userId))
+              }
+            }
+          ]
+        });
+
+        const finlUsers = users.map(user => {
+            const payload = {
+                key: user._id,
+                firstName: user.firstName,
+                profileImage: user.profileImageUrl
+            }
+            return payload
+        })
+      
+        const response: HttpResponse<any> = {
+          code: HttpStatus.OK.code,
+          message: 'Successful',
+          results: finlUsers
+        };
+      
+        return Promise.resolve(response);
+      }
+
+    @TryCatch
+    @HasPermission([USER_PERMISSION])
     public async likeUser(req: Request) {
 
         //@ts-ignore
@@ -1346,7 +1389,7 @@ export default class UserController {
     }
 
     /**
-     * the handle when a user is fav's another user
+     * the handle when a user fav's another user
      */
     @TryCatch
     @HasPermission([USER_PERMISSION])
@@ -1532,12 +1575,12 @@ export default class UserController {
     @TryCatch
     @HasPermission([USER_PERMISSION])
     public async gallery (req: Request) {
-        const user = await this.doGallery(req);
+        const gallery = await this.doGallery(req);
 
         const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
             message: 'Successfully uploaded image.',
-            result: user
+            result: gallery
         };
       
         return Promise.resolve(response);
@@ -1804,6 +1847,7 @@ export default class UserController {
             );
       
           let _member: any = [];
+          let countUnreadMessages = 0
           await Promise.all(
             chats.map(async (chat) => {
                 const otherMember = chat.members.find((member) => member !== userId);
@@ -1835,15 +1879,17 @@ export default class UserController {
                     //@ts-ignore
                     chatDate: lastMessage ? lastMessage.createdAt : null
                 });
+
+                countUnreadMessages += unreadMessages.length
             })
           );
 
           const member = _member.sort((a: any, b: any) => b.chatDate - a.chatDate)
-      
+
           const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
             message: 'Successfully fetched notifications.',
-            result: { chats, member },
+            result: { chats, member, countUnreadMessages },
           };
       
           return Promise.resolve(response);
@@ -1993,10 +2039,15 @@ export default class UserController {
                     if (!allowedFileTypes.includes(galleryImage.mimetype as string)) {
                         return reject(CustomAPIError.response(MESSAGES.image_type_error, HttpStatus.BAD_REQUEST.code));
                     }
+
+                    const outputPath = await Generic.compressImage(
+                        galleryImage.filepath, 
+                        galleryImage.originalFilename as string
+                    );
     
                     // Save each image and get the image path
                     const imagePath = await Generic.getImagePath({
-                        tempPath: galleryImage.filepath,
+                        tempPath: outputPath,
                         filename: galleryImage.originalFilename as string,
                         basePath: `${UPLOAD_BASE_PATH}/user`,
                     });
@@ -2008,7 +2059,7 @@ export default class UserController {
     
                 user.save()
                     //@ts-ignore
-                return resolve(user); // Resolve with the updated user
+                return resolve(user.gallery);
             });
         });
     }
@@ -2088,7 +2139,7 @@ export default class UserController {
                 //@ts-ignore
                 const userId = req.user._id;
                 const { error, value } = Joi.object<any>({
-                    age: Joi.number().label('Age'),
+                    // age: Joi.number().label('Age'),
                     bio: Joi.string().allow('').label('Bio'),
                     build: Joi.string().optional().allow('').label('Build'),
                     dob: Joi.date().optional().label('Dob'),
@@ -2139,14 +2190,15 @@ export default class UserController {
                         fs.unlink(`${basePath}/${image}`, () => {})
                     }
                 }
-
+                const age = new Date().getFullYear() - new Date(value.dob).getFullYear()
                 const payload = {
                     ...value,
                     about: value.bio,
                     jobType: value.occupation,
                     interests: value.interests.split(','),
                     level: 2,
-                    profileImageUrl: profile_image && _profileImageUrl
+                    profileImageUrl: profile_image && _profileImageUrl,
+                    age: age.toString()
                 }
 
                 const updateUser = await datasources.userDAOService.updateByAny({_id: user._id}, payload);
@@ -2188,9 +2240,14 @@ export default class UserController {
                         return reject(CustomAPIError.response(MESSAGES.image_type_error, HttpStatus.BAD_REQUEST.code));
                     }
 
+                    const outputPath = await Generic.compressImage(
+                        profile_image.filepath, 
+                        profile_image.originalFilename as string
+                    );
+
                     _profileImageUrl = await Generic.getImagePath({
-                        tempPath: profile_image.filepath,
-                        filename: profile_image.originalFilename as string, //value.filename as string,
+                        tempPath: outputPath,//profile_image.filepath,
+                        filename: profile_image.originalFilename as string,
                         basePath,
                     });
                 };
@@ -2263,10 +2320,13 @@ export default class UserController {
         //     _phone = value.phone
         // };
 
+        const age = new Date().getFullYear() - new Date(value.dob).getFullYear()
+
         const userValues = {
             ...value,
             email: value.email,
-            phone: phone === '' ? user.phone : phone
+            phone: phone === '' ? user.phone : phone,
+            age: age.toString()
         };
 
         const updatedUser = await datasources.userDAOService.updateByAny(

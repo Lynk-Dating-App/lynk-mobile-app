@@ -53,7 +53,6 @@ export const updateProfileDetailAction = asyncThunkWrapper<ApiResponseSuccess<an
     formData.append('build', args.build);
     formData.append('occupation', args.occupation);
     formData.append('state', args.state);
-    formData.append('age', args.age);
     formData.append('bio', args.bio);
 
     const response = await axiosClient.put(`${API_ROOT}/user-update-profile-detail`, formData);

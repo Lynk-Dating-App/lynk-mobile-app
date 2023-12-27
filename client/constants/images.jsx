@@ -10,8 +10,14 @@ import chat from "../assets/images/chat.png";
 import face_id from "../assets/images/face_id.png";
 import no_image_f from "../assets/images/no_image_f.jpg";
 import no_image_m from "../assets/images/no_image_m.jpeg";
+import reyes from "../assets/images/reyes.png";
+import Reyes_text from "../assets/images/Reyes_text.png";
+import white_logo from "../assets/images/white-logo.png";
 
 export default {
+  Reyes_text,
+  white_logo,
+  reyes,
   girl2,
   no_image_f,
   no_image_m,

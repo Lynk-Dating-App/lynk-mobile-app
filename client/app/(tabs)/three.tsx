@@ -4,14 +4,15 @@ import { SafeAreaView, Text, View } from '../../components/Themed';
 import useUser from '../../hook/useUser';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
-import { findUserChatsAction } from '../../store/actions/userAction';
+import { findUserChatsAction, getLikedAndLikedByUsersAction } from '../../store/actions/userAction';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { COLORS, FONT, SIZES, images } from '../../constants';
 import AppInput from '../../components/AppInput/AppInput';
 import settings from '../../config/settings';
 import { capitalizeFirstLetter, characterBreaker, dateDifference } from '../../Utils/Generic';
-import { setChatUsers } from '../../store/reducers/userReducer';
+import { clearGetLikedAndLikedByUsersStatus, setChatUsers, setOnlineUsers } from '../../store/reducers/userReducer';
 import socket from '../../config/socket';
+import tw from 'twrnc';
 
 const { width } = Dimensions.get('window');
 
@@ -27,16 +28,54 @@ export default function TabThreeScreen() {
     item.firstName?.toLowerCase().includes(searchQuery)
   );
 
+  const renderItem = ({ item }) => (
+    <TouchableOpacity onPress={() => console.log('message', item.key)}
+      style={tw`flex justify-center flex-column items-center gap-3`}>
+       <View 
+        style={[{
+          marginHorizontal: 10,
+          backgroundColor: userReducer.onlineUsers.find((data) => data.userId === item.userId) ? COLORS.primary : COLORS.gray2,
+          borderRadius: 50
+        },tw`flex justify-center items-center h-20 w-20`]}
+      >
+        <View
+          style={[{
+            borderRadius: 50,
+            borderWidth: 3,
+            borderColor: COLORS.white
+          },tw`flex justify-center items-center h-19 w-19`]}
+        >
+          <Image
+            source={item?.profileImage ? {uri: `${settings.api.baseURL}/${item?.profileImage}`} : images.no_image_m}
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: 50
+            }}
+          />
+        </View>
+      </View>
+      <Text
+        style={{
+          fontFamily: FONT.bold,
+          fontSize: SIZES.medium
+        }}
+      >{item?.firstName.length > 10 ? capitalizeFirstLetter(characterBreaker(item?.firstName, 10)) : capitalizeFirstLetter(item?.firstName)}</Text>
+    </TouchableOpacity>
+   
+  );
+
   useFocusEffect(
     useCallback(() => {
-      dispatch(findUserChatsAction(userReducer.loggedInuser._id))
-    },[])
+      dispatch(findUserChatsAction(userReducer.loggedInuser?._id))
+      dispatch(getLikedAndLikedByUsersAction());
+    },[userReducer.loggedInuser])
   );
 
   useEffect(() => {
     socket.on('messageSentAck', (data) => {
       if(data) {
-        dispatch(findUserChatsAction(userReducer.loggedInuser._id))
+        dispatch(findUserChatsAction(userReducer.loggedInuser?._id))
       }
     });
   
@@ -45,9 +84,25 @@ export default function TabThreeScreen() {
     };  
   }, [socket.connected]);
 
+  useEffect(() => {
+    if(userReducer.getLikedAndLikedByUsersStatus === 'completed') {
+      dispatch(clearGetLikedAndLikedByUsersStatus())
+    }
+  },[userReducer.getLikedAndLikedByUsersStatus]);
+
+  useEffect(() => {
+    socket.on('getOnlineUsers', (data) => {
+      dispatch(setOnlineUsers(data))
+    });
+
+    return () => {
+      socket.off('getOnlineUsers');
+    }; 
+  },[socket.connected]);
+
   return (
     <SafeAreaView style={{flex: 1}}>
-      <View style={styles.headContainer}>
+      <View style={[styles.headContainer, {marginBottom: userReducer.likedAndLikedByUsers.length > 0 ? -5 : 20}]}>
         <Text
           style={{
             fontFamily: FONT.bold,
@@ -66,14 +121,27 @@ export default function TabThreeScreen() {
           onChangeText={(text: string) => setSearchQuery(text.toLowerCase())}
         />
       </View>
+      {userReducer.likedAndLikedByUsers?.length > 0 && (<FlatList
+        data={userReducer?.likedAndLikedByUsers}
+        horizontal={true}
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={tw`flex justify-center items-center`}
+        style={[{
+          height: 0,
+          marginHorizontal: 20
+        }]}
+        keyExtractor={(item) => item.key}
+        renderItem={renderItem}
+      />)}
+      
       <FlatList
         data={filteredData}
         numColumns={1}
         showsVerticalScrollIndicator={false} 
         style={{
-            marginHorizontal: 10,
+          marginHorizontal: 10,
         }}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.key}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
           <Text
@@ -92,115 +160,126 @@ export default function TabThreeScreen() {
               gap: 20
             }}
           >
-            <TouchableOpacity style={styles.container} key={item?._id}
+            <TouchableOpacity 
+              style={styles.container}
+              key={item?._id}
               onPress={() => {
                 router.push('/auth/modals/chatMessageScreen')
                 dispatch(setChatUsers(item))
               }}
             >
-              <Image 
-                source={item?.profileImageUrl ? {uri: `${settings.api.baseURL}/${item?.profileImageUrl}`} : images.no_image_m}
-                style={{
+              <View
+                style={[{
                   width: 60,
                   height: 60,
+                  backgroundColor: userReducer.onlineUsers.find((data) => data.userId === item.userId) ? COLORS.primary : COLORS.gray2,
                   borderRadius: 50,
-                  marginLeft: 20,
-                  borderWidth: 2,
-                  borderColor: userReducer.onlineUsers.some(user => user.userId === item._id) ? COLORS.primary : 'transparent'
-                }}
-              />
-              
-              <View
-                style={{
-                  flex: 1,
-                  marginHorizontal: 10
-                }}
+                  marginLeft: 20
+                },tw`flex justify-center items-center`]}
               >
-                <View style={styles.section1}>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row'
-                    }}
-                  >
-                    <Text
+                <Image 
+                  source={item?.profileImageUrl ? {uri: `${settings.api.baseURL}/${item?.profileImageUrl}`} : images.no_image_m}
+                  style={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: 50,
+                    borderWidth: 3,
+                    borderColor: COLORS.white
+                  }}
+                />
+              </View>
+                
+                <View
+                  style={{
+                    flex: 1,
+                    marginHorizontal: 10
+                  }}
+                >
+                  <View style={styles.section1}>
+                    <View
                       style={{
-                        fontFamily: FONT.bold,
-                        fontSize: SIZES.large
+                        display: 'flex',
+                        flexDirection: 'row'
                       }}
                     >
-                      {item?.firstName.length > 8
-                        ? `${characterBreaker(capitalizeFirstLetter(item?.firstName), 8)}...`
-                        : capitalizeFirstLetter(item?.firstName)}
-                    </Text>
-                  </View>
-                  <Text
-                    style={{
-                      fontFamily: FONT.regular,
-                      fontSize: SIZES.medium,
-                      color: COLORS.tertiary
-                    }}
-                  >
-                    {item.chatDate === null ? '' : dateDifference(item.chatDate)}
-                  </Text>
-                </View>
-                <View style={styles.section1}>
-                  <View
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'flex-start',
-                      alignItems: 'center',
-                      flexDirection: 'row',
-                      gap: 2
-                    }}
-                  >
-                    {item.senderId === user?._id && <Text
+                      <Text
+                        style={{
+                          fontFamily: FONT.bold,
+                          fontSize: SIZES.large
+                        }}
+                      >
+                        {item?.firstName.length > 8
+                          ? `${characterBreaker(capitalizeFirstLetter(item?.firstName), 8)}...`
+                          : capitalizeFirstLetter(item?.firstName)}
+                      </Text>
+                    </View>
+                    <Text
                       style={{
                         fontFamily: FONT.regular,
                         fontSize: SIZES.medium,
-                        color: COLORS.gray
+                        color: COLORS.tertiary
                       }}
                     >
-                      {`You:`}
-                    </Text>}
-                    <Text
-                    style={{
-                      fontFamily: FONT.regular,
-                      fontSize: SIZES.medium
-                    }}
-                  >
-                    {item.lastMessage.length > 20 
-                      ? `${characterBreaker(item.lastMessage, 20)}....`
-                      : item.lastMessage
-                    }
-                  </Text>
-                  </View>
-                  
-                  {(item.senderId !== user?._id && item.totalUnreadMessages > 0) && (<View
-                    style={{
-                      width: 25,
-                      height: 25,
-                      backgroundColor: COLORS.primary,
-                      borderRadius: 50,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: FONT.bold,
-                        fontSize: SIZES.medium,
-                        color: 'white'
-                      }}
-                    >
-                      {item.totalUnreadMessages}
+                      {item.chatDate === null ? '' : dateDifference(item.chatDate)}
                     </Text>
-                  </View>)}
-                  {item.totalUnreadMessages < 1 && <View />}
-                  
+                  </View>
+                  <View style={styles.section1}>
+                    <View
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'flex-start',
+                        alignItems: 'center',
+                        flexDirection: 'row',
+                        gap: 2
+                      }}
+                    >
+                      {item.senderId === user?._id && <Text
+                        style={{
+                          fontFamily: FONT.regular,
+                          fontSize: SIZES.medium,
+                          color: COLORS.gray
+                        }}
+                      >
+                        {`You:`}
+                      </Text>}
+                      <Text
+                      style={{
+                        fontFamily: FONT.regular,
+                        fontSize: SIZES.medium
+                      }}
+                    >
+                      {item.lastMessage.length > 20 
+                        ? `${characterBreaker(item.lastMessage, 20)}....`
+                        : item.lastMessage
+                      }
+                    </Text>
+                    </View>
+                    
+                    {(item.senderId !== user?._id && item.totalUnreadMessages > 0) && (<View
+                      style={{
+                        width: 25,
+                        height: 25,
+                        backgroundColor: COLORS.primary,
+                        borderRadius: 50,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: FONT.bold,
+                          fontSize: SIZES.medium,
+                          color: 'white'
+                        }}
+                      >
+                        {item.totalUnreadMessages}
+                      </Text>
+                    </View>)}
+                    {item.totalUnreadMessages < 1 && <View />}
+                    
+                  </View>
                 </View>
-              </View>
             </TouchableOpacity>
             <View
               style={{
@@ -281,6 +360,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     marginTop: Platform.select({android: 50, ios: 20}),
+    marginHorizontal: 20,
+    zIndex: 1
+  },
+  searchContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 20,
     marginHorizontal: 20
   }

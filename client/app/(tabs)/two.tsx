@@ -396,7 +396,9 @@ const styles = StyleSheet.create({
       width: '35%'
     },
     imageContainer: {
-      flex: 1,
+      // flex: 1,
+      display: 'flex',
+      width: '48%',
       height: 250,
       margin: 5,
       justifyContent: 'flex-start',

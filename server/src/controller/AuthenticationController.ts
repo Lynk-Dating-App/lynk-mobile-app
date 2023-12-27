@@ -43,15 +43,18 @@ export default class AuthenticationController {
      */
     @TryCatch
     public async admin_login(req: Request) {
-      const { error, value } = Joi.object<IAdminModel>($loginSchema).validate(req.body);
-
+      const { error, value } = Joi.object<IAdminModel>({
+        email: Joi.string().required().label('email'),
+        password: Joi.string().required().label('password')
+      }).validate(req.body);
+      
       if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
 
       const user = await datasources.adminDAOService.findByAny({email: value.email});
       if(!user) return Promise.reject(CustomAPIError.response(HttpStatus.UNAUTHORIZED.value, HttpStatus.BAD_REQUEST.code));
-
-      const hash = user.password;
-      const password = value.password;
+      
+      const hash = user.password as string;
+      const password = value.password as string;
 
       const isMatch = await this.passwordEncoder?.match(password.trim(), hash.trim());
       if(!isMatch) return Promise.reject(CustomAPIError.response(HttpStatus.UNAUTHORIZED.value, HttpStatus.UNAUTHORIZED.code));

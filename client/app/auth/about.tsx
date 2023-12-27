@@ -9,11 +9,11 @@ import AppBtn from '../../components/common/button/AppBtn';
 import { useRouter } from 'expo-router';
 import useVarious from '../../hook/useVarious';
 import { stateLga } from '../../constants/states';
-import { removeData, retrieveData, storeData } from '../../components/LocalStorage/LocalStorage';
+import { removeData, retrieveData } from '../../components/LocalStorage/LocalStorage';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
 import { clearSignInStatus, clearUpdateProfileDetailStatus } from '../../store/reducers/authReducer';
-import { signInAction, updateProfileDetailAction } from '../../store/actions/authActions';
+import { updateProfileDetailAction } from '../../store/actions/authActions';
 import Snackbar from '../../helpers/Snackbar';
 import ReusableModal from '../../components/Modal/ReusableModal';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -28,7 +28,7 @@ const schema = Yup.object().shape({
     build: Yup.string().label("build"),
     occupation: Yup.string().required().label("occupation"),
     bio: Yup.string().label("bio"),
-    age: Yup.string().required().label("age"),
+    // age: Yup.string().required().label("age"),
     state: Yup.string().required().label("state"),
 });
 
@@ -40,7 +40,7 @@ const builds = [
 
 const About = () => {
     const router = useRouter();
-    const { jobsData } = useVarious();
+    const { jobsData, setReload } = useVarious();
     const [state, setState] = useState([]);
     const [isError, setIsError] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
@@ -54,6 +54,15 @@ const About = () => {
     const userReducer = useAppSelector(state => state.userReducer);
 
     const handleSubmit = (values: any) => {
+        if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' ]/.test(values.height)) {
+            return alertComponent(
+                'Height',
+                'Invalid height. Only numbers and period(.) sign are allowed.',
+                'Cancel',
+                ()=>console.log('pressed')
+            );
+        }
+
         const payload = {
             ...values,
             ...data,
@@ -118,8 +127,9 @@ const About = () => {
     
         if(userReducer.addJobStatus === 'completed') {
           setModalVisible(false);
-          setIsSuccess(true)
-          setSuccess(userReducer.addJobSuccess)
+          setReload(true);
+        //   setIsSuccess(true)
+        //   setSuccess(userReducer.addJobSuccess)
     
           intervalId = setTimeout(() => {
             setIsSuccess(false)
@@ -194,7 +204,7 @@ const About = () => {
                             build: '', 
                             occupation: '',
                             bio: '',
-                            age: '',
+                            // age: '',
                             state: ''
                         }}
                         validationSchema={schema}
@@ -294,10 +304,10 @@ const About = () => {
                                         placeholderTop='State'
                                         showSelectError={false}
                                         selectError={errors.state}
-                                        selectWidth={50/100 * width}
+                                        selectWidth={width}
                                         placeholderLabel='Select a state...'
                                     />)}
-                                    <AppInput
+                                    {/* <AppInput
                                         placeholder={'Age'}
                                         hasPLaceHolder={true}
                                         placeholderTop={'Age'}
@@ -317,7 +327,7 @@ const About = () => {
                                         touched={touched.age}
                                         keyboardType="numeric"
                                         showError={false}
-                                    />
+                                    /> */}
                                 </View>
                                 
                                 <AppInput

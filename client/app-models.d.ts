@@ -111,6 +111,12 @@ declare module '@app-models' {
     name: string;
     createdAt: Date;
   }
+
+  interface ILikedAndLikedByUsers {
+    key: string,
+    firstName: string,
+    profileImage: string
+  }
   
   interface IMatch {
     _id: any,

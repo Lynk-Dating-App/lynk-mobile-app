@@ -10,7 +10,7 @@ import {
   TouchableOpacity 
 } from 'react-native';
 import { SafeAreaView, ScrollView, Text, View } from '../../components/Themed';
-import { getTokenFromSecureStore, removeTokenFromSecureStore, saveTokenToSecureStore } from '../../components/ExpoStore/SecureStore';
+import { getTokenFromSecureStore, saveTokenToSecureStore } from '../../components/ExpoStore/SecureStore';
 import settings from '../../config/settings';
 import { router, useFocusEffect } from 'expo-router';
 import useAppDispatch from '../../hook/useAppDispatch';
@@ -32,7 +32,7 @@ import * as TaskManager from 'expo-task-manager';
 import { getMatchesAction, getUserNotificationsAction } from '../../store/actions/userAction';
 import axiosClient from '../../config/axiosClient';
 import socket from '../../config/socket';
-import { clearFavUserStatus, clearGetAllUserNotificationStatus, clearLikeStatus, clearUnLikeStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setOnlineUsers, setSignInAfterSignUp, setSignInAfterSignUp2 } from '../../store/reducers/userReducer';
+import { clearFavUserStatus, clearGetAllUserNotificationStatus, clearLikeStatus, clearUnLikeStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setOnlineUsers, setSignInAfterSignUp, setSignInAfterSignUp2, setWhichScreen } from '../../store/reducers/userReducer';
 import * as Notifications from 'expo-notifications';
 import Snackbar from '../../helpers/Snackbar';
 import { StatusBar } from 'expo-status-bar';
@@ -41,6 +41,7 @@ import tw from 'twrnc';
 import { INotification } from '@app-models';
 //@ts-ignore
 import { BIOMETRIC_LOGIN_KEY } from '@env';
+import { useNavigation } from '@react-navigation/native';
 
 const API_ROOT = settings.api.rest;
 const { height, width } = Dimensions.get('window');
@@ -158,7 +159,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const TabOneScreen = () => {
+const TabOneScreen = ({screenChange}: any) => {
   const [swipe, setSwipe] = useState<string>('');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [state, setState] = useState([]);
@@ -521,7 +522,7 @@ const TabOneScreen = () => {
   useFocusEffect(
       useCallback(() => {
         dispatch(getUserNotificationsAction());
-        dispatch(setSignInAfterSignUp2(false))
+        dispatch(setSignInAfterSignUp2(false));
     },[])
   );
 
@@ -534,7 +535,7 @@ const TabOneScreen = () => {
         <View
           style={tw`flex flex-row justify-center items-center gap-5`}
         >
-          <TouchableOpacity
+          {userReducer.whichScreen !== 'fifth' && (<TouchableOpacity
             onPress={() => router.push('/auth/notifications')}
             style={{ marginTop: Platform.select({android: 20, ios: 10}) }}
           >
@@ -561,7 +562,7 @@ const TabOneScreen = () => {
                 }}
               >{notifications.length > 9 ? '9+' : notifications.length}</Text>
             </View>)}
-          </TouchableOpacity>
+          </TouchableOpacity>)}
 
           {!modalVisible && (<TouchableOpacity style={{marginTop: Platform.select({android: 20, ios: 10})}}
             onPress={() => 
@@ -795,55 +796,50 @@ const TabOneScreen = () => {
           </View>
         </ReusableModal>)}
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} 
-        contentContainerStyle={styles.scrollViewContent}
-        refreshControl={<RefreshControl refreshing={userReducer.getMatchesStatus === 'loading'} onRefresh={() => dispatch(getMatchesAction())}/>}
-      >
-        <View style={styles.imgContainer}>
-          <ImageSwiper swipe={swipe} setSwipe={setSwipe} data={finalData} />
-          <View
-            style={{ 
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: 65/100 * height,
-              height: 'auto',
-              gap: 50
-            }}
+      <View style={styles.imgContainer}>
+        <ImageSwiper swipe={swipe} setSwipe={setSwipe} data={finalData} />
+        <View
+          style={{ 
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 65/100 * height,
+            height: 'auto',
+            gap: 50
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => setSwipe('left')}
+            style={styles.dislikeBtn}
           >
-            <TouchableOpacity
-              onPress={() => setSwipe('left')}
-              style={styles.dislikeBtn}
-            >
-              <FontAwesome
-                name="close"
-                size={30}
-                color={'red'}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setSwipe('right')}
-              style={styles.likeBtn}
-            >
-              <FontAwesome
-                name="heart"
-                size={60}
-                color={'white'}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setSwipe('up')}
-              style={styles.dislikeBtn}
-            >
-              <FontAwesome
-                name="star"
-                size={30}
-                color={'green'}
-              />
-            </TouchableOpacity>
-          </View>
+            <FontAwesome
+              name="close"
+              size={30}
+              color={'red'}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSwipe('right')}
+            style={styles.likeBtn}
+          >
+            <FontAwesome
+              name="heart"
+              size={60}
+              color={'white'}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSwipe('up')}
+            style={styles.dislikeBtn}
+          >
+            <FontAwesome
+              name="star"
+              size={30}
+              color={'green'}
+            />
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
       <Snackbar
         isVisible={isError} 
         message={error}

@@ -1,6 +1,6 @@
-import { Dimensions, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
+import { Dimensions, Image, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
 import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
-import { COLORS, FONT, SIZES } from "../../constants";
+import { COLORS, FONT, SIZES, icons } from "../../constants";
 import * as Yup from "yup";
 import React, { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
@@ -16,23 +16,9 @@ import Snackbar from "../../helpers/Snackbar";
 import { clearUpdateUserStatus } from "../../store/reducers/userReducer";
 import { stateLga } from "../../constants/states";
 import AntDesign from "@expo/vector-icons/AntDesign";
-
-// const interests = [
-//     {id: 1, name: 'Photography'},
-//     {id: 2, name: 'Shopping'},
-//     {id: 3, name: 'Karaoke'},
-//     {id: 4, name: 'Yoga'},
-//     {id: 5, name: 'Cooking'},
-//     {id: 6, name: 'Tennis'},
-//     {id: 7, name: 'Run'},
-//     {id: 8, name: 'Swimming'},
-//     {id: 9, name: 'Art'},
-//     {id: 10, name: 'Travelling'},
-//     {id: 11, name: 'Extreme'},
-//     {id: 12, name: 'Music'},
-//     {id: 13, name: 'Drink'},
-//     {id: 14, name: 'Video games'}
-// ];
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import InputHeader from "../../components/InputHeader/InputHeader";
+import { alertComponent } from "../../Utils/Generic";
 
 const interests = [
     { label: 'Photography', value: 'Photography'},
@@ -91,7 +77,7 @@ const education = [
 const schema2 = Yup.object().shape({
     firstName: Yup.string().required().label("first name"),
     lastName: Yup.string().required().label("last name"),
-    age: Yup.string().required().label("age"),
+    dob: Yup.date().required().label("dob"),
     height: Yup.string().required().label("height"),
     state: Yup.string().required().label("state"),
     about: Yup.string().required().label("about"),
@@ -112,6 +98,8 @@ export default function EditUserDetail () {
     const [error, setError] = useState<string>('');
     const [isError, setIsError] = useState<boolean>(false);
     const [state, setState] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
     const router = useRouter()
     const dispatch = useAppDispatch();
@@ -119,6 +107,14 @@ export default function EditUserDetail () {
 
     const onSelectedItemsChange = (item: any) => {
         setSelectedItem(item);
+    };
+
+    const showDatePicker = () => {
+        setDatePickerVisibility(true);
+    };
+
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false);
     };
 
     useEffect(() => {
@@ -161,6 +157,10 @@ export default function EditUserDetail () {
         setState(newState);
     }, [stateLga]);
 
+    useEffect(() => {
+        setSelectedDate(new Date(userReducer.loggedInuser?.dob))
+    },[]);
+
     return(
         <SafeAreaView>
             <ScrollView
@@ -196,7 +196,7 @@ export default function EditUserDetail () {
                         initialValues={{ 
                             firstName: userReducer.loggedInuser?.firstName || '',
                             lastName: userReducer.loggedInuser?.lastName || '',
-                            age: userReducer.loggedInuser?.age.toString() || '',
+                            dob: userReducer.loggedInuser?.dob || '',
                             height: userReducer.loggedInuser?.height || '',
                             state: userReducer.loggedInuser?.state || '',
                             address: userReducer.loggedInuser?.address || '',
@@ -212,6 +212,23 @@ export default function EditUserDetail () {
                         }}
                         validationSchema={schema2}
                         onSubmit={(values: any) => {
+                            const age = new Date().getFullYear() - new Date(values.dob).getFullYear();
+                            if(age < 16) {
+                                return alertComponent(
+                                    'Age Limit',
+                                    'Age can not be less than 16.',
+                                    'Cancel',
+                                    ()=>console.log('pressed')
+                                );
+                            }
+                            if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' ]/.test(values.height)) {
+                                return alertComponent(
+                                    'Height',
+                                    'Invalid height. Only numbers and period(.) sign are allowed.',
+                                    'Cancel',
+                                    ()=>console.log('pressed')
+                                );
+                            }
                             const payload = {
                                 ...values,
                                 interests: selectedItem
@@ -219,7 +236,7 @@ export default function EditUserDetail () {
                             dispatch(updateUserAction(payload));
                         }}
                     >
-                    {({ handleChange, handleSubmit, values, errors, touched }) => (
+                    {({ handleChange, handleSubmit, values, errors, touched, setFieldValue }) => (
                         <View style={styles.formContainer}>
                             <View 
                                 style={{
@@ -330,30 +347,54 @@ export default function EditUserDetail () {
                                     gap: 20, alignSelf: 'center'
                                 }}
                             >
-                                <AppInput
-                                    placeholder={''}
-                                    hasPLaceHolder={true}
-                                    placeholderTop={'Age'}
-                                    value={values.age}
+                                <View
                                     style={{
-                                        width: 43/100 * width,
-                                        borderColor: errors.age ? 'red' : COLORS.gray2
+                                        width: '43%',
                                     }}
-                                    headerStyle={{
+                                >
+                                <InputHeader text={"Date of birth"} 
+                                    style={{
                                         fontFamily: FONT.semiBold,
                                         fontSize: SIZES.small,
                                         marginLeft: 10,
                                         color: COLORS.gray
                                     }}
-                                    errorTextStyle={{
-                                        marginLeft: 1
-                                    }}
-                                    onChangeText={handleChange('age')}
-                                    error={errors.age}
-                                    touched={touched.age}
-                                    keyboardType="numeric"
-                                    showError={false}
                                 />
+                                    <TouchableOpacity
+                                        onPress={showDatePicker}
+                                        style={{
+                                            width: '100%',
+                                            alignSelf: 'center',
+                                            display: 'flex',
+                                            justifyContent: 'flex-start',
+                                            alignItems: 'center',
+                                            flexDirection: 'row',
+                                            gap: 10,
+                                            height: 55,
+                                            borderWidth: 0.3,
+                                            borderColor: COLORS.gray2,
+                                            borderRadius: 15,
+                                            paddingHorizontal: 10,
+                                            marginRight: -10,
+                                            backgroundColor: '#fafafc'
+                                        }}
+                                    >
+                                        <Image
+                                            source={icons.Calendar}
+                                            resizeMode='cover'
+                                            style={{
+                                                height: 15,
+                                                width: 15
+                                            }}
+                                        />
+                                        <Text
+                                            style={{
+                                                fontFamily: FONT.regular,
+                                            }}
+                                        >{selectedDate.toDateString() !== new Date().toDateString() ? selectedDate.toDateString() : 'Choose birthday date'}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                
                                 <AppInput
                                     placeholder={''}
                                     hasPLaceHolder={true}
@@ -381,23 +422,71 @@ export default function EditUserDetail () {
                             </View>
 
                             {Array.isArray(state) && (
-                            <Select
-                                data={state}
-                                onValueChange={handleChange('state')}
-                                value={values.state}
-                                hasPLaceHolder={true}
-                                placeholderTop='State'
-                                showSelectError={false}
-                                selectError={errors.state}
-                                placeholderLabel='Select a state...'
-                                headerStyle={{
-                                    fontFamily: FONT.semiBold,
-                                    fontSize: SIZES.small,
-                                    marginLeft: 10,
-                                    color: COLORS.gray
+                                <Select
+                                    data={state}
+                                    onValueChange={handleChange('state')}
+                                    value={values.state}
+                                    hasPLaceHolder={true}
+                                    placeholderTop='State'
+                                    showSelectError={false}
+                                    selectError={errors.state}
+                                    placeholderLabel='Select a state...'
+                                    headerStyle={{
+                                        fontFamily: FONT.semiBold,
+                                        fontSize: SIZES.small,
+                                        marginLeft: 10,
+                                        color: COLORS.gray
+                                    }}
+                                    selectWidth={90/100 * width}
+                                    style={{alignSelf: 'center'}}
+                                />
+                            )}
+                            <DateTimePickerModal
+                                isVisible={isDatePickerVisible}
+                                mode="date"
+                                display="inline"
+                                date={selectedDate}
+                                onConfirm={Platform.OS === 'android' ? (date) => {
+                                    setFieldValue('dob', date)
+                                    setSelectedDate(date)
+                                    hideDatePicker()
+                                } : () => console.log('android')}
+                                onCancel={() => {
+                                    hideDatePicker()
                                 }}
-                                style={{alignSelf: 'center'}}
-                            />)}
+                                onChange={Platform.OS === 'ios' ? (date) => {
+                                    setFieldValue('dob', date)
+                                    setSelectedDate(date)
+                                    // hideDatePicker()
+                                } : undefined}
+                                buttonTextColorIOS={'white'}
+                                customConfirmButtonIOS={() => (
+                                    <AppBtn
+                                        handlePress={hideDatePicker}
+                                        isText={true}
+                                        btnTitle={'Save'} 
+                                        btnWidth={'90%'} 
+                                        btnHeight={60} 
+                                        btnBgColor={COLORS.primary}
+                                        btnTextStyle={{
+                                            fontSize: SIZES.medium,
+                                            fontFamily: FONT.bold
+                                        }}
+                                        btnStyle={{
+                                            marginBottom: 20,
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            alignSelf: 'center'
+                                        }}
+                                    />
+                                )}
+                                pickerContainerStyleIOS={{
+                                    borderRadius: 10,
+                                    padding: 4
+                                }}
+                            />
 
                             <AppInput
                                 placeholder={''}

@@ -172,36 +172,36 @@ const Favourites = () => {
                         >{capitalizeFirstLetter(item.firstName)}, {item.age}</Text>
                     </View>
                     <BlurView intensity={50} style={styles.blurView}>
-                    <TouchableHighlight
-                        onPress={() => {
-                        setName(item.firstName)
-                        dispatch(unLikeUserAction(item._id))
-                        }}
-                        underlayColor={COLORS.primary}
-                        style={styles.unlike}
-                    >
-                        <FontAwesome
-                            name='close'
+                        <TouchableHighlight
+                            onPress={() => {
+                            setName(item.firstName)
+                            dispatch(unLikeUserAction(item._id))
+                            }}
+                            underlayColor={COLORS.primary}
+                            style={styles.unlike}
+                        >
+                            <FontAwesome
+                                name='close'
+                                size={25}
+                                color={'white'}
+                            />
+                        </TouchableHighlight>
+                        <TouchableHighlight 
+                            onPress={() => {
+                            // setPushedId((prevState: string) => [...prevState, item._id]);
+                            setName(item.firstName)
+                            dispatch(likeUserAction(item._id))
+                            }}
+                            underlayColor={COLORS.primary}
+                            disabled={item.isMatch}
+                            style={styles.like}
+                        >
+                            <FontAwesome
+                            name='heart'
                             size={25}
-                            color={'white'}
-                        />
-                    </TouchableHighlight>
-                    <TouchableHighlight 
-                        onPress={() => {
-                        // setPushedId((prevState: string) => [...prevState, item._id]);
-                        setName(item.firstName)
-                        dispatch(likeUserAction(item._id))
-                        }}
-                        underlayColor={COLORS.primary}
-                        disabled={item.isMatch}
-                        style={styles.like}
-                    >
-                        <FontAwesome
-                        name='heart'
-                        size={25}
-                        color={item.isMatch ? COLORS.primary : 'white'}
-                        />
-                    </TouchableHighlight>
+                            color={item.isMatch ? COLORS.primary : 'white'}
+                            />
+                        </TouchableHighlight>
                     </BlurView>
                 </View>
                 )}
@@ -288,7 +288,9 @@ const styles = StyleSheet.create({
         width: '50%'
     },
     imageContainer: {
-        flex: 1,
+        // flex: 1,
+        display: 'flex',
+        width: '48%',
         height: 250,
         margin: 5,
         justifyContent: 'flex-start',

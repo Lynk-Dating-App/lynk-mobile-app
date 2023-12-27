@@ -94,7 +94,19 @@
         "origin": false
       },
       "eas": {
-        "projectId": "60b75acf-1ff1-4cb4-baf3-275735c181f8"
+        "projectId": "60b75acf-1ff1-4cb4-baf3-275735c181f8",
+        "build": {
+          "android": {
+            "image": {
+              "timeout": 1200000
+            }
+          },
+          "ios": {
+            "image": {
+              "timeout": 1200000
+            }
+          }
+        }
       }
     },
     "owner": "lynk_app",

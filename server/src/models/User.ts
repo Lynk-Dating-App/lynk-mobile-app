@@ -231,7 +231,7 @@ export const $updateUserSchema: Joi.SchemaMap = {
   about: Joi.string().label('about'),
   height: Joi.string().label('height'),
   state: Joi.string().label('state'),
-  age: Joi.string().label('age'),
+  dob: Joi.date().label('Dob'),
   address: Joi.string().label('address'),
   officeName: Joi.string().label('officeName'),
   officeAddress: Joi.string().label('officeAddress'),

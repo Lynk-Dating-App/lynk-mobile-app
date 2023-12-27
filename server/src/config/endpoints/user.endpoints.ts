@@ -53,7 +53,8 @@ import {
     getChatMessagesHandler,
     fetchFavUsersHandler,
     getSingleNotificationHandler,
-    updateNotificationHandler
+    updateNotificationHandler,
+    fetchLikedAndLikedByUsersHandler
 } from '../../routes/userRoute';
 
 const userEndpoints: RouteEndpoints = [
@@ -374,6 +375,12 @@ const userEndpoints: RouteEndpoints = [
         method: 'get',
         path: '/favourite-users',
         handler: fetchFavUsersHandler
+    },
+    {
+        name: 'fetch liked and liked by users',
+        method: 'get',
+        path: '/liked-and-liked-by-users',
+        handler: fetchLikedAndLikedByUsersHandler
     }
 ];
 

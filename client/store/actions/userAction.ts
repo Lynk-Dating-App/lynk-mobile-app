@@ -37,6 +37,7 @@ const GET_USER_NOTIFICATIONS = 'user:GET_USER_NOTIFICATIONS';
 const DELETE_USER_NOTIFICATION = 'user:DELETE_USER_NOTIFICATION';
 const GET_SINGLE_NOTIFICATION = 'user:GET_SINGLE_NOTIFICATION';
 const UPDATE_NOTIFICATION = 'user:UPDATE_NOTIFICATION'; 
+const LIKED_AND_LIKED_BY_USERS = 'user:LIKED_AND_LIKED_BY_USERS';
 
 const API_ROOT = settings.api.rest;
 
@@ -239,6 +240,12 @@ export const getSingleNotificationAction = asyncThunkWrapper<ApiResponseSuccess<
 
 export const updateNotificationAction = asyncThunkWrapper<ApiResponseSuccess<any>, {notificationId: any}>(UPDATE_NOTIFICATION, async (args: any) => {
     const response = await axiosClient.put(`${API_ROOT}/update-notification/${args.notificationId}`);
+
+    return response.data;
+});
+
+export const getLikedAndLikedByUsersAction = asyncThunkWrapper<ApiResponseSuccess<any>, void>(LIKED_AND_LIKED_BY_USERS, async () => {
+    const response = await axiosClient.get(`${API_ROOT}/liked-and-liked-by-users`);
 
     return response.data;
 });

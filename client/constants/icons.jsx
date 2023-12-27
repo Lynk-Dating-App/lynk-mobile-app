@@ -53,9 +53,13 @@ import tiktok from "../assets/icons/tiktok.png";
 import twitter2 from "../assets/icons/twitter2.png";
 import subscription from "../assets/icons/subscription.png";
 import fingerprint from "../assets/icons/fingerprint.png";
+import cards1 from "../assets/icons/cards1.png";
+import cards2 from "../assets/icons/cards2.png";
 
 export default {
   snap,
+  cards1,
+  cards2,
   fingerprint,
   subscription,
   tiktok,

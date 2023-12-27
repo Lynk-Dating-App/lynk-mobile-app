@@ -14,6 +14,7 @@ import {
     findSingleChatAction, 
     findUserChatsAction, 
     getChatMessagesAction, 
+    getLikedAndLikedByUsersAction, 
     getLoggedInUserAction, 
     getMatchesAction, getPlansAction, getSingleNotificationAction, getUserAction, 
     getUserByIdsAction, 
@@ -31,12 +32,25 @@ import {
     updateUserAction,
     updateUserDetailAction
 } from '../actions/userAction';
-import { IChatMessage, ILikedUser, IMatch, IMember, INotification, IPlan, IUnLikedUser, IUserById, IUserChats, OnlineUsers } from '@app-models';
+import { 
+    IChatMessage, 
+    ILikedAndLikedByUsers, 
+    ILikedUser, 
+    IMatch, IMember, 
+    INotification, 
+    IPlan, IUnLikedUser, 
+    IUserById, IUserChats, 
+    OnlineUsers 
+} from '@app-models';
 
 interface IUserState {
     getUserStatus: IThunkAPIStatus;
     getUserSuccess: string;
     getUserError?: string;
+
+    getLikedAndLikedByUsersStatus: IThunkAPIStatus;
+    getLikedAndLikedByUsersSuccess: string;
+    getLikedAndLikedByUsersError?: string;
 
     deleteUserNotificationStatus: IThunkAPIStatus;
     deleteUserNotificationSuccess: string;
@@ -169,6 +183,7 @@ interface IUserState {
     usersByIds: IUserById[];
     chats: IUserChats[];
     chatMembers: any;
+    countUnreadMessages: number;
     chatMessages: IChatMessage[];
     createdChat: IUserChats;
     singleChat: IUserChats;
@@ -176,7 +191,7 @@ interface IUserState {
     onlineUsers: OnlineUsers[];
     notification: string[];
     favUsers: any[];
-    savedImage: string;
+    savedImage: string[];
     plans: IPlan[];
     profileVisible: boolean;
     notificationObject: INotification;
@@ -185,13 +200,19 @@ interface IUserState {
         emailOrPhone: string,
         password: string
     };
-    signInAfterSignUp2: boolean
+    signInAfterSignUp2: boolean;
+    whichScreen: string;
+    likedAndLikedByUsers: ILikedAndLikedByUsers[]
 };
 
 const initialState: IUserState = {
     getUserError: '',
     getUserSuccess: '',
     getUserStatus: 'idle',
+
+    getLikedAndLikedByUsersError: '',
+    getLikedAndLikedByUsersSuccess: '',
+    getLikedAndLikedByUsersStatus: 'idle',
 
     deleteUserNotificationError: '',
     deleteUserNotificationSuccess: '',
@@ -324,6 +345,7 @@ const initialState: IUserState = {
     usersByIds: [],
     chats: [],
     chatMembers: [],
+    countUnreadMessages: 0,
     chatMessages: [],
     createdChat: null,
     singleChat: null,
@@ -331,7 +353,7 @@ const initialState: IUserState = {
     onlineUsers: [],
     notification: [],
     favUsers: [],
-    savedImage: '',
+    savedImage: [],
     plans: [],
     profileVisible: false,
     notificationObject: null,
@@ -340,7 +362,9 @@ const initialState: IUserState = {
         emailOrPhone: '',
         password: ''
     },
-    signInAfterSignUp2: false
+    signInAfterSignUp2: false,
+    whichScreen: '',
+    likedAndLikedByUsers: []
 };
 
 const userSlice = createSlice({
@@ -351,6 +375,12 @@ const userSlice = createSlice({
             state.getUserStatus = 'idle';
             state.getUserSuccess = '';
             state.getUserError = '';
+        },
+
+        clearGetLikedAndLikedByUsersStatus(state: IUserState) {
+            state.getLikedAndLikedByUsersStatus = 'idle';
+            state.getLikedAndLikedByUsersSuccess = '';
+            state.getLikedAndLikedByUsersError = '';
         },
 
         clearDeleteUserNotificationStatus(state: IUserState) {
@@ -563,6 +593,10 @@ const userSlice = createSlice({
 
         setSignInAfterSignUp2(state: IUserState, action) {
             state.signInAfterSignUp2 = action.payload
+        },
+        
+        setWhichScreen(state: IUserState, action) {
+            state.whichScreen = action.payload
         }
     },
 
@@ -583,6 +617,24 @@ const userSlice = createSlice({
                 if (action.payload) {
                 state.getUserError = action.payload.message;
                 } else state.getUserError = action.error.message;
+            });
+
+        builder
+            .addCase(getLikedAndLikedByUsersAction.pending, state => {
+                state.getLikedAndLikedByUsersStatus = 'loading';
+            })
+            .addCase(getLikedAndLikedByUsersAction.fulfilled, (state, action) => {
+                state.getLikedAndLikedByUsersStatus = 'completed';
+                state.getLikedAndLikedByUsersSuccess = action.payload.message;
+
+                state.likedAndLikedByUsers = action.payload.results as ILikedAndLikedByUsers[];
+            })
+            .addCase(getLikedAndLikedByUsersAction.rejected, (state, action) => {
+                state.getLikedAndLikedByUsersStatus = 'failed';
+
+                if (action.payload) {
+                state.getLikedAndLikedByUsersError = action.payload.message;
+                } else state.getLikedAndLikedByUsersError = action.error.message;
             });
 
         builder
@@ -904,7 +956,8 @@ const userSlice = createSlice({
                 state.getUserChatsSuccess = action.payload.message;
 
                 state.chats = action.payload.result.chats as IUserChats[];
-                state.chatMembers = action.payload.result.member as IMember
+                state.chatMembers = action.payload.result.member as IMember;
+                state.countUnreadMessages = action.payload.result.countUnreadMessages
             })
             .addCase(findUserChatsAction.rejected, (state, action) => {
                 state.getUserChatsStatus = 'failed';
@@ -1080,7 +1133,7 @@ const userSlice = createSlice({
                 state.saveImageToGalleryStatus = 'completed';
                 state.saveImageToGallerySuccess = action.payload.message;
 
-                state.savedImage = action.payload.result?.gallery[-1]
+                state.savedImage = action.payload.result
             })
             .addCase(saveGalleryImageAction.rejected, (state, action) => {
                 state.saveImageToGalleryStatus = 'failed';
@@ -1139,7 +1192,8 @@ export const {
     clearGetSingleNotificationStatus,
     clearGetAllUserNotificationStatus,
     clearUpdateNotificationStatus, setSignInAfterSignUp,
-    setSignInAfterSignUp2
+    setSignInAfterSignUp2, setWhichScreen,
+    clearGetLikedAndLikedByUsersStatus
 } = userSlice.actions;
 
 export default userSlice.reducer;

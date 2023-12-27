@@ -24,6 +24,8 @@ import * as FileSystem from 'expo-file-system';
 import useAppDispatch from "../../hook/useAppDispatch";
 import { updateProfileImageAction } from "../../store/actions/userAction";
 import useAppSelector from "../../hook/useAppSelector";
+import useUser from "../../hook/useUser";
+import settings from "../../config/settings";
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +44,7 @@ const ProfileDetail = () => {
     const [isError, setIsError] = useState<boolean>(false);
     const [viewImage, setViewImage] = useState<boolean>(false);
     const [imagePreview, setImagePreview] = useState(null);
+    const {user} = useUser();
 
     const dispatch = useAppDispatch();
     const userReducer = useAppSelector(state => state.userReducer);
@@ -107,12 +110,12 @@ const ProfileDetail = () => {
     
               const fileInfo = await FileSystem.getInfoAsync(imageUri.uri);
               
-              const maxFileSize = 1 * 1024 * 1024; //1 MB
+              const maxFileSize = 10 * 1024 * 1024; //10 MB
               if (fileInfo.exists) {
                 if(fileInfo.size > maxFileSize) {
                     return alertComponent(
                       'Image size',
-                      'Selected image exceeds the maximum allowed size. Image size should not be more that 1MB',
+                      'Selected image exceeds the maximum allowed size. Image size should not be more that 10MB',
                       'Ok',
                       () => console.log('pressed')
                     );
@@ -150,17 +153,30 @@ const ProfileDetail = () => {
     const handleSubmit = (values: any) => {
         if(values.dob.toDateString() === new Date().toDateString() || 
         new Date(values.dob) > new Date()) {
-            setIsError(true)
-            setError("Invalid date")
-            return 
+            return alertComponent(
+                '',
+                'Invalid date.',
+                'Cancel',
+                ()=>console.log('pressed')
+            );
         };
+
+        const age = new Date().getFullYear() - new Date(values.dob).getFullYear()
+        if(age < 16) {
+            return alertComponent(
+                'Age Limit',
+                'Age can not be less than 16.',
+                'Cancel',
+                ()=>console.log('pressed')
+            );
+        }
 
         const payload = {
             ...values,
             ...data
         }
-        
-        if(payload.profileImageUrl === "") {
+
+        if(user?.profileImageUrl === undefined) {
             setIsError(true)
             setError("Profile image is required.")
             return 
@@ -233,9 +249,11 @@ const ProfileDetail = () => {
                             disabled={imagePreview === null}
                         >
                             {imagePreview === null && (<Image
-                                source={data?.gender === "male" 
-                                            ? images.no_image_m
-                                            : images.no_image_f
+                                source={user?.profileImageUrl !== undefined 
+                                            ? {uri: `${settings.api.baseURL}/${user?.profileImageUrl}`}
+                                            : data?.gender === "male" 
+                                                ? images.no_image_m
+                                                : images.no_image_f
                                         }
                                 resizeMode='cover'
                                 //@ts-ignore

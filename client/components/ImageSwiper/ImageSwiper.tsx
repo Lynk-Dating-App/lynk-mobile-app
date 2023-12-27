@@ -115,6 +115,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         ref={swiperRef}
         cards={data}
         infinite={true}
+        keyExtractor={(item) => item?.userId}
         renderCard={(card: Match) => (
           data.length > 0 
           ? (<View key={card?.userId}
@@ -350,6 +351,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         }}
         onSwipedTop={(cardIndex) => dispatch(favUserAction(data[cardIndex].userId))}
         onSwiped={(cardIndex) => setIndex(cardIndex)}
+        onSwipedBottom={() => console.log('bottom')}
         // onTapCard={(cardIndex) => console.log(cardIndex)}
         stackSeparation={-17}
         disableLeftSwipe={status}

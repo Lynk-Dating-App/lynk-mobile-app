@@ -106,7 +106,7 @@ function RootLayoutNav() {
           <Stack.Screen name="auth/gender" options={{ headerShown: false }} />
           <Stack.Screen name="auth/interests" options={{ headerShown: false }} />
           <Stack.Screen name="auth/profile-detail" 
-            options={{ 
+            options={{
               headerShown: true, 
               headerTitle: '',
               headerStyle: { backgroundColor: COLORS.lightWhite },
@@ -186,6 +186,17 @@ function RootLayoutNav() {
           />
           <Stack.Screen 
             name="auth/modals/job-description" 
+            options={{ 
+              presentation: 'modal', 
+              headerShown: false,
+              contentStyle: { 
+                margin: 0, 
+                padding: 0
+              }
+            }}
+          />
+          <Stack.Screen 
+            name="auth/modals/partnerPreference" 
             options={{ 
               presentation: 'modal', 
               headerShown: false,

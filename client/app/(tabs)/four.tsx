@@ -12,12 +12,12 @@ import useAppDispatch from '../../hook/useAppDispatch';
 import { 
   deactivateAccountAction, deleteGalleryImageAction, 
   getUserAction, saveGalleryImageAction, toggleProfileVisibilityAction, 
-  updatePreferenceAction, updateProfileImageAction 
+  updateProfileImageAction 
 } from '../../store/actions/userAction';
 import AppInput from '../../components/AppInput/AppInput';
 import { COLORS, FONT, SIZES, icons, images } from '../../constants';
 import * as ImagePicker from 'expo-image-picker';
-import { alertComponent, capitalizeEachWord, capitalizeFirstLetter, extractFileNameFromUri, fetchImageFromUri, wordBreaker } from '../../Utils/Generic';
+import { alertComponent, capitalizeEachWord, capitalizeFirstLetter, extractFileNameFromUri, wordBreaker } from '../../Utils/Generic';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { characterBreaker } from '../../Utils/Generic';
 import _ from 'lodash';
@@ -25,15 +25,21 @@ import settings from '../../config/settings';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import ReusableModal from '../../components/Modal/ReusableModal';
-import { Formik } from 'formik';
-import * as Yup from "yup";
 import AppBtn from '../../components/common/button/AppBtn';
 import Snackbar from '../../helpers/Snackbar';
-import { clearDeactivateAccountStatus, clearDeleteImageFromGalleryStatus, clearSaveImageToGalleryStatus, clearToggleProfileVisibilityStatus, clearUpdatePreferenceStatus, clearUploadUserProfileImageStatus } from '../../store/reducers/userReducer';
+import { 
+  clearDeactivateAccountStatus, 
+  clearDeleteImageFromGalleryStatus, 
+  clearSaveImageToGalleryStatus, 
+  clearToggleProfileVisibilityStatus, 
+  clearUpdatePreferenceStatus, 
+  clearUploadUserProfileImageStatus 
+} from '../../store/reducers/userReducer';
 import { clearSubscribeStatus } from '../../store/reducers/subscriptionReducer';
 import tw from 'twrnc';
 import { removeTokenFromSecureStore } from '../../components/ExpoStore/SecureStore';
 import * as FileSystem from 'expo-file-system';
+import Tooltip from 'react-native-walkthrough-tooltip';
 
 const {width, height} = Dimensions.get('window');
 const religion = [
@@ -80,15 +86,7 @@ const handles = [
   {id: 3, value: "snap", handle: "icons.snap"},
   {id: 4, value: "ig", handle: "icons.ig"},
   {id: 5, value: "tiktok", handle: "icons.tiktok"},
-]
-
-const schema = Yup.object().shape({
-  pMinHeight: Yup.string().required().label("minimum height"),
-  pMaxHeight: Yup.string().required().label("maximum height"),
-  pMinAge: Yup.string().required().label("minimum age"),
-  pMaxAge: Yup.string().required().label("maximum age"),
-  pAbout: Yup.string().required().label("about")
-});
+];
 
 export default function TabFourScreen() {
   const { user } = useUser();
@@ -100,7 +98,6 @@ export default function TabFourScreen() {
   const [image, setImage] = useState<any>([]);
   const [isUploadModalVisible, setUploadModalVisible] = useState<boolean>(false);
   const router = useRouter();
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [isError, setIsError] = useState<boolean>(false);
   const [success, setSuccess] = useState<string>('');
@@ -111,6 +108,7 @@ export default function TabFourScreen() {
   const [deactivateAccount, setDeactivateAccount] = useState<boolean>(false);
   const [confirmDeactivation, setConfirmDeactivation] = useState<string>('');
   const [isEnabled, setIsEnabled] = useState(false);
+  const [toolTip, setTooltip] = useState(false);
 
   const userReducer = useAppSelector(state => state.userReducer);
   const subscriptionReducer = useAppSelector(state => state.subscriptionReducer);
@@ -128,12 +126,7 @@ export default function TabFourScreen() {
       const result = await ImagePicker.launchImageLibraryAsync(options);
       
       if (result.canceled) {
-        return alertComponent(
-          'Image',
-          'Upload cancelled',
-          'Ok',
-          () => console.log('pressed')
-        )
+        console.log('upload cancelled')
       }
   
       if (!result.canceled) {
@@ -143,12 +136,12 @@ export default function TabFourScreen() {
 
           const fileInfo = await FileSystem.getInfoAsync(imageUri.uri);
           
-          const maxFileSize = 1 * 1024 * 1024; //1 MB
+          const maxFileSize = 10 * 1024 * 1024; //10 MB
           if (fileInfo.exists) {
             if(fileInfo.size > maxFileSize) {
                 return alertComponent(
                   'Image size',
-                  'Selected image exceeds the maximum allowed size. Image size should not be more that 1MB',
+                  'Selected image exceeds the maximum allowed size. Image size should not be more than 10MB',
                   'Ok',
                   () => console.log('pressed')
                 );
@@ -223,7 +216,7 @@ export default function TabFourScreen() {
 
   useEffect(() => {
     setImageArray(user?.gallery.filter((image: string) => image))
-  },[user])
+  },[user]);
 
   useEffect(() => {
     const intervalId: NodeJS.Timeout = setTimeout(() => {
@@ -235,28 +228,6 @@ export default function TabFourScreen() {
       clearInterval(intervalId);
     }
   },[isError, error]);
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    if(userReducer.updatePreferenceStatus === 'completed') {
-      setModalVisible(false);
-      dispatch(clearUpdatePreferenceStatus())
-    } else if(userReducer.updatePreferenceStatus === 'failed') { 
-      setIsError(true)
-      setError(userReducer.updatePreferenceError)
-
-      intervalId = setTimeout(() => {
-        setIsError(false)
-        setError('')
-      },6000);
-      dispatch(clearUpdatePreferenceStatus())
-    }
-
-    return () => {
-      clearInterval(intervalId);
-    }
-  },[userReducer.updatePreferenceStatus]);
 
   const handleImageProfile = async (pickerResult: any) => {
     // try {
@@ -297,9 +268,8 @@ export default function TabFourScreen() {
     let intervalId: NodeJS.Timeout;
 
     if(userReducer.saveImageToGalleryStatus === 'completed') {
-      dispatch(clearSaveImageToGalleryStatus())
-      imageArray.push(userReducer.savedImage)
-
+      dispatch(clearSaveImageToGalleryStatus());
+      setImageArray(userReducer.savedImage);
     } else if(userReducer.saveImageToGalleryStatus === 'failed') {
       setIsError(true)
       setError(userReducer.saveImageToGalleryError)
@@ -437,25 +407,24 @@ export default function TabFourScreen() {
 
   useEffect(() => {
     setIsEnabled(user?.profileVisibility)
-  },[user])
+  },[user]);
 
   return (
     <SafeAreaView style={{flex: 1}}>
       <ScrollView showsVerticalScrollIndicator={false} 
         contentContainerStyle={{
-          display: 'flex', 
-          paddingTop: Platform.select({android: 20, ios: 0}), 
-          height: 'auto'
+          paddingTop: Platform.select({android: 20})
         }}
         refreshControl={<RefreshControl refreshing={userReducer.getUserStatus === 'loading'} onRefresh={() => dispatch(getUserAction(user?._id))}/>}
       >
-        <ImageBackground
-          source={{uri: `${settings.api.baseURL}/${user?.profileImageUrl}`}}
+        <Image
+          source={user?.gallery?.length > 0  ? {uri: `${settings.api.baseURL}/${user?.gallery[0]}`} : images.white_logo}
           style={{
-              width: width,
-              height: 50/100 * height
+            width: width,
+            height:50/100 * height, 
           }}
         />
+        
         <View style={styles.container}>
           <View 
             style={{
@@ -561,6 +530,44 @@ export default function TabFourScreen() {
                   }}
                 />)}
                 {userReducer.toggleProfileVisibilityStatus === 'loading' && <ActivityIndicator color={COLORS.primary}/>}
+                <Text
+                  style={{
+                    fontFamily: FONT.bold,
+                    fontSize: SIZES.medium
+                  }}
+                >
+                  {isEnabled ? 'Visible' : 'Not Visible'}
+                </Text>
+                <Tooltip
+                  isVisible={toolTip}
+                  content={
+                    <Text
+                      style={{
+                        fontFamily: FONT.regular,
+                        fontSize: SIZES.medium
+                      }}
+                    >
+                      Enable jdncsd so dsnoisdnf sdfndoi sdfnsdifnds fdsfd.
+                    </Text>
+                  }
+                  placement="right"
+                  onClose={() => setTooltip(false)}
+                >
+                  <TouchableOpacity
+                    onPress={() => setTooltip(true)}
+                    style={[{
+                      borderWidth: 0.3,
+                      borderColor: COLORS.gray,
+                      borderRadius: 50,
+                      width: 20, height: 20
+                    },tw`flex justify-center items-center`]}
+                  >
+                    <FontAwesome
+                      name='info'
+                      color={COLORS.primary}
+                    />
+                  </TouchableOpacity>
+                </Tooltip>
               </View>)}
             </View>
             <TouchableOpacity
@@ -653,9 +660,9 @@ export default function TabFourScreen() {
                 color: COLORS.tertiary
               }}
             >
-              {characterBreaker(capitalizeFirstLetter(user?.about), brkAbout)}{brkAbout !== user?.about?.length && '...'}
+              {characterBreaker(capitalizeFirstLetter(user?.about), brkAbout)}{brkAbout < user?.about && user?.about?.length ? '...' : ''}
             </Text>
-            {brkAbout !== user?.about?.length && (<TouchableOpacity 
+            {brkAbout < user?.about?.length && (<TouchableOpacity 
               onPress={() => setBrkAbout(user?.about.length)}
             >
               <Text
@@ -666,6 +673,18 @@ export default function TabFourScreen() {
                   marginTop: 5
                 }}
               >See more</Text>
+            </TouchableOpacity>)}
+            {!user?.about && (
+            <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
+              <Text
+                style={{
+                  fontFamily: FONT.regular,
+                  fontSize: SIZES.medium,
+                  color: COLORS.gray2
+                }}
+              >
+                Add bio....
+              </Text>
             </TouchableOpacity>)}
           </View>
 
@@ -685,7 +704,7 @@ export default function TabFourScreen() {
                   fontSize: SIZES.large
                 }}
               >
-                Job Description
+                Job description
               </Text>
               <Text
                 onPress={() => router.push('/auth/modals/job-description')}
@@ -720,15 +739,18 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
-            {!user?.jobDescription && (<Text
-              style={{
-                fontFamily: FONT.regular,
-                fontSize: SIZES.medium,
-                color: COLORS.gray2
-              }}
-            >
-              Job description....
-            </Text>)}
+            {!user?.jobDescription && (
+            <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
+              <Text
+                style={{
+                  fontFamily: FONT.regular,
+                  fontSize: SIZES.medium,
+                  color: COLORS.gray2
+                }}
+              >
+                Add job description....
+              </Text>
+            </TouchableOpacity>)}
           </View>
 
           <View style={styles.section2}>
@@ -761,15 +783,18 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
-            {!user?.address && (<Text
-              style={{
-                fontFamily: FONT.regular,
-                fontSize: SIZES.medium,
-                color: COLORS.gray2
-              }}
-            >
-              Address....
-            </Text>)}
+            {!user?.address && (
+            <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
+              <Text
+                style={{
+                  fontFamily: FONT.regular,
+                  fontSize: SIZES.medium,
+                  color: COLORS.gray2
+                }}
+              >
+                Add house address....
+              </Text>
+            </TouchableOpacity>)}
           </View>
 
           <View style={styles.section2}>
@@ -804,15 +829,19 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
-            {!user?.officeName && (<Text
-              style={{
-                fontFamily: FONT.regular,
-                fontSize: SIZES.medium,
-                color: COLORS.gray2
-              }}
-            >
-              Office name....
-            </Text>)}
+            {!user?.officeName && (
+            <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
+              <Text
+                style={{
+                  fontFamily: FONT.regular,
+                  fontSize: SIZES.medium,
+                  color: COLORS.gray2
+                }}
+              >
+                Add office name....
+              </Text>
+            </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.section2}>
@@ -847,15 +876,19 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
-            {!user?.officeAddress && (<Text
-              style={{
-                fontFamily: FONT.regular,
-                fontSize: SIZES.medium,
-                color: COLORS.gray2
-              }}
-            >
-              Office address....
-            </Text>)}
+            {!user?.officeAddress && (
+            <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
+              <Text
+                style={{
+                  fontFamily: FONT.regular,
+                  fontSize: SIZES.medium,
+                  color: COLORS.gray2
+                }}
+              >
+                Add Office address....
+              </Text>
+            </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.section3}>
@@ -1295,7 +1328,7 @@ export default function TabFourScreen() {
               This is what you want in a propective partner...
             </Text>
             <TouchableOpacity
-              onPress={() => setModalVisible(true)}
+              onPress={() => router.push('/auth/modals/partnerPreference')}
               style={{
                 display: 'flex',
                 justifyContent: 'center',
@@ -1349,7 +1382,7 @@ export default function TabFourScreen() {
               </TouchableOpacity>)}
             </View>
             
-            {user?.gallery.length > 0 
+            {imageArray?.length > 0 
                 ? (<>
                     <View style={styles.firstImageSet} >
                       {image?.slice(0,2).map(renderImage)}
@@ -1366,7 +1399,7 @@ export default function TabFourScreen() {
                         color: COLORS.tertiary,
                         alignSelf: 'flex-start'
                       }}
-                    >No record found</Text>
+                    >No image found</Text>
                 )
             }
           </View>
@@ -1466,6 +1499,7 @@ export default function TabFourScreen() {
           >
             <TouchableOpacity 
               onPress={() => {
+                imageArray.splice(selectedImageIndex, 1);
                 dispatch(deleteGalleryImageAction({photo: user?.gallery[selectedImageIndex]}))
               }}
               style={styles.delete}
@@ -1491,269 +1525,9 @@ export default function TabFourScreen() {
         </View>
       </Modal>
 
-      {modalVisible && (<ReusableModal
-            modalVisible={modalVisible}
-            setModalVisible={setModalVisible}
-            style={{
-              backgroundColor: 'white',
-              padding: 20,
-              borderTopStartRadius: 30,
-              borderTopEndRadius: 30,
-              width: '100%',
-              height: Platform.select({android: '80%', ios: '90%'})
-            }}
-            animationViewStyle={{
-              flex: 1,
-              justifyContent: 'flex-end',
-              alignItems: 'flex-end',
-          }}
-        >
-          <ScrollView
-            showsVerticalScrollIndicator={false} 
-            contentContainerStyle={{
-              display: 'flex', 
-              paddingTop: Platform.select({android: 20, ios: 0}), 
-              height: 'auto'
-            }}
-          >
-            <KeyboardAvoidingView
-              style={{flex: 1}}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-            >
-              <View
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexDirection: 'row',
-                  gap: 100
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: FONT.extraBold,
-                    fontSize: SIZES.large,
-                  }}
-                >Partner Preference</Text>
-                <TouchableOpacity
-                  onPress={() => setModalVisible(false)}
-                >
-                <FontAwesome
-                  name="close"
-                  size={30}
-                  color={COLORS.primary}
-                />
-                </TouchableOpacity>
-              </View>
-              <Formik
-                initialValues={{ 
-                  pAbout: user?.preference?.pAbout || '',
-                  pMinAge: user?.preference?.pMinAge || '',
-                  pMaxAge: user?.preference?.pMaxAge || '',
-                  pMinHeight: user?.preference?.pMinHeight || '',
-                  pMaxHeight: user?.preference?.pMaxHeight || '',
-                }}
-                validationSchema={schema}
-                onSubmit={(values: any) => {
-                  if(+values.pMinHeight > +values.pMaxHeight) {
-                    setIsError(true)
-                    setError('Min height cannot be greater than Max height.')
-                    return
-                  }
-
-                  if(+values.pMinAge > +values.pMaxAge) {
-                    setIsError(true)
-                    setError('Min age cannot be greater than Max age.')
-                    return
-                  }
-
-                  const payload = {
-                    preference: {
-                      ...values
-                    }
-                  }
-
-                  dispatch(updatePreferenceAction(payload))
-                }}
-              >
-                {({ handleChange, handleSubmit, values, errors, touched }) => (
-                    <View style={styles.formContainer}>
-                      <AppInput
-                        placeholder={''}
-                        hasPLaceHolder={true}
-                        placeholderTop={'About'}
-                        value={values.pAbout}
-                        style={{
-                          width: 90/100 * width,
-                          height: 150,
-                          borderColor: errors.pAbout ? 'red' : COLORS.gray2
-                        }}
-                        headerStyle={{
-                          fontFamily: FONT.semiBold,
-                          fontSize: SIZES.medium,
-                          marginLeft: 10,
-                          color: COLORS.gray
-                        }}
-                        errorTextStyle={{
-                          marginLeft: 10
-                        }}
-                        onChangeText={handleChange('pAbout')}
-                        multiline={true}
-                        showError={false}
-                        error={errors.pAbout}
-                        touched={touched.pAbout}
-                      />
-                      
-                      <View 
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          gap: 20
-                        }}
-                      >
-                        <AppInput
-                          placeholder={''}
-                          hasPLaceHolder={true}
-                          placeholderTop={'Min Height'}
-                          value={values.pMinHeight}
-                          style={{
-                            width: 43/100 * width,
-                            borderColor: errors.pMinHeight ? 'red' : COLORS.gray2
-                          }}
-                          headerStyle={{
-                            fontFamily: FONT.semiBold,
-                            fontSize: SIZES.medium,
-                            marginLeft: 10,
-                            color: COLORS.gray
-                          }}
-                          errorTextStyle={{
-                              marginLeft: 1
-                          }}
-                          onChangeText={handleChange('pMinHeight')}
-                          error={errors.pMinHeight}
-                          touched={touched.pMinHeight}
-                          keyboardType="numeric"
-                          showError={false}
-                        />
-                        <AppInput
-                          placeholder={''}
-                          hasPLaceHolder={true}
-                          placeholderTop={'Max Height'}
-                          value={values.pMaxHeight}
-                          style={{
-                            width: 43/100 * width,
-                            borderColor: errors.pMaxHeight ? 'red' : COLORS.gray2
-                          }}
-                          headerStyle={{
-                            fontFamily: FONT.semiBold,
-                            fontSize: SIZES.medium,
-                            marginLeft: 10,
-                            color: COLORS.gray
-                          }}
-                          errorTextStyle={{
-                              marginLeft: 1
-                          }}
-                          onChangeText={handleChange('pMaxHeight')}
-                          error={errors.pMaxHeight}
-                          touched={touched.pMaxHeight}
-                          keyboardType="numeric"
-                          showError={false}
-                        />
-                        
-                      </View>
-
-                      <View 
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          gap: 20
-                        }}
-                      >
-                        <AppInput
-                          placeholder={''}
-                          hasPLaceHolder={true}
-                          placeholderTop={'Min Age'}
-                          value={values.pMinAge}
-                          style={{
-                            width: 43/100 * width,
-                            borderColor: errors.pMinAge ? 'red' : COLORS.gray2
-                          }}
-                          headerStyle={{
-                            fontFamily: FONT.semiBold,
-                            fontSize: SIZES.medium,
-                            marginLeft: 10,
-                            color: COLORS.gray
-                          }}
-                          errorTextStyle={{
-                            marginLeft: 1
-                          }}
-                          onChangeText={handleChange('pMinAge')}
-                          error={errors.pMinAge}
-                          touched={touched.pMinAge}
-                          keyboardType="numeric"
-                          showError={false}
-                        />
-                        <AppInput
-                          placeholder={''}
-                          hasPLaceHolder={true}
-                          placeholderTop={'Max Age'}
-                          value={values.pMaxAge}
-                          style={{
-                            width: 43/100 * width,
-                            borderColor: errors.pMaxAge ? 'red' : COLORS.gray2
-                          }}
-                          headerStyle={{
-                            fontFamily: FONT.semiBold,
-                            fontSize: SIZES.medium,
-                            marginLeft: 10,
-                            color: COLORS.gray
-                          }}
-                          errorTextStyle={{
-                            marginLeft: 1
-                          }}
-                          onChangeText={handleChange('pMaxAge')}
-                          error={errors.pMaxAge}
-                          touched={touched.pMaxAge}
-                          keyboardType="numeric"
-                          showError={false}
-                        />
-                      </View>
-                      <AppBtn
-                        handlePress={() => handleSubmit()}
-                        isText={true}
-                        btnTitle={'Save'} 
-                        btnWidth={'90%'} 
-                        btnHeight={60} 
-                        btnBgColor={COLORS.primary}
-                        btnTextStyle={{
-                            fontSize: SIZES.medium,
-                            fontFamily: FONT.bold
-                        }}
-                        btnStyle={{
-                            marginBottom: 20,
-                            marginTop: 40,
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            alignSelf: 'center'
-                        }}
-                        spinner={userReducer.updatePreferenceStatus === 'loading'}
-                        spinnerColor='white'
-                        spinnerStyle={{
-                          marginLeft: 10
-                        }}
-                      />
-                    </View>
-                )}
-              </Formik>
-            </KeyboardAvoidingView>
-          </ScrollView>
-        </ReusableModal>)}
-
         {deactivateAccount && (<ReusableModal
             modalVisible={deactivateAccount}
-            setModalVisible={setModalVisible}
+            setModalVisible={setDeactivateAccount}
             style={{
               backgroundColor: 'white',
               padding: 20,

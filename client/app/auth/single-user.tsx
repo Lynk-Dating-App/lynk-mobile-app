@@ -1,16 +1,46 @@
-import { ActivityIndicator, Dimensions, Image, ImageBackground, Modal, Platform, RefreshControl, StyleSheet, TouchableOpacity } from "react-native"
+import { 
+    ActivityIndicator, 
+    Dimensions, Image, 
+    ImageBackground, 
+    Modal, Platform, 
+    RefreshControl, 
+    StyleSheet, 
+    TouchableOpacity 
+} from "react-native"
 import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
 import { COLORS, FONT, SIZES, icons } from "../../constants";
 import { BlurView } from "expo-blur";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { capitalizeEachWord, capitalizeFirstLetter, characterBreaker, location_km, wordBreaker } from "../../Utils/Generic";
+import { 
+    capitalizeEachWord, 
+    capitalizeFirstLetter, 
+    characterBreaker, 
+    location_km, 
+    wordBreaker 
+} from "../../Utils/Generic";
 import { useEffect, useState } from "react";
 import _ from 'lodash';
 import useAppSelector from "../../hook/useAppSelector";
 import useAppDispatch from "../../hook/useAppDispatch";
-import { createChatAction, favUserAction, getUserAction, likeUserAction, unLikeFrmMatchAction, unLikeUserAction } from "../../store/actions/userAction";
-import { clearCreateChatStatus, clearFavUserStatus, clearGetUserStatus, clearLikeStatus, clearUnLikeStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setPhotoUri } from "../../store/reducers/userReducer";
+import { 
+    createChatAction, 
+    favUserAction, 
+    getUserAction, 
+    likeUserAction, 
+    unLikeFrmMatchAction, 
+    unLikeUserAction 
+} from "../../store/actions/userAction";
+import { 
+    clearCreateChatStatus, 
+    clearFavUserStatus, 
+    clearGetUserStatus, 
+    clearLikeStatus, 
+    clearUnLikeStatus, 
+    clearUnLikeUserFrmMatchStatus, 
+    setFromUserId, 
+    setPhotoUri 
+} from "../../store/reducers/userReducer";
 import Snackbar from "../../helpers/Snackbar";
 import useUser from "../../hook/useUser";
 import settings from "../../config/settings";
@@ -18,7 +48,6 @@ import axiosClient from '../../config/axiosClient';
 import ReusableModal from "../../components/Modal/ReusableModal";
 import AppBtn from "../../components/common/button/AppBtn";
 import tw from 'twrnc';
-import { StatusBar } from "expo-status-bar";
 
 const { width, height } = Dimensions.get('window');
 const API_ROOT = settings.api.rest;
@@ -379,7 +408,7 @@ const SingleUser = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={styles.section3}>
+                    {userData?.jobDescription && (<View style={styles.section3}>
                         <Text
                             style={{
                             fontFamily: FONT.bold,
@@ -410,7 +439,7 @@ const SingleUser = () => {
                             }}
                         >Read more</Text>
                         </TouchableOpacity>)}
-                    </View>
+                    </View>)}
 
                     <View style={styles.section2}>
                         <View style={{display: 'flex', flexDirection: 'column'}}>
@@ -427,7 +456,7 @@ const SingleUser = () => {
                                     fontSize: SIZES.small,
                                     color: COLORS.tertiary
                                 }}
-                            >{capitalizeEachWord(wordBreaker(userData?.address, 3))}</Text>
+                            >{userData?.address ? capitalizeEachWord(wordBreaker(userData?.address, 3)) : ''}</Text>
                         </View>
                         <View style={styles.location}>
                             <Image
@@ -449,7 +478,8 @@ const SingleUser = () => {
                             ))} km</Text>
                         </View>
                     </View>
-                    <View style={styles.section3}>
+
+                    {userData?.about && (<View style={styles.section3}>
                         <Text
                             style={{
                                 color: 'black',
@@ -476,8 +506,9 @@ const SingleUser = () => {
                         >
                             Read more
                         </Text>)}
-                    </View>
-                    <View style={styles.section4}>
+                    </View>)}
+
+                    {userData?.interests.length > 0 && (<View style={styles.section4}>
                         <Text
                             style={{
                                 color: 'black',
@@ -520,8 +551,229 @@ const SingleUser = () => {
                                 )
                             }
                         </View>
-                    </View>
-                    <View style={styles.gallery}>
+                    </View>)}
+
+                    {userData?.religion && (<View style={styles.section4}>
+                        <Text
+                            style={{
+                                color: 'black',
+                                fontFamily: FONT.bold,
+                                fontSize: SIZES.medium,
+                                marginBottom: 5
+                            }}
+                        >Religion</Text>
+                        <View 
+                            style={{
+                                display: 'flex',
+                                gap: 10,
+                                justifyContent: 'flex-start',
+                                alignItems: 'flex-start',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            {userData?.religion
+                                ? ( <View style={styles.interests}>
+                                        <Text
+                                            style={{
+                                                fontFamily: FONT.bold,
+                                                fontSize: SIZES.medium,
+                                                color: COLORS.primary
+                                            }}
+                                        >
+                                            { userData?.religion }
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Text
+                                        style={{
+                                            fontFamily: FONT.medium,
+                                            fontSize: SIZES.small,
+                                            color: COLORS.tertiary
+                                        }}
+                                    >No record found</Text>
+                                )
+                            }
+                        </View>
+                    </View>)}
+
+                    {userData?.religiousInvolvement && (<View style={styles.section4}>
+                        <Text
+                            style={{
+                                color: 'black',
+                                fontFamily: FONT.bold,
+                                fontSize: SIZES.medium,
+                                marginBottom: 5
+                            }}
+                        >Religious Involvement</Text>
+                        <View 
+                            style={{
+                                display: 'flex',
+                                gap: 10,
+                                justifyContent: 'flex-start',
+                                alignItems: 'flex-start',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            {userData?.religiousInvolvement
+                                ? ( <View style={styles.interests}>
+                                        <Text
+                                            style={{
+                                                fontFamily: FONT.bold,
+                                                fontSize: SIZES.medium,
+                                                color: COLORS.primary
+                                            }}
+                                        >
+                                            { userData?.religiousInvolvement }
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Text
+                                        style={{
+                                            fontFamily: FONT.medium,
+                                            fontSize: SIZES.small,
+                                            color: COLORS.tertiary
+                                        }}
+                                    >No record found</Text>
+                                )
+                            }
+                        </View>
+                    </View>)}
+
+                    {userData?.personalityTemperament && (<View style={styles.section4}>
+                        <Text
+                            style={{
+                                color: 'black',
+                                fontFamily: FONT.bold,
+                                fontSize: SIZES.medium,
+                                marginBottom: 5
+                            }}
+                        >Personality Temperament</Text>
+                        <View 
+                            style={{
+                                display: 'flex',
+                                gap: 10,
+                                justifyContent: 'flex-start',
+                                alignItems: 'flex-start',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            {userData?.personalityTemperament
+                                ? ( <View style={styles.interests}>
+                                        <Text
+                                            style={{
+                                                fontFamily: FONT.bold,
+                                                fontSize: SIZES.medium,
+                                                color: COLORS.primary
+                                            }}
+                                        >
+                                            { userData?.personalityTemperament }
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Text
+                                        style={{
+                                            fontFamily: FONT.medium,
+                                            fontSize: SIZES.small,
+                                            color: COLORS.tertiary
+                                        }}
+                                    >No record found</Text>
+                                )
+                            }
+                        </View>
+                    </View>)}
+
+                    {userData?.sexualPreference && (<View style={styles.section4}>
+                        <Text
+                            style={{
+                                color: 'black',
+                                fontFamily: FONT.bold,
+                                fontSize: SIZES.medium,
+                                marginBottom: 5
+                            }}
+                        >Sexual Preference</Text>
+                        <View 
+                            style={{
+                                display: 'flex',
+                                gap: 10,
+                                justifyContent: 'flex-start',
+                                alignItems: 'flex-start',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            {userData?.sexualPreference
+                                ? ( <View style={styles.interests}>
+                                        <Text
+                                            style={{
+                                                fontFamily: FONT.bold,
+                                                fontSize: SIZES.medium,
+                                                color: COLORS.primary
+                                            }}
+                                        >
+                                            { userData?.sexualPreference }
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Text
+                                        style={{
+                                            fontFamily: FONT.medium,
+                                            fontSize: SIZES.small,
+                                            color: COLORS.tertiary
+                                        }}
+                                    >No record found</Text>
+                                )
+                            }
+                        </View>
+                    </View>)}
+
+                    {userData?.relationshipPreference && (<View style={styles.section4}>
+                        <Text
+                            style={{
+                                color: 'black',
+                                fontFamily: FONT.bold,
+                                fontSize: SIZES.medium,
+                                marginBottom: 5
+                            }}
+                        >Relationship Preference</Text>
+                        <View 
+                            style={{
+                                display: 'flex',
+                                gap: 10,
+                                justifyContent: 'flex-start',
+                                alignItems: 'flex-start',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            {userData?.relationshipPreference
+                                ? ( <View style={styles.interests}>
+                                        <Text
+                                            style={{
+                                                fontFamily: FONT.bold,
+                                                fontSize: SIZES.medium,
+                                                color: COLORS.primary
+                                            }}
+                                        >
+                                            { userData?.relationshipPreference }
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Text
+                                        style={{
+                                            fontFamily: FONT.medium,
+                                            fontSize: SIZES.small,
+                                            color: COLORS.tertiary
+                                        }}
+                                    >No record found</Text>
+                                )
+                            }
+                        </View>
+                    </View>)}
+
+                    {userData?.gallery.length > 0 && (<View style={styles.gallery}>
                         <Text
                             style={{
                                 color: 'black',
@@ -552,7 +804,7 @@ const SingleUser = () => {
                                 >No record found</Text>
                             )
                         }
-                    </View>
+                    </View>)}
                 </View>
             </ScrollView>
             <Modal
@@ -573,7 +825,6 @@ const SingleUser = () => {
                             style={{ 
                                 width: '90%', 
                                 height: '60%',
-                                position: 'absolute',
                                 borderRadius: 20
                             }}
                         />
@@ -582,13 +833,16 @@ const SingleUser = () => {
                     )}
                     <View
                         style={{
-                            position: 'relative',
-                            alignSelf: 'flex-end',
-                            marginTop: Platform.select({ios: -330, android: -380}),
-                            marginRight: 30,
+                            position: 'absolute',
+                            justifyContent: 'flex-end',
+                            alignItems: 'flex-start',
                             backgroundColor: 'transparent',
                             flexDirection: 'row',
-                            gap: 20
+                            gap: 20,
+                            width: '90%', 
+                            height: '60%',
+                            paddingHorizontal: 20,
+                            paddingVertical: 20
                         }}
                     >
                         <TouchableOpacity 

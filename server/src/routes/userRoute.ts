@@ -326,3 +326,9 @@ export const fetchFavUsersHandler = authenticateRouteWrapper(async (req, res) =>
 
     res.status(response.code).json(response);
 });
+
+export const fetchLikedAndLikedByUsersHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.likedAndLikedByUsers(req);
+
+    res.status(response.code).json(response);
+});

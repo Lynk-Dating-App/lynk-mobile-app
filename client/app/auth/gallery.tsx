@@ -54,14 +54,14 @@ const Gallery = () => {
             if (imageUri) {
                 const fileInfo = await FileSystem.getInfoAsync(imageUri.uri);
           
-                const maxFileSize = 1 * 1024 * 1024; //1 MB
+                const maxFileSize = 10 * 1024 * 1024; //10 MB
                 if (fileInfo.exists) {
                     if(fileInfo.size > maxFileSize) {
                         return alertComponent(
-                        'Image size',
-                        'Selected image exceeds the maximum allowed size. Image size should not be more that 1MB',
-                        'Ok',
-                        () => console.log('pressed')
+                            'Image size',
+                            'Selected image exceeds the maximum allowed size. Image size should not be more that 10MB',
+                            'Ok',
+                            () => console.log('pressed')
                         );
                     }
                 }
@@ -89,7 +89,8 @@ const Gallery = () => {
                     height: image.height,
                     borderRadius: 8
                 }}
-            />
+            /> 
+          
         </TouchableOpacity>
     );
 
@@ -108,7 +109,14 @@ const Gallery = () => {
             name: imageObject.fileName || extractFileNameFromUri(imageObject.uri),
             type: `${imageObject.type}/${imageObject.uri.split('.')[1]}`
         }));
-
+        if(newArr.length < 2) {
+            return alertComponent(
+                "Image",
+                "Upload at least 2 images to proceed",
+                "Okay",
+                () => console.log('pressed')
+            )
+        }
         dispatch(galleryAction(newArr))
 
     }
@@ -174,7 +182,162 @@ const Gallery = () => {
                         Only upload supported file format eg: jpeg, jpg, png
                     </Text>
 
-                    {imagesArray.length !== 0 ? 
+                    <View style={styles.firstImageSet} >
+                        {!image[0] 
+                            ? (<TouchableOpacity
+                                    style={styles.uploadImage3}
+                                    onPress={openImagePicker}
+                                >
+                                    <FontAwesome
+                                        name="plus"
+                                        size={20}
+                                        color={COLORS.gray}
+                                    />
+                                </TouchableOpacity>)
+                            : (
+                                <TouchableOpacity
+                                    onPress={() => handleImagePress(0)}
+                                    style={{
+                                        marginTop: 40
+                                    }}
+                                >
+                                    <Image
+                                        source={image[0]}
+                                        style={{
+                                            width: image[0].width,
+                                            height: image[0].height,
+                                            borderRadius: 8
+                                        }}
+                                    /> 
+                                    
+                                </TouchableOpacity>
+                            )
+                        }
+                        {!image[1] 
+                            ? ( <TouchableOpacity
+                                    style={styles.uploadImage3}
+                                    onPress={openImagePicker}
+                                >
+                                    <FontAwesome
+                                        name="plus"
+                                        size={20}
+                                        color={COLORS.gray}
+                                    />
+                                </TouchableOpacity>)
+                            : (
+                                <TouchableOpacity
+                                    onPress={() => handleImagePress(1)}
+                                    style={{
+                                        marginTop: 40
+                                    }}
+                                >
+                                    <Image
+                                        source={image[1]}
+                                        style={{
+                                            width: image[1].width,
+                                            height: image[1].height,
+                                            borderRadius: 8
+                                        }}
+                                    /> 
+                                    
+                                </TouchableOpacity>
+                            )
+                        }
+                    </View>
+                    <View style={styles.secondImageSet}>
+                        {!image[2] 
+                            ? (<TouchableOpacity
+                                    style={styles.uploadImage4}
+                                    onPress={openImagePicker}
+                                >
+                                    <FontAwesome
+                                        name="plus"
+                                        size={20}
+                                        color={COLORS.gray}
+                                    />
+                                </TouchableOpacity>)
+                            : (
+                                <TouchableOpacity
+                                    onPress={() => handleImagePress(2)}
+                                    style={{
+                                        marginTop: -80
+                                    }}
+                                >
+                                    <Image
+                                        source={image[2]}
+                                        style={{
+                                            width: image[2].width,
+                                            height: image[2].height,
+                                            borderRadius: 8
+                                        }}
+                                    /> 
+                                    
+                                </TouchableOpacity>
+                            )
+                        }
+                        {!image[3] 
+                            ? (<TouchableOpacity
+                                    style={styles.uploadImage4}
+                                    onPress={openImagePicker}
+                                >
+                                    <FontAwesome
+                                        name="plus"
+                                        size={20}
+                                        color={COLORS.gray}
+                                    />
+                                </TouchableOpacity>)
+                            : (
+                                <TouchableOpacity
+                                    onPress={() => handleImagePress(3)}
+                                    style={{
+                                        marginTop: -80
+                                    }}
+                                >
+                                    <Image
+                                        source={image[3]}
+                                        style={{
+                                            width: image[3].width,
+                                            height: image[3].height,
+                                            borderRadius: 8
+                                        }}
+                                    /> 
+                                    
+                                </TouchableOpacity>
+                            )
+                        }
+                        {!image[4] 
+                            ? (<TouchableOpacity
+                                    style={styles.uploadImage4}
+                                    onPress={openImagePicker}
+                                >
+                                    <FontAwesome
+                                        name="plus"
+                                        size={20}
+                                        color={COLORS.gray}
+                                    />
+                                </TouchableOpacity>)
+                            : (
+                                <TouchableOpacity
+                                    onPress={() => handleImagePress(4)}
+                                    style={{
+                                        marginTop: -80
+                                    }}
+                                >
+                                    <Image
+                                        source={image[4]}
+                                        style={{
+                                            width: image[4].width,
+                                            height: image[4].height,
+                                            borderRadius: 8
+                                        }}
+                                    /> 
+                                    
+                                </TouchableOpacity>
+                            )
+                        }
+                    </View>
+
+                    {/* {imagesArray.length !== 0 ? 
                         (
                             <>
                                 <Text style={{
@@ -212,7 +375,7 @@ const Gallery = () => {
                             </>   
                         )
                         
-                    }
+                    } */}
 
                     {/* Modal for image upload or viewing */}
                     <Modal
@@ -280,7 +443,7 @@ const Gallery = () => {
                         </View>
                     </Modal>
 
-                    {(imagesArray.length < 5 && imagesArray.length !== 0) && (<TouchableOpacity
+                    {/* {(imagesArray.length < 5 && imagesArray.length !== 0) && (<TouchableOpacity
                         style={styles.uploadImage}
                         onPress={openImagePicker}
                         disabled={imagesArray.length === 5}
@@ -295,7 +458,7 @@ const Gallery = () => {
                             size={20}
                             color={COLORS.gray}
                         />
-                    </TouchableOpacity>)}
+                    </TouchableOpacity>)} */}
                     
                 </View>
             </ScrollView>
@@ -369,6 +532,38 @@ const styles = StyleSheet.create({
         height: 200,
         marginTop: 40
     },
+    uploadImage3: {
+        borderStyle: 'dashed',
+        borderWidth: 1,
+        backgroundColor: 'transparent',
+        alignSelf: 'center',
+        width: 107,
+        flexDirection: 'column',
+        borderColor: COLORS.gray2,
+        paddingVertical: 10,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 10,
+        height: 107,
+        marginTop: 40
+    },
+    uploadImage4: {
+        borderStyle: 'dashed',
+        borderWidth: 1,
+        backgroundColor: 'transparent',
+        alignSelf: 'center',
+        width: 70,
+        flexDirection: 'column',
+        borderColor: COLORS.gray2,
+        paddingVertical: 10,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 80,
+        height: 70
+    },
     uploadImage: {
         borderStyle: 'dashed',
         borderWidth: 1,
@@ -406,7 +601,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         backgroundColor: 'transparent',
-        gap: 5, marginBottom: 5,
+        gap: 5, 
+        marginBottom: 5,
         marginTop: 20
     },
     secondImageSet: {
