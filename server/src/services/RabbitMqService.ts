@@ -78,18 +78,19 @@ class RabbitMqService {
     chatId: string
     ) {
 
-    await datasources.chatMessageDAOService.create({
+    const response = await datasources.chatMessageDAOService.create({
       chatId,
       senderId,
+      receiverId,
       message
     } as IChatMessageModel);
 
-    this.io?.to(senderId).emit('messageSentAck', 'message sent');
-
+    this.io?.to(senderId).emit('messageSentAck', {chatId});
+    // const messageData = JSON.stringify(response)
     if (receiverId) {
       const targetSocketRooms = this.io?.sockets.adapter.rooms.get(receiverId);
       if (targetSocketRooms) {
-        this.io?.to(receiverId).emit('receivePrivateMessage', { senderId, message });
+        this.io?.to(receiverId).emit('receivePrivateMessage', { chatId, senderId, message });
       } else {
         await this.sendMessageToRabbitMQ('privateMessages', JSON.stringify({ senderId, message }));
       }
@@ -212,6 +213,28 @@ class RabbitMqService {
       // Emit the private message to the receiver's room
       // io.to(receiverId).emit('receivePrivateMessage', { senderId, message });
     });
+
+    socket.on('userTypingMsg', (data: any) => {
+      if (data.receiver) {
+        const targetSocketRoom = this.io?.sockets.adapter.rooms.get(data.receiver);
+        if (targetSocketRoom) {
+          this.io?.to(data.receiver).emit('userTypingMsgAck', data.message);
+        }
+      } else {
+        console.log('Invalid target user ID provided.');
+      }
+    })
+
+    socket.on('userNotTypingMsg', (data: any) => {
+      if (data.receiver) {
+        const targetSocketRoom = this.io?.sockets.adapter.rooms.get(data.receiver);
+        if (targetSocketRoom) {
+          this.io?.to(data.receiver).emit('userNotTypingMsgAck', data.message);
+        }
+      } else {
+        console.log('Invalid target user ID provided.');
+      }
+    })
   
     socket.on('disconnect', () => {
       console.log('Client disconnected.');

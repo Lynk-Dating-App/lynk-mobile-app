@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView, Text, View } from "../../../components/Themed";
 import { ActivityIndicator, Dimensions, FlatList, Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, TouchableOpacity } from "react-native";
 import { COLORS, FONT, SIZES, images } from "../../../constants";
@@ -7,12 +7,14 @@ import useAppDispatch from "../../../hook/useAppDispatch";
 import useAppSelector from "../../../hook/useAppSelector";
 import AppInput from "../../../components/AppInput/AppInput";
 import { clearCreateChatMessageStatus, clearGetChatMessagesStatus, setChatUsers, setNotification } from "../../../store/reducers/userReducer";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { createChatMessageAction, getChatMessagesAction } from "../../../store/actions/userAction";
 import useUser from "../../../hook/useUser";
 import { capitalizeFirstLetter, dateDifference } from "../../../Utils/Generic";
 import settings from "../../../config/settings";
 import socket from "../../../config/socket";
+import { saveArrayToSecureStore } from "../../../components/ExpoStore/SecureStore";
+import { getArrayFromSecureStore } from "../../../components/ExpoStore/SecureStore";
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +26,10 @@ const ChatMessageScreen = () => {
     const [input, setInput] = useState<string>('');
     const [imageModal, setImageModal] = useState<boolean>(false);
     const flatListRef = useRef(null);
+    const [dataArr, setDataArr] = useState<any[]>([]);
+    const [arr, setArr] = useState<any[]>([]);
+    const [userIsTyping, setUserIsTyping] = useState<string>('');
+    const [typingStatus, setTypingStatus] = useState<string>('');
 
     const renderHeader = () => (
         <View
@@ -81,26 +87,44 @@ const ChatMessageScreen = () => {
                 <View
                   style={{
                     display: 'flex',
-                    flexDirection: 'row',
+                    flexDirection: 'column',
                     justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: 5
+                    alignItems: 'center'
                   }}
                 >
-                  <View
+                  {userReducer.onlineUsers.some(user => user.userId === userReducer.chatUsers._id) && (<View
                     style={{
-                      width: 10,
-                      height: 10,
-                      backgroundColor: userReducer.onlineUsers.some(user => user.userId === userReducer.chatUsers._id) ? 'green' : 'red',
-                      borderRadius: 50
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: 5
                     }}
-                  />
-                  <Text
+                  >
+                    <View
+                      style={{
+                        width: 5,
+                        height: 5,
+                        backgroundColor: userReducer.onlineUsers.some(user => user.userId === userReducer.chatUsers._id) ? 'green' : 'transparent',
+                        borderRadius: 50
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontFamily: FONT.regular,
+                        color: COLORS.tertiary,
+                        fontSize: SIZES.small
+                      }}
+                    >{userReducer.onlineUsers.some(user => user.userId === userReducer.chatUsers._id) ? 'Online' : ''}</Text>
+                  </View>)}
+                  {typingStatus === 'typing' && (<Text
                     style={{
                       fontFamily: FONT.regular,
-                      color: COLORS.tertiary
+                      color: COLORS.gray,
+                      fontSize: SIZES.small,
+                      fontStyle: 'italic'
                     }}
-                  >{userReducer.onlineUsers.some(user => user.userId === userReducer.chatUsers._id) ? 'Online' : 'Offline'}</Text>
+                  >{typingStatus === 'typing' ? 'typing...' : 'typing...'}</Text>)}
                 </View>
               </View>
                 
@@ -108,7 +132,8 @@ const ChatMessageScreen = () => {
                 style={styles.iconContainer}
                 onPress={() => {
                   dispatch(setChatUsers(null))
-                  router.push('/(tabs)/three')}}
+                  router.push('/(tabs)/three')
+                  setUserIsTyping('')}}
               >
                 <FontAwesome
                   name='close'
@@ -121,7 +146,11 @@ const ChatMessageScreen = () => {
         </View>
     );
 
-    const renderInput = () => (
+    const handleTextChange = (inputText: string) => {
+      setInput(inputText)
+    };
+
+    const renderInput = (targetId: string) => (
       <View
         style={styles.footerContainer}
       > 
@@ -130,12 +159,13 @@ const ChatMessageScreen = () => {
           hasPLaceHolder={true}
           placeholderTop={''}
           value={input}
+          // onPressIn={() => setUserIsTyping(true)}
           style={{
             marginTop: -10,
             width: 75/100 * width,
             marginLeft: 20
           }}
-          onChangeText={(text: string) => setInput(text)}
+          onChangeText={handleTextChange}
         />
         <TouchableOpacity
           onPress={handleSendMessage}
@@ -160,6 +190,101 @@ const ChatMessageScreen = () => {
       </View>
     );
 
+    const handleSendMessage = () => {
+      if(input === '') return;
+      const payload = {
+        chatId: userReducer.chatUsers.chat._id,
+        senderId: user?._id,
+        message: input,
+        receiverId: userReducer.chatUsers._id
+      }
+      // setArr(prev => [...prev, payload]);
+      setUserIsTyping('')
+      flatListRef.current?.scrollToEnd({ animated: true });
+      socket.emit('sendPrivateMessage', payload)
+      setInput('')
+    }
+
+    useEffect(() => {
+      let intervalId: NodeJS.Timeout;
+      if(input === '') {
+        intervalId = setTimeout(() => {
+          setUserIsTyping('not-typing')
+        },4000)
+      };
+
+      return() => {
+        clearInterval(intervalId)
+      }
+    },[input]);
+
+    useEffect(() => {
+      let intervalId: NodeJS.Timeout;
+      if(userIsTyping === 'typing') {
+        intervalId = setTimeout(() => {
+          setUserIsTyping('')
+        },120000)
+      };
+
+      return() => {
+        clearInterval(intervalId)
+      }
+    },[userIsTyping]);
+
+    useEffect(() => {
+      if(input !== '') {
+        setUserIsTyping('typing')
+      }
+    },[input]);
+
+    useEffect(() => {
+      if(userIsTyping === 'typing') {
+        socket.emit('userTypingMsg', {receiver: userReducer.chatUsers._id, message: userIsTyping})
+      } else if (userIsTyping === 'not-typing') {
+        socket.emit('userNotTypingMsg', {receiver: userReducer.chatUsers._id, message: userIsTyping})
+      }
+      
+    },[userIsTyping]);
+
+    useEffect(() => {
+      socket.on('userTypingMsgAck', (data) => {
+        if(data) {
+          setTypingStatus(data)
+        }
+      });
+    
+      return () => {
+        socket.off('userTypingMsgAck');
+      };  
+    },[socket.connected]);
+
+    useEffect(() => {
+      socket.on('userNotTypingMsgAck', (data) => {
+        if(data) {
+          setTypingStatus(data)
+        }
+      });
+    
+      return () => {
+        socket.off('userNotTypingMsgAck');
+      };  
+    },[socket.connected])
+    
+    //Work in progress
+    useEffect(() => {
+      if(arr.length !== 0){
+        const newDataArr = arr.map(data => {
+          if(!data.emitted) {
+            socket.emit('sendPrivateMessage', data)
+            return { ...data, emitted: true };
+          }
+          
+        });
+        
+        // setDataArr(prev => [...prev, newDataArr])
+      }
+    },[arr]);
+
     useEffect(() => {
       if(userReducer.chatUsers) {
         dispatch(getChatMessagesAction(userReducer.chatUsers.chat._id))
@@ -176,21 +301,14 @@ const ChatMessageScreen = () => {
       }
     },[userReducer.getChatMessagesStatus]);
 
-    const handleSendMessage = () => {
-      const payload = {
-        chatId: userReducer.chatUsers.chat._id,
-        senderId: user?._id,
-        message: input,
-        receiverId: userReducer.chatUsers._id
-      }
-      socket.emit('sendPrivateMessage', payload)
-      setInput('')
-    }
+    useEffect(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    },[]);
 
     useEffect(() => {
       socket.on('messageSentAck', (data) => {
         if(data) {
-          dispatch(getChatMessagesAction(userReducer.chatUsers.chat._id))
+          dispatch(getChatMessagesAction(data.chatId))
         }
       });
     
@@ -202,7 +320,7 @@ const ChatMessageScreen = () => {
     useEffect(() => {
       socket.on('receivePrivateMessage', (data) => {
         if(data) {
-          dispatch(getChatMessagesAction(userReducer.chatUsers.chat._id))
+          dispatch(getChatMessagesAction(data.chatId))
         }
       });
 
@@ -210,7 +328,15 @@ const ChatMessageScreen = () => {
         socket.off('receivePrivateMessage');
       };  
     }, [socket.connected]);
- 
+
+    //WORK IN PROGRESS
+    // useEffect(() => {
+    //   const getData = async () => {
+    //     setDataArr(userReducer.chatMessages)
+    //   }
+    //   getData()
+    // },[]);
+
     return (
         <SafeAreaView style={{flex: 1}}>
           <KeyboardAvoidingView
@@ -226,7 +352,7 @@ const ChatMessageScreen = () => {
               style={{
                 marginHorizontal: 10,
               }}
-              keyExtractor={(item) => item._id}
+              keyExtractor={(item, index) => index.toString()}
               ListEmptyComponent={() => (
               <View style={styles.emptyContainer}>
                 {userReducer.getChatMessagesStatus !== 'loading' && (<Text
@@ -312,7 +438,7 @@ const ChatMessageScreen = () => {
               )
               )}
             />
-            {renderInput()}
+            {renderInput(userReducer.chatUsers._id)}
           </KeyboardAvoidingView>
           <Modal
             visible={imageModal}
@@ -330,22 +456,23 @@ const ChatMessageScreen = () => {
                   <Image
                       source={{uri: `${settings.api.baseURL}/${userReducer.chatUsers.profileImageUrl}`}}
                       style={{ 
-                          width: '90%', 
-                          height: '60%',
-                          position: 'absolute',
-                          borderRadius: 20
+                        width: '90%', 
+                        height: '60%',
+                        borderRadius: 20
                       }}
                   />
                   <View
-                      style={{
-                          position: 'relative',
-                          alignSelf: 'flex-end',
-                          marginTop: Platform.select({ios: -330, android: -380}),
-                          marginRight: 30,
-                          backgroundColor: 'transparent',
-                          flexDirection: 'row',
-                          gap: 20
-                      }}
+                    style={{
+                      position: 'absolute',
+                      backgroundColor: 'transparent',
+                      width: '90%', 
+                      height: '60%',
+                      display: 'flex',
+                      justifyContent: 'flex-start',
+                      alignItems: 'flex-end',
+                      paddingHorizontal: 10,
+                      paddingVertical: 10
+                    }}
                   >
                       <TouchableOpacity 
                           onPress={() => setImageModal(false)}

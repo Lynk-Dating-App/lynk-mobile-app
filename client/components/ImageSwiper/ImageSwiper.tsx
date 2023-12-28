@@ -115,10 +115,10 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         ref={swiperRef}
         cards={data}
         infinite={true}
-        keyExtractor={(item) => item?.userId}
-        renderCard={(card: Match) => (
+        // keyExtractor={(item) => item.userId}
+        renderCard={(card: Match, index) => (
           data.length > 0 
-          ? (<View key={card?.userId}
+          ? (<View key={index}
               style={{
                 height: 58/100 * height,
                 backgroundColor: 'transparent'

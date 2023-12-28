@@ -11,34 +11,38 @@ import RNPickerSelect from 'react-native-picker-select';
 const { width } = Dimensions.get('window');
 
 interface IAppInputProps {
-    placeholderTop: string;
-    hasPLaceHolder: boolean;
-    placeholder: string;
-    value?: any;
-    onChangeText?: any;
-    className?: any;
-    type?: string;
-    disabled?: boolean
-    name?: any
-    onBlur?: any
-    min?: string;
-    keyboardType?: any;
-    autoCapitalize?: any;
-    autoCorrect?: boolean;
-    multiline?: boolean;
-    editable?: boolean;
-    style?: any;
-    maxLength?: any;
-    returnKeyType?: any;
-    leftImg?: any;
-    secureTextEntry?: boolean;
-    touched?: any;
-    error?: any;
-    headerStyle?: any;
-    errorTextStyle?: any;
-    showError?: boolean;
-    onSubmitEditing?: any;
-    showPassIconStyle?: any;
+  onPressIn?: any;
+  onPressOut?: any;
+  placeholderTop: string;
+  hasPLaceHolder: boolean;
+  placeholder: string;
+  value?: any;
+  onChangeText?: any;
+  className?: any;
+  type?: string;
+  disabled?: boolean
+  name?: any
+  onBlur?: any
+  onFocus?: any
+  min?: string;
+  keyboardType?: any;
+  autoCapitalize?: any;
+  autoCorrect?: boolean;
+  multiline?: boolean;
+  editable?: boolean;
+  style?: any;
+  maxLength?: any;
+  returnKeyType?: any;
+  leftImg?: any;
+  secureTextEntry?: boolean;
+  touched?: any;
+  error?: any;
+  headerStyle?: any;
+  errorTextStyle?: any;
+  showError?: boolean;
+  onSubmitEditing?: any;
+  showPassIconStyle?: any;
+  autoFocus?: any;
 }
 
 interface IPhoneProps {
@@ -83,7 +87,9 @@ const AppInput = ({
   headerStyle, errorTextStyle,
   showError = true,
   onSubmitEditing,
-  showPassIconStyle
+  showPassIconStyle,
+  onFocus, autoFocus,
+  onPressIn, onPressOut
 }: IAppInputProps) => {
 
   const [pwdfield, setPwdfield] = useState(false);
@@ -106,8 +112,12 @@ const AppInput = ({
       <View style={styles.container}>
         <TextInput
           onBlur={onBlur}
+          onFocus={onFocus}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
           keyboardType={keyboardType}
           onChangeText={onChangeText}
+          autoFocus={autoFocus}
           value={value}
           placeholder={placeholder}
           autoCapitalize={autoCapitalize}

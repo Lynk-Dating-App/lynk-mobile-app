@@ -159,7 +159,7 @@ export default function TabThreeScreen() {
           height: 0,
           marginHorizontal: 20
         }]}
-        keyExtractor={(item) => item.key}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
       />)}
       
@@ -170,7 +170,7 @@ export default function TabThreeScreen() {
         style={{
           marginHorizontal: 10,
         }}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item, index) => index.toString()}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
           <Text
