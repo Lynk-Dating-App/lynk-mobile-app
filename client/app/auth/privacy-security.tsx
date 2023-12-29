@@ -71,7 +71,6 @@ export default function PrivacySecurity () {
     const payload = {
         firstName: user?.firstName,
         lastName: user?.lastName,
-        age: user?.age.toString(),
         height: user?.height,
         state: user?.state,
         address: user?.address,

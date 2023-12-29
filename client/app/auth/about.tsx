@@ -38,6 +38,17 @@ const builds = [
     { label: 'Chubby', value: 'chubby' },
 ]
 
+const heightValues = [
+    { label: '1ft', value: '1' },
+    { label: '2ft', value: '2' },
+    { label: '3ft', value: '3' },
+    { label: '4ft', value: '4' },
+    { label: '5ft', value: '5' },
+    { label: '6ft', value: '6' },
+    { label: '7ft', value: '7' },
+    { label: '8ft', value: '8' }
+]
+
 const About = () => {
     const router = useRouter();
     const { jobsData, setReload } = useVarious();
@@ -212,7 +223,7 @@ const About = () => {
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
                             <View style={styles.formContainer}>
-                                <AppInput
+                                {/* <AppInput
                                     placeholder={'Height'}
                                     hasPLaceHolder={true}
                                     placeholderTop={'Height'}
@@ -233,6 +244,15 @@ const About = () => {
                                     touched={touched.height}
                                     keyboardType="numeric"
                                     showError={false}
+                                /> */}
+                                 <Select
+                                    data={heightValues}
+                                    onValueChange={handleChange('height')}
+                                    value={values.height}
+                                    hasPLaceHolder={true}
+                                    placeholderTop='Height'
+                                    showSelectError={false}
+                                    placeholderLabel='Select height...'
                                 />
 
                                 <Select

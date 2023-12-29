@@ -38,14 +38,14 @@ const Gallery = () => {
       
           const result = await ImagePicker.launchImageLibraryAsync(options);
 
-          if (result.canceled) {
-            return alertComponent(
-              'Image',
-              'Upload cancelled',
-              'Ok',
-              () => console.log('pressed')
-            )
-          }
+        //   if (result.canceled) {
+        //     return alertComponent(
+        //       'Image',
+        //       'Upload cancelled',
+        //       'Ok',
+        //       () => console.log('pressed')
+        //     )
+        //   }
       
           if (!result.canceled) {
             // Use the assets array to get the image URI
@@ -145,21 +145,21 @@ const Gallery = () => {
     return (
         <SafeAreaView style={{flex: 1}}>
             <ScrollView>
-                <View style={styles.backBtnContainer}>
+                <TouchableOpacity onPress={() => router.push('/auth/notification')} 
+                    style={styles.backBtnContainer}
+                >
                     <Text/>
-                    <TouchableOpacity onPress={() => router.push('/auth/notification')}>
-                        <Text
-                            style={{
-                                fontFamily: FONT.bold,
-                                color: COLORS.primary,
-                                fontSize: SIZES.medium,
-                                marginRight: 30
-                            }}
-                        >
-                            Skip
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                    <Text
+                        style={{
+                            fontFamily: FONT.bold,
+                            color: COLORS.primary,
+                            fontSize: SIZES.medium,
+                            marginRight: 30
+                        }}
+                    >
+                        Skip
+                    </Text>
+                </TouchableOpacity>
                 <View style={styles.container}>
                     <Text
                         style={{

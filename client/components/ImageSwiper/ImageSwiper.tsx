@@ -34,7 +34,7 @@ const { height } = Dimensions.get('window');
 interface IProps {
   swipe: string;
   setSwipe: any;
-  data: any
+  data: any;
 }
 
 const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
@@ -290,7 +290,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                 style={{
                   position: 'absolute',
                   width: '100%',
-                  height: '100%',
+                  height: '50%',
                   borderRadius: 20,
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -300,38 +300,38 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                 <View />
                 <View
                   style={{
-                    borderBottomLeftRadius: 20,
-                    borderBottomRightRadius: 20,
-                    overflow: 'hidden',
+                    // borderBottomLeftRadius: 20,
+                    // borderBottomRightRadius: 20,
                     width: '100%',
-                    height: Platform.select({android: 110, ios: 100}),
-                    backgroundColor: '#191919',
+                    height: 50,
+                    backgroundColor: 'transparent',
                     paddingHorizontal: 20,
                     paddingVertical: 5
                   }}
                 >
                   <Text
                     style={{
-                      color: 'white',
+                      // color: 'blac',
                       fontFamily: FONT.extraBold,
                       fontSize: SIZES.xLarge,
+                      alignSelf: 'center',
                       elevation: 5,
                     }}
                   >No match found</Text>
-                  <Text
+                  {/* <Text
                     style={{
                       color: 'white',
                       fontFamily: FONT.semiBold,
                       fontSize: SIZES.medium
                     }}
-                  ></Text>
-                  <Text
+                  >Hello</Text> */}
+                  {/* <Text
                     style={{
                       color: 'white',
                       fontFamily: FONT.semiBold,
                       fontSize: SIZES.medium
                     }}
-                  ></Text>
+                  ></Text> */}
                 </View>
               </View>
             </View>

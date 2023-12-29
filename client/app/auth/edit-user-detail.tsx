@@ -74,6 +74,17 @@ const education = [
     {value: "Phd", label: "Phd"}, {value: "Others", label: "Others"}
 ];
 
+const heightValue = [
+    {label: "1ft", value: "1"},
+    {label: "2ft", value: "2"}, 
+    {label: "3ft", value: "3"}, 
+    {label: "4ft", value: "4"}, 
+    {label: "5ft", value: "5"}, 
+    {label: "6ft", value: "6"}, 
+    {label: "7ft", value: "7"}, 
+    {label: "8ft", value: "8"}, 
+]
+
 const schema2 = Yup.object().shape({
     firstName: Yup.string().required().label("first name"),
     lastName: Yup.string().required().label("last name"),
@@ -213,22 +224,22 @@ export default function EditUserDetail () {
                         validationSchema={schema2}
                         onSubmit={(values: any) => {
                             const age = new Date().getFullYear() - new Date(values.dob).getFullYear();
-                            if(age < 16) {
+                            if(age < 18) {
                                 return alertComponent(
                                     'Age Limit',
-                                    'Age can not be less than 16.',
+                                    'Age can not be less than 18.',
                                     'Cancel',
                                     ()=>console.log('pressed')
                                 );
                             }
-                            if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' ]/.test(values.height)) {
-                                return alertComponent(
-                                    'Height',
-                                    'Invalid height. Only numbers and period(.) sign are allowed.',
-                                    'Cancel',
-                                    ()=>console.log('pressed')
-                                );
-                            }
+                            // if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' ]/.test(values.height)) {
+                            //     return alertComponent(
+                            //         'Height',
+                            //         'Invalid height. Only numbers and period(.) sign are allowed.',
+                            //         'Cancel',
+                            //         ()=>console.log('pressed')
+                            //     );
+                            // }
                             const payload = {
                                 ...values,
                                 interests: selectedItem
@@ -395,7 +406,7 @@ export default function EditUserDetail () {
                                     </TouchableOpacity>
                                 </View>
                                 
-                                <AppInput
+                                {/* <AppInput
                                     placeholder={''}
                                     hasPLaceHolder={true}
                                     placeholderTop={'Height'}
@@ -418,6 +429,24 @@ export default function EditUserDetail () {
                                     touched={touched.height}
                                     keyboardType="numeric"
                                     showError={false}
+                                /> */}
+                                <Select
+                                    data={heightValue}
+                                    onValueChange={handleChange('height')}
+                                    value={values.height}
+                                    hasPLaceHolder={true}
+                                    placeholderTop='Height'
+                                    showSelectError={false}
+                                    selectError={errors.height}
+                                    placeholderLabel='Select height...'
+                                    headerStyle={{
+                                        fontFamily: FONT.semiBold,
+                                        fontSize: SIZES.small,
+                                        marginLeft: 10,
+                                        color: COLORS.gray
+                                    }}
+                                    selectWidth={43/100 * width}
+                                    style={{alignSelf: 'center'}}
                                 />
                             </View>
 

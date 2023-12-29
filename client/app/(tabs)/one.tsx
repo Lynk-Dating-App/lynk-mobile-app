@@ -17,7 +17,7 @@ import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
 import { clearSignInStatus } from '../../store/reducers/authReducer';
 import * as Location from 'expo-location';
-import { COLORS, FONT, SIZES, icons } from '../../constants';
+import { COLORS, FONT, SIZES, icons, images } from '../../constants';
 import ImageSwiper from '../../components/ImageSwiper/ImageSwiper';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import ReusableModal from '../../components/Modal/ReusableModal';
@@ -42,6 +42,7 @@ import { INotification } from '@app-models';
 //@ts-ignore
 import { BIOMETRIC_LOGIN_KEY } from '@env';
 import { useNavigation } from '@react-navigation/native';
+import Swiper from 'react-native-deck-swiper';
 
 const API_ROOT = settings.api.rest;
 const { height, width } = Dimensions.get('window');
@@ -797,7 +798,93 @@ const TabOneScreen = ({screenChange}: any) => {
         </ReusableModal>)}
       </View>
       <View style={styles.imgContainer}>
-        <ImageSwiper swipe={swipe} setSwipe={setSwipe} data={finalData} />
+        {finalData.length > 0 ? 
+          (
+            <ImageSwiper swipe={swipe} setSwipe={setSwipe} data={finalData}/>
+          ) : (
+            <>
+              <Swiper
+                cards={finalData}
+                infinite={true}
+                // keyExtractor={(item) => item.userId}
+                renderCard={(card: Match, index) => (
+                  <View
+                    style={{
+                      height: 58/100 * height,
+                      backgroundColor: 'transparent'
+                    }}
+                  >
+                    <Image
+                      source={images.no_image_m}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: 20,
+                        borderColor: COLORS.gray2,
+                        borderWidth: 0.3
+                      }}
+                      resizeMode='cover'
+                    />
+                    <View
+                      style={{
+                        position: 'absolute',
+                        width: '100%',
+                        height: '50%',
+                        borderRadius: 20,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        backgroundColor: 'transparent'
+                      }}
+                    >
+                      <View />
+                      <View
+                        style={{
+                          // borderBottomLeftRadius: 20,
+                          // borderBottomRightRadius: 20,
+                          width: '100%',
+                          height: 50,
+                          backgroundColor: 'transparent',
+                          paddingHorizontal: 20,
+                          paddingVertical: 5
+                        }}
+                      >
+                        <Text
+                          style={{
+                            // color: 'blac',
+                            fontFamily: FONT.extraBold,
+                            fontSize: SIZES.xLarge,
+                            alignSelf: 'center',
+                            elevation: 5,
+                          }}
+                        >No match found</Text>
+                        {/* <Text
+                          style={{
+                            color: 'white',
+                            fontFamily: FONT.semiBold,
+                            fontSize: SIZES.medium
+                          }}
+                        >Hello</Text> */}
+                        {/* <Text
+                          style={{
+                            color: 'white',
+                            fontFamily: FONT.semiBold,
+                            fontSize: SIZES.medium
+                          }}
+                        ></Text> */}
+                      </View>
+                    </View>
+                  </View>
+                )}
+                backgroundColor="transparent"
+                cardVerticalMargin={30}
+                showSecondCard={false}
+                disableLeftSwipe
+                disableRightSwipe
+                disableBottomSwipe
+                disableTopSwipe
+              />
+            </>
+          )}
         <View
           style={{ 
             flexDirection: 'row',

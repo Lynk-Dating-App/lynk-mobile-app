@@ -26,6 +26,7 @@ import { updateProfileImageAction } from "../../store/actions/userAction";
 import useAppSelector from "../../hook/useAppSelector";
 import useUser from "../../hook/useUser";
 import settings from "../../config/settings";
+import { clearUploadUserProfileImageStatus } from "../../store/reducers/userReducer";
 
 const { width } = Dimensions.get('window');
 
@@ -45,6 +46,7 @@ const ProfileDetail = () => {
     const [viewImage, setViewImage] = useState<boolean>(false);
     const [imagePreview, setImagePreview] = useState(null);
     const {user} = useUser();
+    const [isProfileImage, setIsProfileImage] = useState<boolean>(false);
 
     const dispatch = useAppDispatch();
     const userReducer = useAppSelector(state => state.userReducer);
@@ -94,14 +96,14 @@ const ProfileDetail = () => {
       
           const result = await ImagePicker.launchImageLibraryAsync(options);
           
-          if (result.canceled) {
-            return alertComponent(
-              'Image',
-              'Upload cancelled',
-              'Ok',
-              () => console.log('pressed')
-            )
-          }
+        //   if (result.canceled) {
+        //     return alertComponent(
+        //       'Image',
+        //       'Upload cancelled',
+        //       'Ok',
+        //       () => console.log('pressed')
+        //     )
+        //   }
       
           if (!result.canceled) {
             const imageUri = result.assets?.[0];
@@ -141,13 +143,13 @@ const ProfileDetail = () => {
     };
 
     const handleImageProfile = async (pickerResult: any) => {
-    const profileImageUrl = {
-        uri: pickerResult.uri,
-        name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
-        type: `${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
-    };
+        const profileImageUrl = {
+            uri: pickerResult.uri,
+            name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
+            type: `${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
+        };
 
-    dispatch(updateProfileImageAction({ profileImageUrl }));
+        dispatch(updateProfileImageAction({ profileImageUrl }));
     };
 
     const handleSubmit = (values: any) => {
@@ -162,10 +164,10 @@ const ProfileDetail = () => {
         };
 
         const age = new Date().getFullYear() - new Date(values.dob).getFullYear()
-        if(age < 16) {
+        if(age < 18) {
             return alertComponent(
                 'Age Limit',
-                'Age can not be less than 16.',
+                'Age can not be less than 18.',
                 'Cancel',
                 ()=>console.log('pressed')
             );
@@ -176,7 +178,7 @@ const ProfileDetail = () => {
             ...data
         }
 
-        if(user?.profileImageUrl === undefined) {
+        if(!isProfileImage) {
             setIsError(true)
             setError("Profile image is required.")
             return 
@@ -184,6 +186,7 @@ const ProfileDetail = () => {
 
         storeData("profile-data", JSON.stringify(payload))
         router.push('/auth/about')
+        setIsProfileImage(false)
     };
 
     useEffect(() => {
@@ -202,6 +205,23 @@ const ProfileDetail = () => {
     
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if(userReducer.uploadUserProfileImageStatus === 'completed') {
+            setIsProfileImage(true)
+            dispatch(clearUploadUserProfileImageStatus())
+        } else if (userReducer.uploadUserProfileImageStatus === 'failed') {
+            setIsProfileImage(false)
+            alertComponent(
+                'Profile Image',
+                'Profile image was not successfully uploaded, please try again.',
+                'Ok',
+                () => console.log('pressed')
+            )
+            setImagePreview(null)
+            dispatch(clearUploadUserProfileImageStatus())
+        }
+    },[userReducer.uploadUserProfileImageStatus]);
 
     // const onProgress = (event: any) => {
     //     const loaded = event.nativeEvent.loaded;
