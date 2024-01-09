@@ -214,9 +214,8 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                 style={{
                   borderBottomLeftRadius: 20,
                   borderBottomRightRadius: 20,
-                  overflow: 'hidden',
                   width: '100%',
-                  height: Platform.select({android: 145, ios: 135}),
+                  height: Platform.select({android: 125, ios: 110}),
                   backgroundColor: '#191919',
                   paddingHorizontal: 20,
                   paddingVertical: 5
@@ -244,7 +243,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                     fontSize: SIZES.medium
                   }}
                 >{wordBreaker(capitalizeEachWord(card?.address), 4)}</Text>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={() => {
                     dispatch(setFromUserId(card?.userId))
                     router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})}}
@@ -264,7 +263,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                   >
                     View profile
                   </Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
              </View>)
@@ -352,7 +351,11 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         onSwipedTop={(cardIndex) => dispatch(favUserAction(data[cardIndex].userId))}
         onSwiped={(cardIndex) => setIndex(cardIndex)}
         onSwipedBottom={() => console.log('bottom')}
-        // onTapCard={(cardIndex) => console.log(cardIndex)}
+        onTapCard={(cardIndex) => {
+          if(data.length === 0) return;
+          dispatch(setFromUserId(data[cardIndex].userId))
+          router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})
+        }}
         stackSeparation={-17}
         disableLeftSwipe={status}
         disableRightSwipe={status}

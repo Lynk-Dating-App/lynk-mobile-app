@@ -9,6 +9,8 @@ import { MANAGE_ALL, READ_TRANSACTION, USER_PERMISSION } from '../config/setting
 import axiosClient from '../services/api/axiosClient';
 import { 
     PAYMENT_CHANNELS,
+    PAYSTACK_EMAIL,
+    PREMIUM_PLAN_COST,
     PREMIUM_PURPLE_PLAN, 
     UPLOAD_BASE_PATH
 } from '../config/constants';
@@ -17,6 +19,7 @@ import RedisService from '../services/RedisService';
 import Joi = require('joi');
 import { ISubscriptionModel } from '../models/Subscription';
 import formidable, { File } from 'formidable';
+import { INotificationModel } from '../models/Notification';
 import { IUserModel } from '../models/User';
 
 const form = formidable({ uploadDir: UPLOAD_BASE_PATH });
@@ -68,7 +71,7 @@ export default class SubscriptionController {
 
     // @TryCatch
     // @HasPermission([USER_PERMISSION])
-    // public async subscription (req: Request) {
+    // public async subscriptionManual (req: Request) {
     //   const transation = await this.doSubscribe(req)
 
     //   const response: HttpResponse<any> = {
@@ -239,15 +242,105 @@ export default class SubscriptionController {
     };
 
     @TryCatch
+    public async autoSubscription(req: Request) {
+
+        const { error, value } = Joi.object<any>({
+            authorization_code: Joi.string().required().label('Authorization code'),
+            planType: Joi.string().required().label('plan type'),
+            userId: Joi.string().required().label('user id'),
+        }).validate(req.body);
+        if (error) return Promise.reject(
+            CustomAPIError.response(
+                error.details[0].message, HttpStatus.BAD_REQUEST.code));
+
+        if(value.planType !== 'premium') return;
+
+        const user = await datasources.userDAOService.findById(value.userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+        
+        const plan = await datasources.subscriptionDAOService.findByAny({ name: value.planType });
+        if(!plan)
+            return Promise.reject(CustomAPIError.response("Plan not found", HttpStatus.NOT_FOUND.code));
+
+        //verify payment
+        axiosClient.defaults.baseURL = `${process.env.PAYMENT_GW_BASE_URL}`;
+        axiosClient.defaults.headers.common['Authorization'] = `Bearer ${process.env.PAYMENT_GW_SECRET_KEY}`;
+        
+        const endpoint ='/transaction/charge_authorization';
+        const axiosResponse = await axiosClient.post(endpoint, {
+            authorization_code: value.authorization_code,
+            email: PAYSTACK_EMAIL,
+            amount: PREMIUM_PLAN_COST
+        });
+        const data = axiosResponse.data.data;
+
+        const $transaction = {
+            reference: data.reference,
+            channel: data.authorization.channel,
+            cardType: data.authorization.card_type,
+            bank: data.authorization.bank,
+            last4: data.authorization.last4,
+            expMonth: data.authorization.exp_month,
+            expYear: data.authorization.exp_year,
+            countryCode: data.authorization.country_code,
+            brand: data.authorization.brand,
+            currency: data.currency,
+            status: data.status,
+            paidAt: data.paid_at,
+            amount: data.amount,
+            type: `Payment for ${value.planType} plan`,
+            user: user._id,
+            authorizationCode: data.authorization.authorization_code
+        };
+
+        const transaction = await datasources.transactionDAOService.create($transaction as unknown as ITransactionModel);
+        if(transaction.status === 'success') {
+            const currentDate = new Date();
+            const futureDate = new Date(currentDate);
+
+            const updateValue = {
+                subscription: {
+                    plan: plan.name,
+                    startDate: new Date(),
+                    endDate: plan.duration !== null && futureDate.setMonth(futureDate.getMonth() + plan.duration)
+                },
+                isExpired: false,
+                planType: plan.name
+            }
+
+            await datasources.userDAOService.update({ _id: user }, updateValue);
+            await datasources.notificationDAOService.create({
+                message: "Your subscription for premium plan was successful. You can now enjoy the premium offerings.",
+                status: false,
+                user: user._id,
+                notification: "Premium subscription success"
+            } as INotificationModel)
+        } else {
+            await datasources.notificationDAOService.create({
+                message: "Your subscription for premium plan was not successful. Please check that your card detail is correct.",
+                status: false,
+                user: user._id,
+                notification: "Premium subscription failed"
+            } as INotificationModel);
+            await datasources.userDAOService.update({_id: user}, { isExpired: true, planType: 'purple' })
+        }
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: "Transaction was successful"
+          };
+      
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
     public async subscription(req: Request) {
         //@ts-ignore
         const userId = req.user._id
 
         const { error, value } = Joi.object<any>({
-            amount: Joi.number().required().label('Amount'),
             reference: Joi.string().required().label('Reference'),
-            status: Joi.string().required().label('status'),
-            message: Joi.string().required().label('message'),
             planType: Joi.string().required().label('plan type'),
         }).validate(req.body);
         if (error) return Promise.reject(
@@ -259,21 +352,37 @@ export default class SubscriptionController {
             return Promise.reject(CustomAPIError.response('User does not exist', HttpStatus.NOT_FOUND.code));
 
         const plan = await datasources.subscriptionDAOService.findByAny({ name: value.planType });
-            if(!plan)
-                return Promise.reject(CustomAPIError.response("Plan not found", HttpStatus.NOT_FOUND.code));
+        if(!plan)
+            return Promise.reject(CustomAPIError.response("Plan not found", HttpStatus.NOT_FOUND.code));
 
+        //verify payment
+        axiosClient.defaults.baseURL = `${process.env.PAYMENT_GW_BASE_URL}`;
+        axiosClient.defaults.headers.common['Authorization'] = `Bearer ${process.env.PAYMENT_GW_SECRET_KEY}`;
+        
+        const endpoint = `/transaction/verify/${value.reference}`;
+        const axiosResponse = await axiosClient.get(endpoint);
+        const data = axiosResponse.data.data;
 
         const $transaction = {
-            reference: value.reference,
-            amount: value.amount,
-            status: value.status,
-            message: value.message,
+            reference: data.reference,
+            channel: data.authorization.channel,
+            cardType: data.authorization.card_type,
+            bank: data.authorization.bank,
+            last4: data.authorization.last4,
+            expMonth: data.authorization.exp_month,
+            expYear: data.authorization.exp_year,
+            countryCode: data.authorization.country_code,
+            brand: data.authorization.brand,
+            currency: data.currency,
+            status: data.status,
+            paidAt: new Date(data.paid_at),
+            amount: data.amount,
             type: `Payment for ${value.planType} plan`,
             user: user._id,
-            paidAt: new Date()
+            authorizationCode: data.authorization.authorization_code
         };
 
-        const transaction = await datasources.transactionDAOService.create($transaction as ITransactionModel);
+        const transaction = await datasources.transactionDAOService.create($transaction as unknown as ITransactionModel);
 
         if(transaction) {
             const currentDate = new Date();
@@ -287,7 +396,8 @@ export default class SubscriptionController {
                         endDate: plan.duration !== null && futureDate.setMonth(futureDate.getMonth() + plan.duration)
                     },
                     isExpired: false,
-                    planType: plan.name
+                    planType: plan.name,
+                    authorizationCode: data.authorization.authorization_code
                 }
     
                 await datasources.userDAOService.update({ _id: user }, updateValue);

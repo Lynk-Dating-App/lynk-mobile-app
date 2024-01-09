@@ -1,6 +1,7 @@
 import { appCommonTypes } from '../../@types/app-common';
 import RouteEndpoint = appCommonTypes.RouteEndpoints;
 import {
+    autoSubscriptionHandler,
     getPlansHandler,
     getTransactionByRefHandler,
     getTransactionsHandler,
@@ -29,6 +30,12 @@ const subscriptionEndpoints: RouteEndpoint  = [
         method: 'post',
         path: '/subscribe',
         handler: subscriptionHandler
+    },
+    {
+        name: 'auto subscription',
+        method: 'post',
+        path: '/auto-subscribe',
+        handler: autoSubscriptionHandler
     },
     {
         name: 'paystack init transaction callback',

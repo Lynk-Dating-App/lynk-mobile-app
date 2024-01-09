@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView, Text, View } from "../../../components/Themed";
 import { ActivityIndicator, Dimensions, FlatList, Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, TouchableOpacity } from "react-native";
 import { COLORS, FONT, SIZES, images } from "../../../constants";
@@ -6,15 +6,13 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import useAppDispatch from "../../../hook/useAppDispatch";
 import useAppSelector from "../../../hook/useAppSelector";
 import AppInput from "../../../components/AppInput/AppInput";
-import { clearCreateChatMessageStatus, clearGetChatMessagesStatus, setChatUsers, setNotification } from "../../../store/reducers/userReducer";
-import { useFocusEffect, useRouter } from "expo-router";
-import { createChatMessageAction, getChatMessagesAction } from "../../../store/actions/userAction";
+import { clearGetChatMessagesStatus, setChatUsers } from "../../../store/reducers/userReducer";
+import { useRouter } from "expo-router";
+import { getChatMessagesAction } from "../../../store/actions/userAction";
 import useUser from "../../../hook/useUser";
 import { capitalizeFirstLetter, dateDifference } from "../../../Utils/Generic";
 import settings from "../../../config/settings";
 import socket from "../../../config/socket";
-import { saveArrayToSecureStore } from "../../../components/ExpoStore/SecureStore";
-import { getArrayFromSecureStore } from "../../../components/ExpoStore/SecureStore";
 
 const { width } = Dimensions.get('window');
 

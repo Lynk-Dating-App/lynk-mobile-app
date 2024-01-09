@@ -21,7 +21,9 @@ import {
     getUserChatsAction, 
     getUserNotificationsAction, 
     likeUserAction, 
+    requestVerificationAction, 
     saveGalleryImageAction, 
+    toggleAutoRenewalAction, 
     toggleProfileVisibilityAction, 
     unLikeFrmMatchAction, 
     unLikeUserAction, 
@@ -48,6 +50,10 @@ interface IUserState {
     getUserSuccess: string;
     getUserError?: string;
 
+    requestVerificationStatus: IThunkAPIStatus;
+    requestVerificationSuccess: string;
+    requestVerificationError?: string;
+
     getLikedAndLikedByUsersStatus: IThunkAPIStatus;
     getLikedAndLikedByUsersSuccess: string;
     getLikedAndLikedByUsersError?: string;
@@ -71,6 +77,10 @@ interface IUserState {
     toggleProfileVisibilityStatus: IThunkAPIStatus;
     toggleProfileVisibilitySuccess: string;
     toggleProfileVisibilityError?: string;
+
+    toggleAutoRenewalStatus: IThunkAPIStatus;
+    toggleAutoRenewalSuccess: string;
+    toggleAutoRenewalError?: string;
 
     deactivateAccountStatus: IThunkAPIStatus;
     deactivateAccountSuccess: string;
@@ -194,6 +204,7 @@ interface IUserState {
     savedImage: string[];
     plans: IPlan[];
     profileVisible: boolean;
+    autoRenewal: boolean;
     notificationObject: INotification;
     notifications: INotification[];
     signInAfterSignUp: {
@@ -202,13 +213,18 @@ interface IUserState {
     };
     signInAfterSignUp2: boolean;
     whichScreen: string;
-    likedAndLikedByUsers: ILikedAndLikedByUsers[]
+    likedAndLikedByUsers: ILikedAndLikedByUsers[];
+    notificationId: string 
 };
 
 const initialState: IUserState = {
     getUserError: '',
     getUserSuccess: '',
     getUserStatus: 'idle',
+
+    requestVerificationError: '',
+    requestVerificationSuccess: '',
+    requestVerificationStatus: 'idle',
 
     getLikedAndLikedByUsersError: '',
     getLikedAndLikedByUsersSuccess: '',
@@ -233,6 +249,10 @@ const initialState: IUserState = {
     toggleProfileVisibilityError: '',
     toggleProfileVisibilitySuccess: '',
     toggleProfileVisibilityStatus: 'idle',
+
+    toggleAutoRenewalError: '',
+    toggleAutoRenewalSuccess: '',
+    toggleAutoRenewalStatus: 'idle',
 
     deactivateAccountError: '',
     deactivateAccountSuccess: '',
@@ -356,6 +376,7 @@ const initialState: IUserState = {
     savedImage: [],
     plans: [],
     profileVisible: false,
+    autoRenewal: false,
     notificationObject: null,
     notifications: [],
     signInAfterSignUp: {
@@ -364,7 +385,8 @@ const initialState: IUserState = {
     },
     signInAfterSignUp2: false,
     whichScreen: '',
-    likedAndLikedByUsers: []
+    likedAndLikedByUsers: [],
+    notificationId: ''
 };
 
 const userSlice = createSlice({
@@ -375,6 +397,12 @@ const userSlice = createSlice({
             state.getUserStatus = 'idle';
             state.getUserSuccess = '';
             state.getUserError = '';
+        },
+
+        clearRequestVerificationStatus(state: IUserState) {
+            state.requestVerificationStatus = 'idle';
+            state.requestVerificationSuccess = '';
+            state.requestVerificationError = '';
         },
 
         clearGetLikedAndLikedByUsersStatus(state: IUserState) {
@@ -411,6 +439,12 @@ const userSlice = createSlice({
             state.toggleProfileVisibilityStatus = 'idle';
             state.toggleProfileVisibilitySuccess = '';
             state.toggleProfileVisibilityError = '';
+        },
+
+        clearToggleAutoRenewalStatus(state: IUserState) {
+            state.toggleAutoRenewalStatus = 'idle';
+            state.toggleAutoRenewalSuccess = '';
+            state.toggleAutoRenewalError = '';
         },
 
         clearDeactivateAccountStatus(state: IUserState) {
@@ -571,6 +605,10 @@ const userSlice = createSlice({
             state.fromUserId = action.payload
         },
 
+        setNotificationId(state: IUserState, action) {
+            state.notificationId = action.payload
+        },
+
         setChatUsers(state: IUserState, action) {
             // state.chatUsers = [...state.chatUsers, action.payload]
             state.chatUsers = action.payload
@@ -617,6 +655,22 @@ const userSlice = createSlice({
                 if (action.payload) {
                 state.getUserError = action.payload.message;
                 } else state.getUserError = action.error.message;
+            });
+
+        builder
+            .addCase(requestVerificationAction.pending, state => {
+                state.requestVerificationStatus = 'loading';
+            })
+            .addCase(requestVerificationAction.fulfilled, (state, action) => {
+                state.requestVerificationStatus = 'completed';
+                state.requestVerificationSuccess = action.payload.message;
+            })
+            .addCase(requestVerificationAction.rejected, (state, action) => {
+                state.requestVerificationStatus = 'failed';
+
+                if (action.payload) {
+                state.requestVerificationError = action.payload.message;
+                } else state.requestVerificationError = action.error.message;
             });
 
         builder
@@ -727,6 +781,24 @@ const userSlice = createSlice({
                 if (action.payload) {
                 state.toggleProfileVisibilityError = action.payload.message;
                 } else state.toggleProfileVisibilityError = action.error.message;
+            });
+
+        builder
+            .addCase(toggleAutoRenewalAction.pending, state => {
+                state.toggleAutoRenewalStatus = 'loading';
+            })
+            .addCase(toggleAutoRenewalAction.fulfilled, (state, action) => {
+                state.toggleAutoRenewalStatus = 'completed';
+                state.toggleAutoRenewalSuccess = action.payload.message;
+
+                state.profileVisible = action.payload.result
+            })
+            .addCase(toggleAutoRenewalAction.rejected, (state, action) => {
+                state.toggleAutoRenewalStatus = 'failed';
+
+                if (action.payload) {
+                state.toggleAutoRenewalError = action.payload.message;
+                } else state.toggleAutoRenewalError = action.error.message;
             });
 
         builder
@@ -1170,6 +1242,7 @@ export const {
     clearUnLikeUserFrmMatchStatus,
     setPhotoUri,
     setFromUserId,
+    setNotificationId,
     clearUpdateLocationStatus,
     clearGetLoggedInUserStatus,
     setChatUsers,
@@ -1188,12 +1261,14 @@ export const {
     clearSaveImageToGalleryStatus, clearGetPlansStatus,
     clearChangePasswordStatus, clearDeactivateAccountStatus,
     clearToggleProfileVisibilityStatus,
+    clearToggleAutoRenewalStatus,
     clearDeleteUserNotificationStatus,
     clearGetSingleNotificationStatus,
     clearGetAllUserNotificationStatus,
     clearUpdateNotificationStatus, setSignInAfterSignUp,
     setSignInAfterSignUp2, setWhichScreen,
-    clearGetLikedAndLikedByUsersStatus
+    clearGetLikedAndLikedByUsersStatus,
+    clearRequestVerificationStatus
 } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -9,7 +9,7 @@ import {
   StyleSheet, 
   TouchableOpacity 
 } from 'react-native';
-import { SafeAreaView, ScrollView, Text, View } from '../../components/Themed';
+import { SafeAreaView, Text, View } from '../../components/Themed';
 import { getTokenFromSecureStore, saveTokenToSecureStore } from '../../components/ExpoStore/SecureStore';
 import settings from '../../config/settings';
 import { router, useFocusEffect } from 'expo-router';

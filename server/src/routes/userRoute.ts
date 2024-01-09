@@ -129,6 +129,24 @@ export const toggleProfileVisibilityHandler = authenticateRouteWrapper(async (re
     res.status(response.code).json(response);
 });
 
+export const toggleAutoRenewalHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.toggleAutoRenewal(req);
+
+    res.status(response.code).json(response);
+});
+
+export const verifyUserHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.verifyUser(req);
+
+    res.status(response.code).json(response);
+});
+
+export const requestVerificationHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.requestVerification(req);
+
+    res.status(response.code).json(response);
+});
+
 export const updateJobDescriptionHandler = authenticateRouteWrapper(async (req, res) => {
     const response = await userController.updateJobDescription(req);
 

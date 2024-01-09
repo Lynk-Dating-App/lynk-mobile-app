@@ -103,13 +103,14 @@ declare module '@app-models' {
   interface INotification {
     _id: string;
     notification: string;
-    senderId: string;
-    image: string;
-    age: string;
-    status: boolean;
-    user: any;
-    name: string;
+    senderId?: string;
+    image?: string;
+    age?: string;
+    status?: boolean;
+    user?: any;
+    name?: string;
     createdAt: Date;
+    message?: string;
   }
 
   interface ILikedAndLikedByUsers {

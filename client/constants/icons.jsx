@@ -55,9 +55,11 @@ import subscription from "../assets/icons/subscription.png";
 import fingerprint from "../assets/icons/fingerprint.png";
 import cards1 from "../assets/icons/cards1.png";
 import cards2 from "../assets/icons/cards2.png";
+import verified from "../assets/icons/verified.png";
 
 export default {
   snap,
+  verified,
   cards1,
   cards2,
   fingerprint,

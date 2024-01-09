@@ -54,7 +54,10 @@ import {
     fetchFavUsersHandler,
     getSingleNotificationHandler,
     updateNotificationHandler,
-    fetchLikedAndLikedByUsersHandler
+    fetchLikedAndLikedByUsersHandler,
+    toggleAutoRenewalHandler,
+    verifyUserHandler,
+    requestVerificationHandler
 } from '../../routes/userRoute';
 
 const userEndpoints: RouteEndpoints = [
@@ -87,6 +90,24 @@ const userEndpoints: RouteEndpoints = [
         method: 'put',
         path: '/toggle-profile-visibility',
         handler: toggleProfileVisibilityHandler
+    },
+    {
+        name: 'toggle-auto-renewal',
+        method: 'put',
+        path: '/toggle-auto-renewal',
+        handler: toggleAutoRenewalHandler
+    },
+    {
+        name: 'verify-user',
+        method: 'put',
+        path: '/verify-user',
+        handler: verifyUserHandler
+    },
+    {
+        name: 'request-verification',
+        method: 'put',
+        path: '/request-verification',
+        handler: requestVerificationHandler
     },
     {
         name: 'update user status',

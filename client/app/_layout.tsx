@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { SafeAreaView, useColorScheme } from 'react-native';
 import { View } from '../components/Themed';
 import AppBtn from '../components/common/button/AppBtn';
-import { COLORS, icons } from '../constants';
+import { COLORS, FONT, SIZES, icons } from '../constants';
 import { Provider } from "react-redux";
 import store from '../store';
 
@@ -150,6 +150,33 @@ function RootLayoutNav() {
               contentStyle: { 
                 margin: 0, 
                 padding: 0, }
+            }}
+          />
+          <Stack.Screen 
+            name="auth/modals/planScreen" 
+            options={{ 
+              presentation: 'modal',
+              contentStyle: { 
+                margin: 0, 
+                padding: 0, },
+              headerShown: true,
+              headerShadowVisible: false,
+              headerTitle: '',
+              headerTitleStyle: {
+                fontFamily: FONT.bold,
+                fontSize: SIZES.xLarge,
+              },
+              headerLeft: () => (
+                <AppBtn
+                  handlePress={() => router.back()}
+                  isImage={true}
+                  iconUrl={icons.backBtn}
+                  dimension={35}
+                  btnStyle={{
+                    marginTop: 20
+                  }}
+                />
+              ),
             }}
           />
           <Stack.Screen name="auth/favourites" 

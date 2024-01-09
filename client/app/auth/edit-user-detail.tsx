@@ -75,8 +75,6 @@ const education = [
 ];
 
 const heightValue = [
-    {label: "1ft", value: "1"},
-    {label: "2ft", value: "2"}, 
     {label: "3ft", value: "3"}, 
     {label: "4ft", value: "4"}, 
     {label: "5ft", value: "5"}, 
@@ -86,8 +84,8 @@ const heightValue = [
 ]
 
 const schema2 = Yup.object().shape({
-    firstName: Yup.string().required().label("first name"),
-    lastName: Yup.string().required().label("last name"),
+    // firstName: Yup.string().required().label("first name"),
+    // lastName: Yup.string().required().label("last name"),
     dob: Yup.date().required().label("dob"),
     height: Yup.string().required().label("height"),
     state: Yup.string().required().label("state"),
@@ -205,8 +203,8 @@ export default function EditUserDetail () {
                     </View>
                     <Formik
                         initialValues={{ 
-                            firstName: userReducer.loggedInuser?.firstName || '',
-                            lastName: userReducer.loggedInuser?.lastName || '',
+                            // firstName: userReducer.loggedInuser?.firstName || '',
+                            // lastName: userReducer.loggedInuser?.lastName || '',
                             dob: userReducer.loggedInuser?.dob || '',
                             height: userReducer.loggedInuser?.height || '',
                             state: userReducer.loggedInuser?.state || '',
@@ -249,7 +247,7 @@ export default function EditUserDetail () {
                     >
                     {({ handleChange, handleSubmit, values, errors, touched, setFieldValue }) => (
                         <View style={styles.formContainer}>
-                            <View 
+                            {/* <View 
                                 style={{
                                     display: 'flex',
                                     flexDirection: 'row',
@@ -304,7 +302,7 @@ export default function EditUserDetail () {
                                 touched={touched.lastName}
                                 showError={false}
                             />
-                            </View>
+                            </View> */}
 
                             {Array.isArray(education) && (
                                 <Select

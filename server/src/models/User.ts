@@ -78,7 +78,9 @@ interface IUser {
     handle: string,
     social: string
   }] | null,
-  sexualPreference: string | null
+  sexualPreference: string | null,
+  authorizationCode: string | null,
+  autoRenewal: boolean
 }
 
 const userSchema = new Schema<IUser>({
@@ -158,7 +160,9 @@ const userSchema = new Schema<IUser>({
     handle: {type: String, allowNull: true},
     social: {type: String, allowNull: true}
   }],
-  sexualPreference: {type: String, allowNull: true}
+  sexualPreference: {type: String, allowNull: true},
+  authorizationCode: { type: String, allowNull: true },
+  autoRenewal: { type: Boolean, default: false }
 });
 
 userSchema.index({ location: '2dsphere' });

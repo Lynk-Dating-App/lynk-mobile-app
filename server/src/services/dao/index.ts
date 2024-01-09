@@ -9,6 +9,7 @@ import JobRepository from "../../repositories/JobRepository";
 import NotificationRepository from "../../repositories/NotificationRepository";
 import ChatMessageRepository from "../../repositories/ChatMessageRepository";
 import ChatRepository from "../../repositories/ChatRepository";
+import CardRepository from "../../repositories/CardRepository";
 
 import PermissionDAOService from "./PermissionDAOService";
 import RoleDAOService from "./RoleDAOService";
@@ -22,6 +23,7 @@ import NotificationDAOService from "./NotificationDAOService";
 import ChatMessageDAOService from "./ChatMessageDAOService";
 import TermiiService from "../TermiiService";
 import ChatDAOService from "./ChatDAOService";
+import CardDAOService from "./CardDAOService";
 
 const permissionRepository = new PermissionRepository();
 const roleRepository = new RoleRepository();
@@ -34,6 +36,7 @@ const jobRepository = new JobRepository();
 const notificationRepository = new NotificationRepository();
 const chatMessageRepository = new ChatMessageRepository();
 const chatRepository = new ChatRepository();
+const cardRepository = new CardRepository();
 
 const permissionDAOService = new PermissionDAOService(permissionRepository);
 const roleDAOService = new RoleDAOService(roleRepository);
@@ -46,6 +49,7 @@ const jobDAOService = new JobDAOService(jobRepository);
 const notificationDAOService = new NotificationDAOService(notificationRepository);
 const chatMessageDAOService = new ChatMessageDAOService(chatMessageRepository);
 const chatDAOService = new ChatDAOService(chatRepository);
+const cardDAOService = new CardDAOService(cardRepository);
 
 const termiiService = new TermiiService();
 
@@ -61,5 +65,6 @@ export default {
     transactionDAOService,
     notificationDAOService,
     termiiService,
-    chatDAOService
+    chatDAOService,
+    cardDAOService
 }

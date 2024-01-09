@@ -19,6 +19,7 @@ import {
     PENDING_VERIFICATION,
     PURPLE_PLAN,
     RED_PLAN,
+    REQUEST_VERIFICATION,
     UPLOAD_BASE_PATH
 } from "../config/constants";
 import settings, {
@@ -1051,6 +1052,78 @@ export default class UserController {
             code: HttpStatus.OK.code,
             message: 'Successful',
             result: updatedUser?.profileVisibility
+        };
+
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    @HasPermission([USER_PERMISSION])
+    public async toggleAutoRenewal (req: Request) {
+        
+        //@ts-ignore
+        const userId = req.user._id;
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+
+        const updatedUser = await datasources.userDAOService.updateByAny(
+            { _id: user._id },
+            { autoRenewal: !user.autoRenewal }
+        );
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful',
+            result: updatedUser?.autoRenewal
+        };
+
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    @HasPermission([MANAGE_ALL])
+    public async verifyUser (req: Request) {
+        
+        const userId = req.params.userId;
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+
+        await datasources.userDAOService.updateByAny(
+            { _id: user._id },
+            { verify: ACTIVE_VERIFICATION }
+        );
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful'
+        };
+
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    @HasPermission([USER_PERMISSION])
+    public async requestVerification (req: Request) {
+        
+        //@ts-ignore
+        const userId = req.user._id;
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+
+        await datasources.userDAOService.updateByAny(
+            { _id: user._id },
+            { verify: REQUEST_VERIFICATION }
+        );
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful'
         };
 
         return Promise.resolve(response);
@@ -2148,8 +2221,8 @@ export default class UserController {
                     build: Joi.string().optional().allow('').label('Build'),
                     dob: Joi.date().optional().label('Dob'),
                     interests: Joi.any().label('Interests'),
-                    lastName: Joi.string().optional().label('Last name'),
-                    firstName: Joi.string().optional().label('First name'),
+                    // lastName: Joi.string().optional().label('Last name'),
+                    // firstName: Joi.string().optional().label('First name'),
                     occupation: Joi.string().optional().label('Occupation'),
                     state: Joi.string().optional().label('State'),
                     gender: Joi.string().optional().label('Gender'),

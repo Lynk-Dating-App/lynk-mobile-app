@@ -8,10 +8,12 @@ interface INotification {
     age: string | null;
     status: boolean;
     user: mongoose.Types.ObjectId;
+    message: string | null
 };
 
 const notificationSchema = new Schema<INotification>({
     notification: { type: String },
+    message: { type: String, allowNull: true },
     senderId: { type: String, allowNull: true },
     image: { type: String, allowNull: true },
     name: { type: String, allowNull: true },

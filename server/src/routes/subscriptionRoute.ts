@@ -22,6 +22,12 @@ export const subscriptionHandler = authenticateRouteWrapper(async (req, res) => 
     res.status(response.code).json(response);
 });
 
+export const autoSubscriptionHandler = authenticateRouteWrapper(async (req, res) =>  {
+    const response = await subscriptionController.autoSubscription(req);
+
+    res.status(200).json(response);
+});
+
 export const initTransactionCallbackHandler = async (req: Request, res: Response) => {
     const response = await subscriptionController.initTransactionCallback(req);
   

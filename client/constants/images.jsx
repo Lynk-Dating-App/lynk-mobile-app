@@ -13,9 +13,14 @@ import no_image_m from "../assets/images/no_image_m.jpeg";
 import reyes from "../assets/images/reyes.png";
 import Reyes_text from "../assets/images/Reyes_text.png";
 import white_logo from "../assets/images/white-logo.png";
+import congrats from "../assets/images/congrats.png";
+import mastercard from "../assets/images/mastercard.png";
+import visa from "../assets/images/visa.png";
 
 export default {
   Reyes_text,
+  mastercard, visa,
+  congrats,
   white_logo,
   reyes,
   girl2,

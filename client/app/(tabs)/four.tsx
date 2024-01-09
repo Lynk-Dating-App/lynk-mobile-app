@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  ActivityIndicator, Dimensions, Image, 
-  ImageBackground, KeyboardAvoidingView, 
+  ActivityIndicator, Dimensions, Image, KeyboardAvoidingView, 
   Modal, Platform, RefreshControl, 
   StyleSheet, Switch, TouchableOpacity 
 } from 'react-native';
@@ -11,7 +10,8 @@ import useAppSelector from '../../hook/useAppSelector';
 import useAppDispatch from '../../hook/useAppDispatch';
 import { 
   deactivateAccountAction, deleteGalleryImageAction, 
-  getUserAction, saveGalleryImageAction, toggleProfileVisibilityAction, 
+  getLoggedInUserAction, 
+  getUserAction, requestVerificationAction, saveGalleryImageAction, toggleProfileVisibilityAction, 
   updateProfileImageAction 
 } from '../../store/actions/userAction';
 import AppInput from '../../components/AppInput/AppInput';
@@ -30,6 +30,7 @@ import Snackbar from '../../helpers/Snackbar';
 import { 
   clearDeactivateAccountStatus, 
   clearDeleteImageFromGalleryStatus, 
+  clearRequestVerificationStatus, 
   clearSaveImageToGalleryStatus, 
   clearToggleProfileVisibilityStatus, 
   clearUpdatePreferenceStatus, 
@@ -108,6 +109,7 @@ export default function TabFourScreen() {
   const [deactivateAccount, setDeactivateAccount] = useState<boolean>(false);
   const [confirmDeactivation, setConfirmDeactivation] = useState<string>('');
   const [isEnabled, setIsEnabled] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const [toolTip, setTooltip] = useState(false);
 
   const userReducer = useAppSelector(state => state.userReducer);
@@ -264,6 +266,11 @@ export default function TabFourScreen() {
     dispatch(saveGalleryImageAction({profileImageUrl}))
   };
 
+  const handleRequestVerification = () => {
+    if(userReducer.requestVerificationStatus === 'loading') return;
+    dispatch(requestVerificationAction())
+  }
+
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
@@ -409,6 +416,21 @@ export default function TabFourScreen() {
     setIsEnabled(user?.profileVisibility)
   },[user]);
 
+  useEffect(() => {
+    if(userReducer.requestVerificationStatus === 'completed') {
+      dispatch(getLoggedInUserAction())
+      dispatch(clearRequestVerificationStatus())
+    } else if(userReducer.requestVerificationStatus === 'failed') {
+      alertComponent(
+        'Verification',
+        'Error requesting verification. Please try again.',
+        'Okay',
+        () => {}
+      )
+      dispatch(clearRequestVerificationStatus())
+    }
+  },[userReducer.requestVerificationStatus]);
+
   return (
     <SafeAreaView style={{flex: 1}}>
       <ScrollView showsVerticalScrollIndicator={false} 
@@ -431,7 +453,7 @@ export default function TabFourScreen() {
               backgroundColor: 'transparent',
               marginTop: -50,
               position: 'relative',
-              marginBottom: 170
+              marginBottom: 140
             }}
           >
             <View>
@@ -497,15 +519,60 @@ export default function TabFourScreen() {
             </TouchableOpacity>
           </View>
 
+          <View
+            style={{
+              width: 80,
+              alignSelf: 'center',
+              marginBottom: 40
+            }}
+          >
+            {user?.verify === 'pending' && 
+              (<View
+                style={[{
+                    backgroundColor: "#B20000",
+                    width: 'auto',
+                    height: 20,
+                    paddingHorizontal: 5,
+                    borderRadius: 20,
+                }, tw`flex justify-center items-center`]}
+              >
+                  <Text
+                      style={{
+                          fontFamily: FONT.extraBold,
+                          color: COLORS.white
+                      }}
+                  >unverified</Text>
+              </View>)
+            }
+          </View>
+
           <View style={styles.section1}>
             <View style={styles.subSection}>
-              <Text
+              <View
                 style={{
-                  fontFamily: FONT.extraBold,
-                  fontSize: user?.firstName?.length + user?.lastName?.length > 10 ? SIZES.xLarge : SIZES.xxLarge
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                  flexDirection: 'row'
                 }}
-              >{capitalizeFirstLetter(user?.firstName)} {`${capitalizeFirstLetter(user?.lastName)},`} {user?.age}
-              </Text>
+              >
+                <Text
+                  style={{
+                    fontFamily: FONT.extraBold,
+                    fontSize: user?.firstName?.length + user?.lastName?.length > 10 ? SIZES.xLarge : SIZES.xxLarge
+                  }}
+                >{capitalizeFirstLetter(user?.firstName)} {`${capitalizeFirstLetter(user?.lastName)},`} {user?.age}
+                </Text>
+                {user?.verify === 'active' && (<Image
+                  source={icons.verified}
+                  style={{
+                    width: 20,
+                    height: 20,
+                    marginBottom: 20
+                  }}
+                />)}
+              </View>
+              
               <Text
                 style={{
                   fontFamily: FONT.regular,
@@ -547,7 +614,7 @@ export default function TabFourScreen() {
                         fontSize: SIZES.medium
                       }}
                     >
-                      Tell me weting go dey here.
+                      Switch the toggle button to control profile visibility. When enabled, other users can view your profile.
                     </Text>
                   }
                   placement="bottom"
@@ -561,6 +628,68 @@ export default function TabFourScreen() {
                       borderRadius: 50,
                       width: 20, height: 20
                     },tw`flex justify-center items-center`]}
+                  >
+                    <FontAwesome
+                      name='info'
+                      color={COLORS.primary}
+                    />
+                  </TouchableOpacity>
+                </Tooltip>
+              </View>)}
+
+              {user?.verify !== 'active' && (<View style={[{
+                  alignSelf: 'flex-start',
+                  marginTop: Platform.select({ios: 15, android: 0})
+                }, tw`flex flex-row justify-center items-center gap-2 mt-6`]}>
+                {userReducer.requestVerificationStatus !== 'loading' && (
+                  <TouchableOpacity
+                    disabled={user?.verify === 'request'}
+                    style={[{
+                      width: 'auto',
+                      paddingHorizontal: 10,
+                      backgroundColor: user?.verify === 'pending' ? '#003300' : COLORS.gray2,
+                      height: 30,
+                      borderRadius: 10
+                    }, tw`flex justify-center items-center flex-row gap-2`]}
+                    onPress={handleRequestVerification}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: FONT.bold,
+                        fontSize: 14,
+                        color:  user?.verify === 'pending' ? COLORS.white : COLORS.gray
+                      }}
+                    >
+                      { user?.verify === 'pending' 
+                        ? 'Verify Account'
+                        : 'Verification Requested...'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {userReducer.requestVerificationStatus === 'loading' && <ActivityIndicator color={COLORS.primary}/>}
+                <Tooltip
+                  isVisible={isVerified}
+                  content={
+                    <Text
+                      style={{
+                        fontFamily: FONT.regular,
+                        fontSize: SIZES.medium
+                      }}
+                    >
+                      Please click the button to initiate the account verification process. Once initiated, admin will review and verify your account.
+                    </Text>
+                  }
+                  placement="bottom"
+                  onClose={() => setIsVerified(false)}
+                >
+                  <TouchableOpacity
+                    onPress={() => setIsVerified(true)}
+                    style={[{
+                      borderWidth: 0.3,
+                      borderColor: COLORS.gray,
+                      borderRadius: 50,
+                      width: 20, height: 20,
+                    }, tw`flex justify-center items-center`]}
                   >
                     <FontAwesome
                       name='info'

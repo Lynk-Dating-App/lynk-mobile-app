@@ -51,6 +51,7 @@ import QueueEvents = appCommonTypes.QueueEvents;
 
   export const PENDING_VERIFICATION = 'pending';
   export const ACTIVE_VERIFICATION = 'active';
+  export const REQUEST_VERIFICATION = 'request';
 
   export const MAX_SIZE_IN_BYTE = 10000 * 1024; // 10MB
   export const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
@@ -59,3 +60,5 @@ import QueueEvents = appCommonTypes.QueueEvents;
   export const ALLOWED_FILE_TYPES_VID = ['video/mp4', 'video/mkv', 'video/flv', 'video/webm'];
 
   export const PAYMENT_CHANNELS = ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer', 'eft'];
+  export const PREMIUM_PLAN_COST =50000
+  export const PAYSTACK_EMAIL='ayurbarmi5@gmail.com'

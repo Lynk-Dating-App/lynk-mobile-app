@@ -13,6 +13,7 @@ import { BlurView } from "expo-blur";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { 
+    alertComponent,
     capitalizeEachWord, 
     capitalizeFirstLetter, 
     characterBreaker, 
@@ -100,6 +101,15 @@ const SingleUser = () => {
     };
 
     const handleChat = async () => {
+        // if(userData?.verify !== 'active') {
+        //     alertComponent(
+        //         'Verification',
+        //         `${userData?.firstName} is not verified.`,
+        //         'Okay',
+        //         () => {}
+        //     )
+        //     return;
+        // }
         dispatch(createChatAction({firstId: user?._id, secondId: userData?._id}))
     }
 
@@ -309,7 +319,9 @@ const SingleUser = () => {
                     source={{uri: `${settings.api.baseURL}/${userData?.profileImageUrl}`}}
                     style={{
                         width: width,
-                        height: 50/100 * height
+                        height: 50/100 * height,
+                        borderTopWidth: 5,
+                        borderTopColor: userData?.planType === "premium" ? COLORS.premiumPlan : userData?.planType
                     }}
                 >
                     <TouchableOpacity
@@ -377,14 +389,33 @@ const SingleUser = () => {
                                         fontSize: SIZES.xLarge
                                     }}
                                 >{capitalizeFirstLetter(userData?.firstName)}, {userData?.age}</Text>
-                                <View
-                                    style={{
-                                        width: 10,
-                                        height: 10,
-                                        borderRadius: 50,
-                                        backgroundColor: userData?.planType === "premium" ? COLORS.primary : userData?.planType
-                                    }}
-                                />
+                                {userData?.verify === 'active'
+                                    ? (<Image
+                                        source={icons.verified}
+                                        style={{
+                                            width: 20,
+                                            height: 20
+                                        }}
+                                      />
+                                    ) : (
+                                        <View
+                                            style={[{
+                                                backgroundColor: "#B20000",
+                                                width: 'auto',
+                                                height: 20,
+                                                paddingHorizontal: 5,
+                                                borderRadius: 20,
+                                            }, tw`flex justify-center items-center`]}
+                                        >
+                                            <Text
+                                                style={{
+                                                    fontFamily: FONT.bold,
+                                                    color: COLORS.white
+                                                }}
+                                            >unverified</Text>
+                                        </View>
+                                    )
+                                }
                             </View>
                             
                             <Text

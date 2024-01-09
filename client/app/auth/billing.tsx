@@ -1,12 +1,12 @@
-import { Animated, Dimensions, StyleSheet, TouchableOpacity } from "react-native";
+import { Animated, Dimensions, Platform, StyleSheet, Switch, TouchableOpacity } from "react-native";
 import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
-import { COLORS, FONT, SIZES, icons } from "../../constants";
+import { COLORS, FONT, SIZES, icons, images } from "../../constants";
 import { Image } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import useAppDispatch from "../../hook/useAppDispatch";
-import { getPlansAction } from "../../store/actions/userAction";
+import { getLoggedInUserAction, getPlansAction, getUserByIdsAction, toggleAutoRenewalAction } from "../../store/actions/userAction";
 import useAppSelector from "../../hook/useAppSelector";
-import { capitalizeFirstLetter } from "../../Utils/Generic";
+import { alertComponent, capitalizeFirstLetter } from "../../Utils/Generic";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { subscriptionAction } from "../../store/actions/subscriptionAction";
 import { clearSubscribeStatus } from "../../store/reducers/subscriptionReducer";
@@ -14,6 +14,12 @@ import Snackbar from "../../helpers/Snackbar";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import  { Paystack }  from 'react-native-paystack-webview';
+//@ts-ignore
+import { BILLING_EMAIL, PAYSTACK_PK } from '@env';
+import Tooltip from 'react-native-walkthrough-tooltip';
+import tw from 'twrnc';
+import { clearToggleAutoRenewalStatus } from "../../store/reducers/userReducer";
+import useUser from "../../hook/useUser";
 
 const { width } = Dimensions.get("window");
 
@@ -24,7 +30,10 @@ export default function Billing () {
     const [selectedIndex, setSelectedIndex] = useState<number>(-1);
     const [amount, setAmount] = useState<string>('');
     const [planType, setPlanType] = useState<string>('');
+    const [isEnabled, setIsEnabled] = useState(false);
+    const [toolTip, setTooltip] = useState(false);
     const router = useRouter();
+    const { user } = useUser();
 
     const paystackWebViewRef = useRef<any>(); 
     
@@ -88,7 +97,7 @@ export default function Billing () {
                     color: COLORS.gray
                 }}
             >
-                Send and receive messages from and to, black, red n purple.
+                Send and receive messages from and to, black, red and purple.
             </Text>
             <Text
                 style={{
@@ -127,6 +136,14 @@ export default function Billing () {
     });
 
     const handleSubscribe = (plan: any, index: number) => {
+        if(userReducer.loggedInuser?.verify !== 'active') {
+            return alertComponent(
+                'Not verified',
+                'Your account is not verified, Kindly verify your account.',
+                'Okay',
+                () => {}
+            )
+        }
         if(plan.name === userReducer.loggedInuser?.planType) return;
         if(plan.name === 'red' && userReducer.loggedInuser?.planType === 'purple') return; 
         if(plan.name === 'red' || plan.name === 'purple' && userReducer.loggedInuser?.planType === 'premium') return; 
@@ -189,10 +206,95 @@ export default function Billing () {
         
     },[subscriptionReducer.subscribeStatus]);
 
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+    
+        if(userReducer.toggleAutoRenewalStatus === 'completed') {
+          setIsEnabled(userReducer.autoRenewal)
+          dispatch(getLoggedInUserAction())
+
+          alertComponent(
+            'Plan renewal',
+            !isEnabled
+                ? "Auto renewal is enabled." 
+                : "Auto renewal is disabled.",
+            'Okay',
+            () => {console.log('pressed')}
+            )
+
+          dispatch(clearToggleAutoRenewalStatus());
+        } else if(userReducer.toggleAutoRenewalStatus === 'failed') {
+          setIsError(true)
+          setError(userReducer.toggleAutoRenewalError)
+    
+          intervalId = setTimeout(() => {
+            setIsError(false)
+            setError('')
+          },6000);
+        }
+    
+        return () => {
+          clearInterval(intervalId)
+        }
+      },[userReducer.toggleAutoRenewalStatus]);
+    
+      useEffect(() => {
+        setIsEnabled(user?.autoRenewal)
+      },[user]);
+
     return (
         <SafeAreaView style={{flex: 1}}>
             <View style={styles.container}>
                 <View style={styles.wrapper}>
+                    {/* <View
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            marginBottom: 60,
+                            marginTop: 40,
+                            width: '100%'
+                        }}
+                    >
+                        <View
+                            style={{
+                                width: '100%',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontFamily: FONT.regular,
+                                    fontSize: SIZES.large,
+                                    marginBottom: 5, marginLeft: 2
+                                }}
+                            >Payment</Text>
+                            <Text
+                                style={{
+                                    fontFamily: FONT.regular,
+                                    fontSize: SIZES.medium,
+                                    color: 'red',
+                                    marginBottom: 5, marginLeft: 2
+                                }}
+                            >Change</Text>
+                        </View>
+                        <View style={styles.currentCard}>
+                            <Image 
+                                source={images.visa}
+                                style={{
+                                    width: 70,
+                                    height: 50,
+                                }}
+                            />
+                            <Text
+                                style={{
+                                    fontFamily: FONT.semiBold,
+                                    fontSize: SIZES.large
+                                }}
+                            >**** **** **** 1234</Text>
+                        </View>
+                    </View> */}
                     <View
                         style={{
                             display: 'flex',
@@ -201,56 +303,130 @@ export default function Billing () {
                             width: '100%'
                         }}
                     >
-                        <Text
+                        <View
                             style={{
-                                fontFamily: FONT.bold,
-                                fontSize: SIZES.medium,
-                                color: COLORS.primary,
-                                marginBottom: 5, marginLeft: 2
-                            }}
-                        >Current plan</Text>
-                        <View style={styles.currentPlan}>
-                            <Image 
-                                source={icons.subscription}
-                                style={{
-                                    width: 40,
-                                    height: 40
-                                }}
-                            />
-                            <Text
-                                style={{
-                                    fontFamily: FONT.semiBold,
-                                    fontSize: SIZES.large
-                                }}
-                            >{capitalizeFirstLetter(userReducer.loggedInuser?.planType)} plan</Text>
-                        </View>
-                    </View>
-                    <View style={styles.sub}>
-                        <View />
-                        <TouchableOpacity
-                            onPress={() => {
-                                setShowSub(!showSub)
-                            }}
-                            style={{
-                                display: 'flex',
+                                width: '100%',
                                 flexDirection: 'row',
-                                gap: 8,
+                                justifyContent: 'space-between',
                                 alignItems: 'center'
                             }}
                         >
                             <Text
                                 style={{
-                                    fontFamily: FONT.semiBold,
+                                    fontFamily: FONT.regular,
                                     fontSize: SIZES.medium,
-                                    color: 'red'
+                                    marginBottom: 5, marginLeft: 2
                                 }}
-                            >Show Plans</Text>
-                            <FontAwesome
-                                name={showSub ? 'arrow-up' : 'arrow-down'}
-                                size={15}
-                                color={COLORS.primary}
-                            />
-                        </TouchableOpacity>
+                            >Subscription</Text>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setShowSub(!showSub)
+                                    // router.push('/auth/modals/planScreen')
+                                }}
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    gap: 8,
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        fontFamily: FONT.regular,
+                                        fontSize: SIZES.medium,
+                                        color: 'red',
+                                        marginBottom: 5, marginLeft: 2
+                                    }}
+                                >Change</Text>
+                                <FontAwesome
+                                    name={showSub ? 'arrow-up' : 'arrow-down'}
+                                    size={15}
+                                    color={COLORS.primary}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.currentPlan}>
+                            <View
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    width: '100%',
+                                    justifyContent: 'flex-start',
+                                    alignItems: 'center',
+                                    gap: 10
+                                }}
+                            >
+                                <Image 
+                                    source={icons.subscription}
+                                    style={{
+                                        width: 40,
+                                        height: 40
+                                    }}
+                                />
+                                <Text
+                                    style={{
+                                        fontFamily: FONT.semiBold,
+                                        fontSize: SIZES.large
+                                    }}
+                                >{capitalizeFirstLetter(userReducer.loggedInuser?.planType)} plan</Text>
+                            </View>
+                            {userReducer.loggedInuser?.planType === 'premium' && (<View
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    width: '100%',
+                                    paddingHorizontal: 10
+                                }}
+                            >
+                                <View
+                                    style={tw`flex flex-row gap-2`}
+                                >
+                                    <Text
+                                        style={{
+                                            fontFamily: FONT.bold
+                                        }}
+                                    >Plan renewal</Text>
+                                    <Tooltip
+                                        isVisible={toolTip}
+                                        content={
+                                            <Text
+                                            style={{
+                                                fontFamily: FONT.regular,
+                                                fontSize: SIZES.medium
+                                            }}
+                                            >
+                                                Enable/Disable auto renewal of your plan when it expires. 
+                                            </Text>
+                                        }
+                                        placement="bottom"
+                                        onClose={() => setTooltip(false)}
+                                        >
+                                        <TouchableOpacity
+                                            onPress={() => setTooltip(true)}
+                                            style={[{
+                                            borderWidth: 0.3,
+                                            borderColor: COLORS.gray,
+                                            borderRadius: 50,
+                                            width: 20, height: 20
+                                            },tw`flex justify-center items-center`]}
+                                        >
+                                            <FontAwesome
+                                                name='info'
+                                                color={COLORS.primary}
+                                            />
+                                        </TouchableOpacity>
+                                        </Tooltip>
+                                </View>
+                                <FontAwesome
+                                    name={isEnabled ? 'toggle-on' : 'toggle-off'}
+                                    size={30}
+                                    color={isEnabled ? 'green' : COLORS.primary}
+                                    onPress={() => dispatch(toggleAutoRenewalAction())}
+                                />
+                            </View>)}
+                        </View>
                     </View>
                     
                     {showSub && (<ScrollView showsVerticalScrollIndicator={false}
@@ -270,15 +446,26 @@ export default function Billing () {
                                             fontFamily: FONT.bold,
                                             fontSize: SIZES.large,
                                         }}
-                                    >{capitalizeFirstLetter(plan.name)} plan</Text>
+                                    >{capitalizeFirstLetter(plan.name === "premium" ? "Premium plus" : `${plan.name} plan`)}</Text>
                                     <View style={{
                                         width: 20,
                                         height: 20,
                                         borderWidth: 1,
                                         borderColor: COLORS.gray2,
                                         borderRadius: 20,
-                                        backgroundColor: userReducer.loggedInuser?.planType === plan.name && COLORS.primary
-                                    }} />
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}>
+                                        <View
+                                            style={{
+                                                width: 13,
+                                                height: 13,
+                                                borderRadius: 20,
+                                                backgroundColor: userReducer.loggedInuser?.planType === plan.name && 'green'
+                                            }}
+                                        />
+                                    </View>
                                 </View>
                                 <View
                                     style={{
@@ -291,14 +478,14 @@ export default function Billing () {
                                 >
                                     <View
                                         style={{
-                                            width: 140,
+                                            width: plan.name === "premium" ? 180 : 140,
                                             height: 30,
                                             backgroundColor: plan.name === 'black' 
                                                                 ? 'black' 
                                                                 : plan.name === 'red'
                                                                     ? '#B20101' 
                                                                     : plan.name === 'purple'
-                                                                        ? '#400C60' : COLORS.primary,
+                                                                        ? '#400C60' : COLORS.premiumPlan,
                                             borderRadius: 20,
                                             display: 'flex',
                                             justifyContent: 'center',
@@ -313,7 +500,7 @@ export default function Billing () {
                                                 fontSize: SIZES.medium,
                                                 color: 'white'
                                             }}
-                                        >{capitalizeFirstLetter(plan.name)} Access</Text>
+                                        >{capitalizeFirstLetter(plan.name === "premium" ? "Premium Plus" : plan.name)} Access</Text>
                                     </View>
                                     {plan.name !== 'black' && (<TouchableOpacity
                                         onPress={() => handleSubscribe(plan, index)}
@@ -401,18 +588,15 @@ export default function Billing () {
             </View>
 
             <Paystack
-                paystackKey="pk_test_37465cfd4f2c93b78787724ced0a010079e45d4f"
-                billingEmail="ayurbarmi5@gmail.com"
+                paystackKey={ PAYSTACK_PK }
+                billingEmail={ BILLING_EMAIL }
                 amount={amount}
                 onCancel={(e) => {
                     setAmount('')
                 }}
                 onSuccess={(res) => {
                     const payload = {
-                        amount: amount,
                         reference: res.data.transactionRef.reference,
-                        message: res.data.transactionRef.message,
-                        status: res.data.transactionRef.status,
                         planType: planType
                     };
                     dispatch(subscriptionAction(payload))
@@ -461,15 +645,26 @@ const styles = StyleSheet.create({
         width: '100%'
     },
     currentPlan: {
-        height: 60,
+        minHeight: 60,
+        height: 'auto',
         borderWidth: 1,
         borderColor: '#E7E7E7',
         borderRadius: 10,
         display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        gap: 2, flexDirection: 'column',
+        paddingHorizontal: 10,
+        paddingVertical: 5
+    },
+    currentCard: {
+        height: 60,
+        display: 'flex',
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: 10, flexDirection: 'row',
-        paddingHorizontal: 10
+        paddingHorizontal: 10,
+        marginTop: 10
     },
     container: {
         display: 'flex',

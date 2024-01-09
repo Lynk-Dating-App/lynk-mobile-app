@@ -30,6 +30,7 @@ export default async function startup() {
 
   await agenda.start();
   await agenda.every('0 0 * * *', 'userIsExpired');
+  // await agenda.every('10 1 * * *', 'userIsExpired'); // 1:10am
 
   //will use this along side nodemailer when i want to send email
   // await QueueManager.init({

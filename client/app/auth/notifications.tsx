@@ -1,4 +1,9 @@
-import { ActivityIndicator, Dimensions, FlatList, Platform, RefreshControl, StyleSheet, TouchableOpacity } from "react-native";
+import { 
+    ActivityIndicator, 
+    Dimensions, Platform, 
+    RefreshControl, StyleSheet, 
+    TouchableOpacity 
+} from "react-native";
 import { SafeAreaView, Text, View } from "../../components/Themed";
 import { COLORS, FONT, SIZES } from "../../constants";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -8,8 +13,12 @@ import useAppSelector from "../../hook/useAppSelector";
 import tw from 'twrnc';
 import { dateDifference } from "../../Utils/Generic";
 import { useCallback, useEffect, useState } from "react";
-import { getUserNotificationsAction, updateNotificationAction, deleteUserNotificationAction } from "../../store/actions/userAction";
-import { clearUpdateNotificationStatus } from "../../store/reducers/userReducer";
+import { 
+    getUserNotificationsAction, 
+    updateNotificationAction, 
+    deleteUserNotificationAction 
+} from "../../store/actions/userAction";
+import { clearUpdateNotificationStatus, setNotificationId } from "../../store/reducers/userReducer";
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { clearGetAllUserNotificationStatus } from "../../store/reducers/userReducer";
 import { clearDeleteUserNotificationStatus } from "../../store/reducers/userReducer";
@@ -17,13 +26,10 @@ import { clearDeleteUserNotificationStatus } from "../../store/reducers/userRedu
 const { width } = Dimensions.get('window');
 
 export default function Notifications() {
-
-    const [notificationId, setNotificationId] = useState<string>('');
     const [rowData, setRowData] = useState<any>({
         rowData: null,
         rowKey: ''
-    })
-
+    });
     const router = useRouter();
     const dispatch = useAppDispatch();
     const userReducer = useAppSelector(state => state.userReducer);
@@ -76,6 +82,7 @@ export default function Notifications() {
     const onRowDidOpen = (rowKey: any) => {
         console.log('This row opened', rowKey);
     };
+
     const closeRow = (rowMap: any, rowKey: any) => {
         if (rowMap[rowKey]) {
             rowMap[rowKey].closeRow();
@@ -96,7 +103,7 @@ export default function Notifications() {
     useEffect(() => {
         if(userReducer.updateNotificationStatus === 'completed') {
             dispatch(getUserNotificationsAction())
-            router.push({pathname: '/auth/single-notification', params: {notificationId: notificationId}})
+            router.push({pathname: '/auth/single-notification'})
             dispatch(clearUpdateNotificationStatus())
         }
     },[userReducer.updateNotificationStatus]);
@@ -117,7 +124,6 @@ export default function Notifications() {
             dispatch(clearGetAllUserNotificationStatus())
         }
     },[userReducer.getAllUserNotificationStatus]);
-    console.log(userReducer.deleteUserNotificationStatus, 'row data')
 
     return (
         <SafeAreaView style={{flex: 1}}>
@@ -200,7 +206,7 @@ export default function Notifications() {
                     },tw`flex flex-row justify-between items-center my-5`]}
                     onPress={() => {
                         dispatch(updateNotificationAction({notificationId: item?._id}))
-                        setNotificationId(item?._id)
+                        dispatch(setNotificationId(item?._id))
                     }}
                 >
                     <View

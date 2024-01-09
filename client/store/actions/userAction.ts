@@ -38,6 +38,8 @@ const DELETE_USER_NOTIFICATION = 'user:DELETE_USER_NOTIFICATION';
 const GET_SINGLE_NOTIFICATION = 'user:GET_SINGLE_NOTIFICATION';
 const UPDATE_NOTIFICATION = 'user:UPDATE_NOTIFICATION'; 
 const LIKED_AND_LIKED_BY_USERS = 'user:LIKED_AND_LIKED_BY_USERS';
+const TOGGLE_AUTO_RENEWAL = 'user:TOGGLE_AUTO_RENEWAL';
+const REQUEST_VERIFICATION = 'user:REQUEST_VERIFICATION';
 
 const API_ROOT = settings.api.rest;
 
@@ -216,6 +218,18 @@ export const deactivateAccountAction = asyncThunkWrapper<ApiResponseSuccess<any>
 
 export const toggleProfileVisibilityAction = asyncThunkWrapper<ApiResponseSuccess<any>, void>(TOGGLE_PROFILE_VISIBILITY, async () => {
     const response = await axiosClient.put(`${API_ROOT}/toggle-profile-visibility`);
+
+    return response.data;
+});
+
+export const toggleAutoRenewalAction = asyncThunkWrapper<ApiResponseSuccess<any>, void>(TOGGLE_AUTO_RENEWAL, async () => {
+    const response = await axiosClient.put(`${API_ROOT}/toggle-auto-renewal`);
+
+    return response.data;
+});
+
+export const requestVerificationAction = asyncThunkWrapper<ApiResponseSuccess<any>, void>(REQUEST_VERIFICATION, async () => {
+    const response = await axiosClient.put(`${API_ROOT}/request-verification`);
 
     return response.data;
 });
