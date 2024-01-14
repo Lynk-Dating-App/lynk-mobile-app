@@ -350,3 +350,27 @@ export const fetchLikedAndLikedByUsersHandler = authenticateRouteWrapper(async (
 
     res.status(response.code).json(response);
 });
+
+export const generateKeyHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.generateKey(req);
+
+    res.status(response.code).json(response);
+});
+
+export const changeKeyStatusHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.changeKeyStatus(req);
+
+    res.status(response.code).json(response);
+});
+
+export const unVerifiedUsersHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.unVerifiedUsers(req);
+
+    res.status(response.code).json(response);
+});
+
+export const externalVerifyUserHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.externalVerifyUser(req);
+
+    res.status(response.code).json(response);
+});

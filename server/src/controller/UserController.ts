@@ -56,6 +56,8 @@ import ChatMessage, { IChatMessageModel } from "../models/ChatMessages";
 import moment = require("moment");
 import mongoose, { Types } from "mongoose";
 import { IChatModel } from "../models/ChatModel";
+import { IVerifiedKeyModel } from "../models/VerifiedKey";
+import { v4 } from 'uuid';
 
 const redisService = new RedisService();
 const sendMailService = new SendMailService();
@@ -2079,6 +2081,148 @@ export default class UserController {
         return Promise.resolve(response);
     }
 
+    @TryCatch
+    @HasPermission([MANAGE_ALL])
+    public async generateKey (req: Request) {
+        //@ts-ignore
+        const userId = req.user._id;
+
+        const { error, value } = Joi.object<any>({
+            name: Joi.string().required().label('name')
+        }).validate(req.body);
+        if (error) return Promise.reject(
+            CustomAPIError.response(
+                error.details[0].message, 
+                HttpStatus.BAD_REQUEST.code
+            ));
+
+        const slug = Generic.generateSlug(value.name)
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+
+        const verifiedKey = await datasources.verifiedKeyDAOService.findByAny({ slug });
+        if(verifiedKey) 
+            return Promise.reject(CustomAPIError.response("Key already exist", HttpStatus.BAD_REQUEST.code));
+
+        const payload: Partial<IVerifiedKeyModel> = {
+            name: value.name,
+            key: v4(),
+            slug
+        }
+
+        await datasources.verifiedKeyDAOService.create(payload as IVerifiedKeyModel);
+
+        const response: HttpResponse<IVerifiedKeyModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully generated.'
+         };
+ 
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    @HasPermission([MANAGE_ALL])
+    public async changeKeyStatus(req: Request) {
+        //@ts-ignore
+        const userId = req.user._id;
+        const keyId = req.params.keyId;
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+        
+        const key = await datasources.verifiedKeyDAOService.findById(keyId);
+        if(!key)
+            return Promise.reject(CustomAPIError.response("Key not found", HttpStatus.NOT_FOUND.code));
+        
+        const updatedKey = await datasources.verifiedKeyDAOService.updateByAny({ _id: key._id }, { status: !key.status })
+        
+        const response: HttpResponse<IVerifiedKeyModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully generated.',
+            result: updatedKey
+         };
+ 
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    public async unVerifiedUsers (req: Request) {
+        const { error, value } = Joi.object<any>({
+            name: Joi.string().required().label('Company name'),
+            key: Joi.string().required().label('Unique key')
+        }).validate(req.body);
+        if (error) 
+            return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+
+        const verifiedKey = await datasources.verifiedKeyDAOService.findByAny({
+            $and: [
+                { slug: Generic.generateSlug(value.name) },
+                { key: value.key }
+            ]
+        });
+              
+        if(!verifiedKey)
+            return Promise.reject(CustomAPIError.response("Please confirm the key and company name is correct.", HttpStatus.NOT_FOUND.code));
+
+        const users = await datasources.userDAOService.findAll({
+            $and: [
+                { verify: 'pending' },
+                { planType: 'red' || 'purple' || 'premium' }
+            ]
+        });
+
+        const response: HttpResponse<IUserModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful.',
+            results: users
+         };
+ 
+        return Promise.resolve(response);
+
+    }
+
+    @TryCatch
+    public async externalVerifyUser (req: Request) {
+        
+        const userId = req.params.userId;
+
+        const { error, value } = Joi.object<any>({
+            name: Joi.string().required().label('Company name'),
+            key: Joi.string().required().label('Unique key')
+        }).validate(req.body);
+        if (error) 
+            return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+
+        const verifiedKey = await datasources.verifiedKeyDAOService.findByAny({
+            $and: [
+                { slug: Generic.generateSlug(value.name) },
+                { key: value.key }
+            ]
+        });
+                
+        if(!verifiedKey)
+            return Promise.reject(CustomAPIError.response("Please confirm the key and company name is correct.", HttpStatus.NOT_FOUND.code));     
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("User not found", HttpStatus.NOT_FOUND.code));
+
+        const updated = await datasources.userDAOService.updateByAny(
+            { _id: user._id },
+            { verify: ACTIVE_VERIFICATION }
+        );
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful',
+            result: updated
+        };
+
+        return Promise.resolve(response);
+    }
+
     private async doGallery(req: Request): Promise<HttpResponse<IUserModel>> {
         return new Promise((resolve, reject) => {
             form.parse(req, async (err, fields, files) => {
@@ -2544,5 +2688,4 @@ export default class UserController {
         return finalMatches.length > 0 ? finalMatches : allUsers;
     }
       
-
 }

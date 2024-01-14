@@ -12,8 +12,7 @@ import { COLORS, FONT, SIZES, icons } from "../../constants";
 import { BlurView } from "expo-blur";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { 
-    alertComponent,
+import {
     capitalizeEachWord, 
     capitalizeFirstLetter, 
     characterBreaker, 
@@ -390,31 +389,31 @@ const SingleUser = () => {
                                     }}
                                 >{capitalizeFirstLetter(userData?.firstName)}, {userData?.age}</Text>
                                 {userData?.verify === 'active'
-                                    ? (<Image
+                                    && (<Image
                                         source={icons.verified}
                                         style={{
                                             width: 20,
                                             height: 20
                                         }}
-                                      />
-                                    ) : (
-                                        <View
-                                            style={[{
-                                                backgroundColor: "#B20000",
-                                                width: 'auto',
-                                                height: 20,
-                                                paddingHorizontal: 5,
-                                                borderRadius: 20,
-                                            }, tw`flex justify-center items-center`]}
-                                        >
-                                            <Text
-                                                style={{
-                                                    fontFamily: FONT.bold,
-                                                    color: COLORS.white
-                                                }}
-                                            >unverified</Text>
-                                        </View>
-                                    )
+                                      />)
+                                    // ) : (
+                                    //     <View
+                                    //         style={[{
+                                    //             backgroundColor: "#B20000",
+                                    //             width: 'auto',
+                                    //             height: 20,
+                                    //             paddingHorizontal: 5,
+                                    //             borderRadius: 20,
+                                    //         }, tw`flex justify-center items-center`]}
+                                    //     >
+                                    //         <Text
+                                    //             style={{
+                                    //                 fontFamily: FONT.bold,
+                                    //                 color: COLORS.white
+                                    //             }}
+                                    //         >unverified</Text>
+                                    //     </View>
+                                    // )
                                 }
                             </View>
                             

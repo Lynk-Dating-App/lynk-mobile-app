@@ -1,6 +1,5 @@
 import path from 'node:path';
 import fs from 'fs/promises';
-
 import { v4 } from 'uuid';
 import moment, { Moment } from 'moment';
 import camelcase from 'camelcase';
@@ -112,6 +111,11 @@ export default class Generic {
     return newPath;
   }
 
+  public static async generateUUID () {
+    const uuid = v4();
+    return uuid;
+  }
+
   /**
    * @name generateJwt
    * @param payload
@@ -122,22 +126,6 @@ export default class Generic {
     const key = <string>settings.jwt.key;
     return sign(payload, key);
   }
-
-  //THIS USES SHARP TO COMPRESS IMAGE
-  // public static async _compressImage(imagePath: string, originalFilename: string) {
-  //   let outputPath = originalFilename;
-  //   try {
-  //     await sharp(imagePath)
-  //       .resize(700, 620)
-  //       .jpeg({ quality: 80 })
-  //       .toFile(outputPath);
-  
-  //     return outputPath;
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw error; // Rethrow the error to handle it upstream
-  //   }
-  // }
 
   public static async compressImage(imagePath: string): Promise<string> {
     let outputPath = path.join("uploads/user", "profile_image.jpg");

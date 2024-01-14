@@ -30,10 +30,9 @@ import Snackbar from '../../helpers/Snackbar';
 import { 
   clearDeactivateAccountStatus, 
   clearDeleteImageFromGalleryStatus, 
-  clearRequestVerificationStatus, 
+  clearRequestVerificationStatus,
   clearSaveImageToGalleryStatus, 
-  clearToggleProfileVisibilityStatus, 
-  clearUpdatePreferenceStatus, 
+  clearToggleProfileVisibilityStatus,
   clearUploadUserProfileImageStatus 
 } from '../../store/reducers/userReducer';
 import { clearSubscribeStatus } from '../../store/reducers/subscriptionReducer';
@@ -519,14 +518,14 @@ export default function TabFourScreen() {
             </TouchableOpacity>
           </View>
 
-          <View
+          {/*<View
             style={{
               width: 80,
               alignSelf: 'center',
               marginBottom: 40
             }}
           >
-            {user?.verify === 'pending' && 
+             {user?.verify === 'pending' && 
               (<View
                 style={[{
                     backgroundColor: "#B20000",
@@ -543,8 +542,8 @@ export default function TabFourScreen() {
                       }}
                   >unverified</Text>
               </View>)
-            }
-          </View>
+            } 
+          </View>*/}
 
           <View style={styles.section1}>
             <View style={styles.subSection}>
@@ -553,7 +552,8 @@ export default function TabFourScreen() {
                   display: 'flex',
                   justifyContent: 'flex-start',
                   alignItems: 'center',
-                  flexDirection: 'row'
+                  flexDirection: 'row',
+                  marginTop: 10
                 }}
               >
                 <Text
@@ -773,7 +773,7 @@ export default function TabFourScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.section2}>
+          {user?.about && (<View style={styles.section2}>
             <Text
               style={{
                 fontFamily: FONT.extraBold,
@@ -803,7 +803,7 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
-            {!user?.about && (
+            {/* {!user?.about && (
             <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
               <Text
                 style={{
@@ -814,8 +814,8 @@ export default function TabFourScreen() {
               >
                 Add bio....
               </Text>
-            </TouchableOpacity>)}
-          </View>
+            </TouchableOpacity>)} */}
+          </View>)}
 
           <View style={styles.section2}>
             <View
@@ -869,7 +869,7 @@ export default function TabFourScreen() {
               >See more</Text>
             </TouchableOpacity>)}
             {!user?.jobDescription && (
-            <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
+            <TouchableOpacity onPress={() => router.push('/auth/modals/job-description')}>
               <Text
                 style={{
                   fontFamily: FONT.regular,
@@ -882,7 +882,7 @@ export default function TabFourScreen() {
             </TouchableOpacity>)}
           </View>
 
-          <View style={styles.section2}>
+          {user?.address && (<View style={styles.section2}>
             <Text
               style={{
                 fontFamily: FONT.extraBold,
@@ -912,7 +912,7 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
-            {!user?.address && (
+            {/* {!user?.address && (
             <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
               <Text
                 style={{
@@ -923,10 +923,10 @@ export default function TabFourScreen() {
               >
                 Add house address....
               </Text>
-            </TouchableOpacity>)}
-          </View>
+            </TouchableOpacity>)} */}
+          </View>)}
 
-          <View style={styles.section2}>
+          {user?.officeName && (<View style={styles.section2}>
             <Text
               style={{
                 fontFamily: FONT.extraBold,
@@ -958,7 +958,7 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
-            {!user?.officeName && (
+            {/* {!user?.officeName && (
             <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
               <Text
                 style={{
@@ -969,11 +969,10 @@ export default function TabFourScreen() {
               >
                 Add office name....
               </Text>
-            </TouchableOpacity>
-            )}
-          </View>
+            </TouchableOpacity>)} */}
+          </View>)}
 
-          <View style={styles.section2}>
+          {user?.officeAddress && (<View style={styles.section2}>
             <Text
               style={{
                 fontFamily: FONT.extraBold,
@@ -1005,7 +1004,7 @@ export default function TabFourScreen() {
                 }}
               >See more</Text>
             </TouchableOpacity>)}
-            {!user?.officeAddress && (
+            {/* {!user?.officeAddress && (
             <TouchableOpacity onPress={() => router.push('/auth/edit-user-detail')}>
               <Text
                 style={{
@@ -1016,11 +1015,10 @@ export default function TabFourScreen() {
               >
                 Add Office address....
               </Text>
-            </TouchableOpacity>
-            )}
-          </View>
+            </TouchableOpacity>)} */}
+          </View>)}
 
-          <View style={styles.section3}>
+          {user?.interests?.length > 0 && (<View style={styles.section3}>
             <Text
               style={{
                 color: 'black',
@@ -1063,7 +1061,7 @@ export default function TabFourScreen() {
               )
             }
             </View>
-          </View>
+          </View>)}
 
           <View style={styles.section3}>
             <Text
@@ -1485,7 +1483,8 @@ export default function TabFourScreen() {
                 justifyContent: 'space-between',
                 flexDirection: 'row',
                 width: '100%',
-                alignItems: 'center'
+                alignItems: 'center',
+                marginBottom: 30
               }}
             >
               <Text

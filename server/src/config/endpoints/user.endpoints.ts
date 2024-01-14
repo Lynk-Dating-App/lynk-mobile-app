@@ -57,7 +57,11 @@ import {
     fetchLikedAndLikedByUsersHandler,
     toggleAutoRenewalHandler,
     verifyUserHandler,
-    requestVerificationHandler
+    requestVerificationHandler,
+    generateKeyHandler,
+    changeKeyStatusHandler,
+    unVerifiedUsersHandler,
+    externalVerifyUserHandler
 } from '../../routes/userRoute';
 
 const userEndpoints: RouteEndpoints = [
@@ -402,6 +406,30 @@ const userEndpoints: RouteEndpoints = [
         method: 'get',
         path: '/liked-and-liked-by-users',
         handler: fetchLikedAndLikedByUsersHandler
+    },
+    {
+        name: 'generate key',
+        method: 'post',
+        path: '/generate-key',
+        handler: generateKeyHandler
+    },
+    {
+        name: 'change key user status',
+        method: 'post',
+        path: '/change-key-status/:keyId',
+        handler: changeKeyStatusHandler
+    },
+    {
+        name: 'fetch unverified users',
+        method: 'post',
+        path: '/unverified-users-external',
+        handler: unVerifiedUsersHandler
+    },
+    {
+        name: 'verify user externally',
+        method: 'post',
+        path: '/verify-user/:userId',
+        handler: externalVerifyUserHandler
     }
 ];
 

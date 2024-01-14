@@ -165,7 +165,7 @@ export default class AuthenticationController {
       const _role = await datasources.roleDAOService.findByIdPopulatePermissions(user.role);
       if(!_role) return Promise.reject(CustomAPIError.response('Role is not found', HttpStatus.UNAUTHORIZED.code));
 
-      const permissions: any = [];
+      let permissions: any = [];
   
       for (const _permission of _role.permissions) {
         permissions.push(_permission)
