@@ -58,6 +58,7 @@ import mongoose, { Types } from "mongoose";
 import { IChatModel } from "../models/ChatModel";
 import { IVerifiedKeyModel } from "../models/VerifiedKey";
 import { v4 } from 'uuid';
+import Waitlist, { IWaitlistModel } from "../models/Waitlist";
 
 const redisService = new RedisService();
 const sendMailService = new SendMailService();
@@ -2218,6 +2219,124 @@ export default class UserController {
             code: HttpStatus.OK.code,
             message: 'Successful',
             result: updated
+        };
+
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    public async createWaitlistUser(req: Request) {
+        const { error, value } = Joi.object<any>({
+            firstName: Joi.string().required().label('First name'),
+            lastName: Joi.string().required().label('Last name'),
+            phoneNumber: Joi.string().required().label('Phone number'),
+            email: Joi.string().required().label('Email'),
+        }).validate(req.body);
+        if (error) {
+            return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+        }
+
+        if (value.phoneNumber.length < 11) {
+            return Promise.reject(CustomAPIError.response('Incorrect phone number length', HttpStatus.BAD_REQUEST.code));
+        }
+    
+        if (value.phoneNumber.length > 13) {
+            return Promise.reject(CustomAPIError.response('Incorrect phone number length', HttpStatus.BAD_REQUEST.code));
+        }
+    
+        // Check if email is in proper format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value.email)) {
+            return Promise.reject(CustomAPIError.response('Incorrect email format', HttpStatus.BAD_REQUEST.code));
+        }
+
+        if (emailRegex.test(value.email)) {
+            const user = await datasources.waitlistDAOService.findByAny({email: value.email})
+            if(user)
+                return Promise.reject(CustomAPIError.response('You are already on the wailist.', HttpStatus.BAD_REQUEST.code));
+        }
+        
+        // Check if first name and last name are not more than 20 characters
+        if (value.firstName.length > 20 || value.lastName.length > 20) {
+            return Promise.reject(CustomAPIError.response('First name or last name too long', HttpStatus.BAD_REQUEST.code));
+        }
+
+        const newWaitlistUser  = await datasources.waitlistDAOService.create({
+            ...value
+        } as IWaitlistModel);
+
+        const response: HttpResponse<IWaitlistModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful created',
+            result: newWaitlistUser
+        };
+
+        return Promise.resolve(response);
+
+    }
+
+    @TryCatch
+    @HasPermission([MANAGE_ALL])
+    public async getWaitlistUsers(req: Request) {
+        
+        const waitlistUsers = await datasources.waitlistDAOService.findAll();
+
+        const response: HttpResponse<IWaitlistModel> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful',
+            results: waitlistUsers
+        };
+
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    @HasPermission([MANAGE_ALL])
+    public async updateWaitlistUser(req: Request) {
+        const userId = req.params.userId;
+
+        const { error, value } = Joi.object<any>({
+            firstName: Joi.string().required().label('First name'),
+            lastName: Joi.string().required().label('Last name'),
+            phoneNumber: Joi.string().required().label('Phone number'),
+            email: Joi.string().required().label('Email'),
+        }).validate(req.body);
+        if (error) {
+            return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+        }
+
+        const user = await datasources.waitlistDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("Waitlist user not found", HttpStatus.NOT_FOUND.code));
+
+        const updatedUser = await datasources.waitlistDAOService.updateByAny(
+            { _id: user._id },
+            { ...value }
+        ) 
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successful',
+            result: updatedUser
+        };
+
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    @HasPermission([MANAGE_ALL])
+    public async deleteWaitlistUser(req: Request) {
+        const userId = req.params.userId;
+
+        const user = await datasources.waitlistDAOService.findById(userId);
+        if(!user) 
+            return Promise.reject(CustomAPIError.response("Waitlist user not found", HttpStatus.NOT_FOUND.code));
+
+        await datasources.waitlistDAOService.deleteById(user._id)
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully deleted'
         };
 
         return Promise.resolve(response);

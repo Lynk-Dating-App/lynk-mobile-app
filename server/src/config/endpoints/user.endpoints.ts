@@ -61,7 +61,11 @@ import {
     generateKeyHandler,
     changeKeyStatusHandler,
     unVerifiedUsersHandler,
-    externalVerifyUserHandler
+    externalVerifyUserHandler,
+    createWaitlistUserHandler,
+    getWaitlistUsersHandler,
+    updateWaitlistUserHandler,
+    deleteWaitlistUserHandler
 } from '../../routes/userRoute';
 
 const userEndpoints: RouteEndpoints = [
@@ -430,6 +434,30 @@ const userEndpoints: RouteEndpoints = [
         method: 'post',
         path: '/verify-user/:userId',
         handler: externalVerifyUserHandler
+    },
+    {
+        name: 'create waitlist user',
+        method: 'post',
+        path: '/create-waitlist-user',
+        handler: createWaitlistUserHandler
+    },
+    {
+        name: 'get waitlist users',
+        method: 'get',
+        path: '/get-waitlist-users',
+        handler: getWaitlistUsersHandler
+    },
+    {
+        name: 'update waitlist user',
+        method: 'put',
+        path: '/update-waitlist-user/:userId',
+        handler: updateWaitlistUserHandler
+    },
+    {
+        name: 'delete waitlist user',
+        method: 'delete',
+        path: '/delete-waitlist-user/:userId',
+        handler: deleteWaitlistUserHandler
     }
 ];
 

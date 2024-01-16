@@ -374,3 +374,29 @@ export const externalVerifyUserHandler = authenticateRouteWrapper(async (req, re
 
     res.status(response.code).json(response);
 });
+
+export const createWaitlistUserHandler = async (req: Request, res: Response) => {
+    const response = await userController.createWaitlistUser(req);
+
+    res.status(response.code).json(response);
+};
+
+export const getWaitlistUsersHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.getWaitlistUsers(req);
+
+    res.status(response.code).json(response);
+});
+
+export const updateWaitlistUserHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.updateWaitlistUser(req);
+
+    res.status(response.code).json(response);
+});
+
+export const deleteWaitlistUserHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.deleteWaitlistUser(req);
+
+    res.status(response.code).json(response);
+});
+
+

@@ -11,6 +11,7 @@ import ChatMessageRepository from "../../repositories/ChatMessageRepository";
 import ChatRepository from "../../repositories/ChatRepository";
 import CardRepository from "../../repositories/CardRepository";
 import VerifiedKeyRepository from "../../repositories/VerifiedKeyRepository";
+import WaitlistRepository from "../../repositories/WaitlistRepository";
 
 import PermissionDAOService from "./PermissionDAOService";
 import RoleDAOService from "./RoleDAOService";
@@ -26,6 +27,7 @@ import TermiiService from "../TermiiService";
 import ChatDAOService from "./ChatDAOService";
 import CardDAOService from "./CardDAOService";
 import VerifiedKeyDAOService from "./VerifiedKeyDAOService";
+import WaitlistDAOService from "./WaitlistDAOService";
 
 const permissionRepository = new PermissionRepository();
 const roleRepository = new RoleRepository();
@@ -40,6 +42,7 @@ const chatMessageRepository = new ChatMessageRepository();
 const chatRepository = new ChatRepository();
 const cardRepository = new CardRepository();
 const verifiedKeyRepository = new VerifiedKeyRepository();
+const waitlistRepository = new WaitlistRepository();
 
 const permissionDAOService = new PermissionDAOService(permissionRepository);
 const roleDAOService = new RoleDAOService(roleRepository);
@@ -54,6 +57,7 @@ const chatMessageDAOService = new ChatMessageDAOService(chatMessageRepository);
 const chatDAOService = new ChatDAOService(chatRepository);
 const cardDAOService = new CardDAOService(cardRepository);
 const verifiedKeyDAOService = new VerifiedKeyDAOService(verifiedKeyRepository);
+const waitlistDAOService = new WaitlistDAOService(waitlistRepository);
 
 const termiiService = new TermiiService();
 
@@ -71,5 +75,6 @@ export default {
     termiiService,
     chatDAOService,
     cardDAOService,
-    verifiedKeyDAOService
+    verifiedKeyDAOService,
+    waitlistDAOService
 }
