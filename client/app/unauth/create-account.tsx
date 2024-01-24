@@ -284,7 +284,6 @@ const styles = StyleSheet.create({
     formContainer: {
         display: 'flex',
         gap: 20,
-        backgroundColor: 'transparent',
         marginTop: 40
     },
     agree: {
