@@ -47,6 +47,7 @@ const CreateAccount = () => {
             ...values,
             email: values.email.toLowerCase()
         }
+
         dispatch(isUserExistAction({email: payload.email}))
         storeData('user-data', JSON.stringify(payload))
     }

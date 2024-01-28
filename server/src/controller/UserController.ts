@@ -581,7 +581,7 @@ export default class UserController {
             email: Joi.string().required().label('Phone number')
         }).validate(req.body);
         if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
-
+ 
         const user = await datasources.userDAOService.findByAny({
             email: value.email
         });
