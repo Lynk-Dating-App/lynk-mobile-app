@@ -178,7 +178,7 @@ export const updateProfileImageAction = asyncThunkWrapper<ApiResponseSuccess<any
     const formData = new FormData();
     formData.append('profileImageUrl', args.profileImageUrl);
     
-    // axiosClient.defaults.headers.put['Content-Type'] = 'multipart/form-data';
+    axiosClient.defaults.headers.put['Content-Type'] = 'multipart/form-data';
     const response = await axiosClient.put(`${API_ROOT}/user-update-profile-image`, formData);
 
     return response.data;
@@ -188,6 +188,7 @@ export const saveGalleryImageAction = asyncThunkWrapper<ApiResponseSuccess<any>,
     const formData = new FormData();
     if (args.profileImageUrl) formData.append('profileImageUrl', args.profileImageUrl);
 
+    axiosClient.defaults.headers.put['Content-Type'] = 'multipart/form-data';
     const response = await axiosClient.put(`${API_ROOT}/gallery`, formData);
 
     return response.data;

@@ -150,7 +150,7 @@ const ProfileDetail = () => {
             name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
             type: "image/jpeg"//`image/${pickerResult.uri.split('.')[1]}`
         };
-
+        console.log
         dispatch(updateProfileImageAction({ profileImageUrl }));
     };
 
