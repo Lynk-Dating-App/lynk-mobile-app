@@ -249,7 +249,7 @@ export default function TabFourScreen() {
     const profileImageUrl = {
       uri: pickerResult.uri,
       name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
-      type: `${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
+      type: "image/jpeg"//`${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
     };
 
     dispatch(updateProfileImageAction({ profileImageUrl }));
@@ -259,7 +259,7 @@ export default function TabFourScreen() {
     const profileImageUrl = {
       uri: pickerResult.uri,
       name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
-      type: `${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
+      type: "image/jpeg"//`${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
     };
 
     dispatch(saveGalleryImageAction({profileImageUrl}))

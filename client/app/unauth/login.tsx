@@ -91,10 +91,15 @@ const Login = () => {
         iosClientId: "464515501760-rk14ot0a8l5tm0ie5h0co5brcc9hjfp9.apps.googleusercontent.com",
         webClientId: "464515501760-dakf7f3am3n67ufrq6mf2dhgoqppii85.apps.googleusercontent.com",
         androidClientId: "464515501760-ocvquoa0m7lhn2cj9o12i3mtfidjng7l.apps.googleusercontent.com"
-    })
+    });
 
     const fallBackToDefaultAuth = () => {
         console.log('fall back to password auth')
+    };
+
+    const handleGoogleSignIn = () => {
+        promptAsync();
+        
     }
 
     const alertComponent = (title: string, mess: string, btnTxt: string, btnFunc: any) => {
@@ -534,9 +539,9 @@ const Login = () => {
                                     marginLeft: 2
                                 }}
                             >Sign Up</Text>
-                            {/* <TouchableOpacity onPress={() => promptAsync()}>
+                            <TouchableOpacity onPress={() => promptAsync()}>
                                 <Text>google</Text>
-                            </TouchableOpacity> */}
+                            </TouchableOpacity>
                         </View>
                     </View>
                     

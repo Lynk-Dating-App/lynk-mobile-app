@@ -107,7 +107,7 @@ const Gallery = () => {
         const newArr = image.map((imageObject: any) => ({
             uri: imageObject.uri,
             name: imageObject.fileName || extractFileNameFromUri(imageObject.uri),
-            type: `${imageObject.type}/${imageObject.uri.split('.')[1]}`
+            type: "image/jpeg"//`${imageObject.type}/${imageObject.uri.split('.')[1]}`
         }));
         if(newArr.length < 2) {
             return alertComponent(

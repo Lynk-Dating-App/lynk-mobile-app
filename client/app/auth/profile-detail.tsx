@@ -106,10 +106,11 @@ const ProfileDetail = () => {
         //   }
       
           if (!result.canceled) {
+            
             const imageUri = result.assets?.[0];
     
             if (imageUri) {
-    
+                
               const fileInfo = await FileSystem.getInfoAsync(imageUri.uri);
               
               const maxFileSize = 10 * 1024 * 1024; //10 MB
@@ -142,11 +143,12 @@ const ProfileDetail = () => {
         }
     };
 
-    const handleImageProfile = async (pickerResult: any) => {
+    const handleImageProfile = async (pickerResult?: any) => {
+        
         const profileImageUrl = {
             uri: pickerResult.uri,
             name: pickerResult.fileName || extractFileNameFromUri(pickerResult.uri),
-            type: `${pickerResult.type}/${pickerResult.uri.split('.')[1]}`
+            type: "image/jpeg"//`image/${pickerResult.uri.split('.')[1]}`
         };
 
         dispatch(updateProfileImageAction({ profileImageUrl }));
@@ -211,6 +213,7 @@ const ProfileDetail = () => {
             setIsProfileImage(true)
             dispatch(clearUploadUserProfileImageStatus())
         } else if (userReducer.uploadUserProfileImageStatus === 'failed') {
+            console.log(userReducer.uploadUserProfileImageError, 'eorror')
             setIsProfileImage(false)
             alertComponent(
                 'Profile Image',
@@ -328,11 +331,11 @@ const ProfileDetail = () => {
                                         marginLeft: 200,
                                         zIndex: 2
                                     }}
-                                    />
+                                  />
                             }
                         </TouchableOpacity>
                     </View>
-                    
+
                     <Formik
                         initialValues={{ firstName: '', lastName: '', dob: new Date() }}
                         validationSchema={schema}
