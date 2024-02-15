@@ -177,7 +177,7 @@ const heightValue = [
 const schema2 = Yup.object().shape({
     // firstName: Yup.string().required().label("first name"),
     // lastName: Yup.string().required().label("last name"),
-    dob: Yup.date().required().label("dob"),
+    // dob: Yup.date().required().label("dob"),
     height: Yup.string().required().label("height"),
     state: Yup.string().required().label("state"),
     about: Yup.string().required().label("about"),
@@ -296,7 +296,7 @@ export default function EditUserDetail () {
                         initialValues={{ 
                             // firstName: userReducer.loggedInuser?.firstName || '',
                             // lastName: userReducer.loggedInuser?.lastName || '',
-                            dob: userReducer.loggedInuser?.dob || '',
+                            // dob: userReducer.loggedInuser?.dob || '',
                             height: userReducer.loggedInuser?.height || '',
                             state: userReducer.loggedInuser?.state || '',
                             address: userReducer.loggedInuser?.address || '',
@@ -447,12 +447,36 @@ export default function EditUserDetail () {
                                     gap: 20, alignSelf: 'center'
                                 }}
                             >
-                                <View
+                                {Array.isArray(state) && (
+                                    <Select
+                                        data={state}
+                                        onValueChange={handleChange('state')}
+                                        value={values.state}
+                                        hasPLaceHolder={true}
+                                        placeholderTop='State'
+                                        showSelectError={false}
+                                        selectError={errors.state}
+                                        placeholderLabel='Select a state...'
+                                        headerStyle={{
+                                            fontFamily: FONT.semiBold,
+                                            fontSize: SIZES.small,
+                                            marginLeft: 10,
+                                            color: COLORS.gray
+                                        }}
+                                        selectWidth={43/100 * width}
+                                        style={{
+                                            alignSelf: 'center',
+                                            marginRight: -10
+                                        }}
+                                    />
+                                )}
+                                {/*<View
                                     style={{
                                         width: '43%',
+                                        backgroundColor: 'red'
                                     }}
                                 >
-                                <InputHeader text={"Date of birth"} 
+                                 <InputHeader text={"Date of birth"} 
                                     style={{
                                         fontFamily: FONT.semiBold,
                                         fontSize: SIZES.small,
@@ -492,8 +516,8 @@ export default function EditUserDetail () {
                                                 fontFamily: FONT.regular,
                                             }}
                                         >{selectedDate.toDateString() !== new Date().toDateString() ? selectedDate.toDateString() : 'Choose birthday date'}</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                    </TouchableOpacity> 
+                                </View>*/}
                                 
                                 {/* <AppInput
                                     placeholder={''}
@@ -519,7 +543,8 @@ export default function EditUserDetail () {
                                     keyboardType="numeric"
                                     showError={false}
                                 /> */}
-                                <Select
+
+<                               Select
                                     data={heightValue}
                                     onValueChange={handleChange('height')}
                                     value={values.height}
@@ -539,7 +564,7 @@ export default function EditUserDetail () {
                                 />
                             </View>
 
-                            {Array.isArray(state) && (
+                            {/* {Array.isArray(state) && (
                                 <Select
                                     data={state}
                                     onValueChange={handleChange('state')}
@@ -558,7 +583,7 @@ export default function EditUserDetail () {
                                     selectWidth={90/100 * width}
                                     style={{alignSelf: 'center'}}
                                 />
-                            )}
+                            )} */}
                             <DateTimePickerModal
                                 isVisible={isDatePickerVisible}
                                 mode="date"

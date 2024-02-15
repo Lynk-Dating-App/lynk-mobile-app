@@ -142,74 +142,91 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                 height: '100%',
                 borderRadius: 20,
                 display: 'flex',
-                justifyContent: 'space-between',
+                // justifyContent: 'space-between',
                 backgroundColor: 'transparent'
               }}
             >
               <View
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  height: '75%',
                   backgroundColor: 'transparent'
                 }}
               >
-                {card?.distance !== 0 && (<BlurView intensity={100}
+                <View
                   style={{
-                    width: 90,
-                    height: 35,
-                    paddingHorizontal: 2,
-                    marginLeft: 30,
-                    marginTop: 20,
-                    borderRadius: 10,
                     display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    overflow: 'hidden',
+                    justifyContent: 'space-between',
                     flexDirection: 'row',
-                    // backgroundColor: COLORS.primary
-                  }}
-                >
-                  <Image
-                    source={icons.location_pin}
-                    style={{
-                      width: 14,
-                      height: 14
-                    }}
-                  />
-                  <Text style={{
-                    color: 'white',
-                    fontFamily: FONT.extraBold,
-                    fontSize: 14
-                  }}>&nbsp;&nbsp;{card?.distance} km</Text>
-                </BlurView>)}
-                <TouchableOpacity
-                  onPress={() => setSwipe('bottom')}
-                  style={{
-                    padding: 5,
-                    borderRadius: 20,
-                    width: 40,
-                    height: 30,
-                    marginLeft: 30,
-                    marginRight: 30,
-                    marginTop: 20,
-                    display: 'flex',
-                    justifyContent: 'center',
                     alignItems: 'center',
-                    backgroundColor: 'white'
+                    backgroundColor: 'transparent',
+                    height: '20%'
                   }}
                 >
-                  <Text
+                  {card?.distance !== 0 && (<BlurView intensity={100}
                     style={{
-                      fontFamily: FONT.bold,
-                      fontSize: SIZES.small,
-                      color: COLORS.primary
+                      width: 90,
+                      height: 35,
+                      paddingHorizontal: 2,
+                      marginLeft: 30,
+                      marginTop: 20,
+                      borderRadius: 10,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      overflow: 'hidden',
+                      flexDirection: 'row'
                     }}
-                  >Skip</Text>
-                </TouchableOpacity>
-                
+                  >
+                    <Image
+                      source={icons.location_pin}
+                      style={{
+                        width: 14,
+                        height: 14
+                      }}
+                    />
+                    <Text style={{
+                      color: 'white',
+                      fontFamily: FONT.extraBold,
+                      fontSize: 14
+                    }}>&nbsp;&nbsp;{card?.distance} km</Text>
+                  </BlurView>)}
+                  <TouchableOpacity
+                    onPress={() => setSwipe('bottom')}
+                    style={{
+                      padding: 5,
+                      borderRadius: 20,
+                      width: 40,
+                      height: 30,
+                      marginLeft: 30,
+                      marginRight: 30,
+                      marginTop: 20,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      backgroundColor: 'white'
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: FONT.bold,
+                        fontSize: SIZES.small,
+                        color: COLORS.primary
+                      }}
+                    >Skip</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  style={{
+                    flex: 1
+                  }}
+                  onPress={() => {
+                    if(data.length === 0) return;
+                    dispatch(setFromUserId(card.userId))
+                    router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})
+                  }}
+                />
               </View>
+              
               <View
                 style={{
                   borderBottomLeftRadius: 20,
@@ -218,7 +235,8 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                   height: Platform.select({android: 125, ios: 110}),
                   backgroundColor: '#191919',
                   paddingHorizontal: 20,
-                  paddingVertical: 5
+                  paddingVertical: 5,
+                  flex: 1
                 }}
               >
                 <Text
@@ -351,11 +369,11 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         onSwipedTop={(cardIndex) => dispatch(favUserAction(data[cardIndex].userId))}
         onSwiped={(cardIndex) => setIndex(cardIndex)}
         onSwipedBottom={() => console.log('bottom')}
-        onTapCard={(cardIndex) => {
-          if(data.length === 0) return;
-          dispatch(setFromUserId(data[cardIndex].userId))
-          router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})
-        }}
+        // onTapCard={(cardIndex) => {
+        //   if(data.length === 0) return;
+        //   dispatch(setFromUserId(data[cardIndex].userId))
+        //   router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})
+        // }}
         stackSeparation={-17}
         disableLeftSwipe={status}
         disableRightSwipe={status}

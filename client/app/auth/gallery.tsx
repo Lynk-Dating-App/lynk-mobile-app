@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, Text, View } from '../../components/Themed';
 import { Button, Image, ImageBase, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import AppBtn from '../../components/common/button/AppBtn';
-import { COLORS, FONT, SIZES, icons, images } from '../../constants';
+import { COLORS, FONT, SIZES } from '../../constants';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker';
@@ -145,7 +145,7 @@ const Gallery = () => {
     return (
         <SafeAreaView style={{flex: 1}}>
             <ScrollView>
-                <TouchableOpacity onPress={() => router.push('/auth/notification')} 
+                {/* <TouchableOpacity onPress={() => router.push('/auth/notification')} 
                     style={styles.backBtnContainer}
                 >
                     <Text/>
@@ -159,7 +159,7 @@ const Gallery = () => {
                     >
                         Skip
                     </Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 <View style={styles.container}>
                     <Text
                         style={{
@@ -502,7 +502,8 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: 'transparent',
         flex: 1,
-        paddingHorizontal: 20
+        paddingHorizontal: 20,
+        marginTop: 10
     },
     backBtnContainer: {
         backgroundColor: 'transparent',

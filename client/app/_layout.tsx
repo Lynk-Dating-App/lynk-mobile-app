@@ -4,12 +4,20 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { SafeAreaView, useColorScheme } from 'react-native';
-import { View } from '../components/Themed';
+import { useColorScheme } from 'react-native';
 import AppBtn from '../components/common/button/AppBtn';
 import { COLORS, FONT, SIZES, icons } from '../constants';
 import { Provider } from "react-redux";
 import store from '../store';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
+import { retrieveData, storeData } from '../components/LocalStorage/LocalStorage';
+import axiosClient from '../config/axiosClient';
+import settings from '../config/settings';
+
+const LOCATION_TASK_NAME = 'background-location-task';
+const BACKGROUND_FETCH_TASK = 'background-fetch-task';
+const API_ROOT = settings.api.rest;
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -23,6 +31,58 @@ export const unstable_settings = {
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+  if (error) {
+    // Handle error if any
+    return;
+  }
+  if (data) {
+    const { locations }: any = data;
+    // Process the location data here
+    console.log('Background location:', locations[0].coords.latitude, locations[0].coords.longitude);
+    // Save the location data to the database
+    await axiosClient.put(`${API_ROOT}/update-user-location`, {
+      latitude: locations[0].coords.latitude,
+      longitude: locations[0].coords.longitude
+    });
+  }
+});
+
+// TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+//   if (error) {
+//     // Handle error if any
+//     return;
+//   }
+//   if (data) {
+//     const { locations }: any = data;
+//     storeData('lastLocation', JSON.stringify(locations))
+//     console.log('Background location:', locations[0].coords.latitude, locations[0].coords.longitude);
+//   }
+
+//   return BackgroundFetch.BackgroundFetchResult.NewData;
+// });
+
+// TaskManager.defineTask(BACKGROUND_FETCH_TASK, async ({ error }) => {
+//   if (error) {
+//     console.error('Background fetch task error:', error);
+//     return;
+//   }
+//   console.log('location task name send loc')
+//   const storedLocationString = await retrieveData('lastLocation') 
+//   if(storedLocationString) {
+//     const storedLocation = JSON.parse(storedLocationString)
+//     console.log(storedLocation, 'stored locations')
+
+//     await axiosClient.put(`${API_ROOT}/update-user-location`, {
+//       latitude: storedLocation[0].coords.latitude,
+//       longitude: storedLocation[0].coords.longitude
+//     });
+//   }
+
+//   // Return a successful result
+//   return BackgroundFetch.BackgroundFetchResult.NewData;
+// });
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -76,7 +136,7 @@ function RootLayoutNav() {
           <Stack.Screen 
             name="auth/modals/match" 
             options={{ 
-              presentation: 'fullScreenModal', 
+              // presentation: 'fullScreenModal', 
               headerShown: false,
               contentStyle: { 
                 margin: 0, 

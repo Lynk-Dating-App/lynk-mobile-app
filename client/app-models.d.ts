@@ -52,7 +52,7 @@ declare module '@app-models' {
   }
 
   interface IUserChats {
-    _id: string,
+    _id: any,
     members: string[],
     chat?: any,
     createdAt?: Date,
@@ -62,7 +62,7 @@ declare module '@app-models' {
   }
 
   interface IMember {
-    _id: string;
+    _id: any;
     firstName: string;
     lastName: string;
     profileImage: string;

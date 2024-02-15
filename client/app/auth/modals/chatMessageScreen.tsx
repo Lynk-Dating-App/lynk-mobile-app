@@ -362,7 +362,7 @@ const ChatMessageScreen = () => {
               </View>
               )}
               renderItem={({ item, index }) => (
-              <View
+              user?._id !== undefined && (<View
                 style={{
                   flex: 1,
                   flexDirection: 'column',
@@ -385,7 +385,7 @@ const ChatMessageScreen = () => {
                     height: 'auto',
                     alignSelf: item.senderId === user?._id ? 'flex-end' : 'flex-start',
                     marginBottom: 10,
-                    backgroundColor: item.senderId !== user?._id ? COLORS.gray : COLORS.gray2
+                    backgroundColor: item.senderId !== user?._id ? "#F0EBEC" : "#F3F3F3"
                   }}
                 >
                   <Text
@@ -420,9 +420,9 @@ const ChatMessageScreen = () => {
                 />}
                 </View>
               </View>
-              )}
+              ))}
               ListFooterComponent={() => (
-              userReducer.getChatMessagesStatus === 'loading' && (
+              (userReducer.getChatMessagesStatus === 'loading' || user?._id === undefined) && (
                   <View
                       style={{
                           flex: 1,

@@ -37,20 +37,20 @@ export default function TabThreeScreen() {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => handleChat(item.key)}
-      style={tw`flex justify-center flex-column items-center gap-3`}>
+      style={tw`flex justify-center flex-column items-center`}>
        <View 
         style={[{
           marginHorizontal: 10,
-          backgroundColor: userReducer.onlineUsers.find((data) => data.userId === item.key) ? COLORS.primary : COLORS.gray2,
+          backgroundColor: userReducer.onlineUsers.includes(item.key) ? COLORS.primary : COLORS.gray2,
           borderRadius: 50
-        },tw`flex justify-center items-center h-20 w-20`]}
+        },tw`flex justify-center items-center h-15 w-15`]}
       >
         <View
           style={[{
             borderRadius: 50,
             borderWidth: 3,
             borderColor: COLORS.white
-          },tw`flex justify-center items-center h-19 w-19`]}
+          },tw`flex justify-center items-center h-14 w-14`]}
         >
           <Image
             source={item?.profileImage ? {uri: `${settings.api.baseURL}/${item?.profileImage}`} : images.no_image_m}
@@ -64,7 +64,7 @@ export default function TabThreeScreen() {
       </View>
       <Text
         style={{
-          fontFamily: FONT.bold,
+          fontFamily: FONT.extraBold,
           fontSize: SIZES.medium
         }}
       >{item?.firstName.length > 10 ? capitalizeFirstLetter(characterBreaker(item?.firstName, 10)) : capitalizeFirstLetter(item?.firstName)}</Text>
@@ -74,7 +74,7 @@ export default function TabThreeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      dispatch(findUserChatsAction(userReducer.loggedInuser?._id))
+      dispatch(findUserChatsAction(userReducer.loggedInuser._id))
       dispatch(getLikedAndLikedByUsersAction());
     },[userReducer.loggedInuser])
   );
@@ -83,7 +83,7 @@ export default function TabThreeScreen() {
     let intervalId: NodeJS.Timeout;
 
     if(userReducer.createChatStatus === 'completed') {
-        dispatch(findUserChatsAction(userReducer.loggedInuser?._id))
+        dispatch(findUserChatsAction(userReducer?.loggedInuser?._id))
         dispatch(clearCreateChatStatus())
     } else if(userReducer.createChatStatus === 'failed') {
         setIsError(true)
@@ -145,30 +145,42 @@ export default function TabThreeScreen() {
           placeholderTop=''
           style={{
             width: 85/100 * width,
-            marginBottom: 20
+            // marginBottom: 5
           }}
           onChangeText={(text: string) => setSearchQuery(text.toLowerCase())}
         />
       </View>
-      {userReducer.likedAndLikedByUsers?.length > 0 && (<FlatList
-        data={userReducer?.likedAndLikedByUsers}
-        horizontal={true}
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={tw`flex justify-center items-center`}
-        style={[{
-          height: 0,
-          marginHorizontal: 20
-        }]}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderItem}
-      />)}
-      
+
+      {userReducer.likedAndLikedByUsers?.length > 0 && (
+      <View style={tw`w-[100%] mt-5`}>
+        <FlatList
+          data={userReducer?.likedAndLikedByUsers}
+          horizontal={true}
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={tw`flex justify-center items-center`}
+          style={[{
+            marginHorizontal: 20
+          }]}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderItem}
+        />
+      </View>
+      )}
+      <View style={[{alignSelf: 'center', marginTop: 10, marginBottom: -10}, tw`w-[85%]`]}>
+        {filteredData.length !== 0 && (<Text style={{
+          fontFamily: FONT.extraBold,
+          fontSize: SIZES.medium,
+          marginVertical: 10
+        }}>
+          Messages
+        </Text>)}
+      </View>
       <FlatList
         data={filteredData}
         numColumns={1}
         showsVerticalScrollIndicator={false} 
         style={{
-          marginHorizontal: 10,
+          marginHorizontal: 10
         }}
         keyExtractor={(item, index) => index.toString()}
         ListEmptyComponent={() => (
@@ -186,7 +198,8 @@ export default function TabThreeScreen() {
             style={{
               flex: 1,
               flexDirection: 'column',
-              gap: 20
+              gap: 10,
+              marginTop: 10
             }}
           >
             <TouchableOpacity 
@@ -199,9 +212,9 @@ export default function TabThreeScreen() {
             >
               <View
                 style={[{
-                  width: 60,
-                  height: 60,
-                  backgroundColor: userReducer.onlineUsers.find((data) => data.userId === item._id) ? COLORS.primary : COLORS.gray2,
+                  width: 50,
+                  height: 50,
+                  backgroundColor: userReducer.onlineUsers.includes(item._id) ? COLORS.primary : COLORS.gray2,
                   borderRadius: 50,
                   marginLeft: 20
                 },tw`flex justify-center items-center`]}
@@ -209,8 +222,8 @@ export default function TabThreeScreen() {
                 <Image 
                   source={item?.profileImageUrl ? {uri: `${settings.api.baseURL}/${item?.profileImageUrl}`} : images.no_image_m}
                   style={{
-                    width: 58,
-                    height: 58,
+                    width: 48,
+                    height: 48,
                     borderRadius: 50,
                     borderWidth: 3,
                     borderColor: COLORS.white
@@ -234,7 +247,7 @@ export default function TabThreeScreen() {
                       <Text
                         style={{
                           fontFamily: FONT.bold,
-                          fontSize: SIZES.large
+                          fontSize: SIZES.medium
                         }}
                       >
                         {item?.firstName.length > 8
@@ -245,7 +258,7 @@ export default function TabThreeScreen() {
                     <Text
                       style={{
                         fontFamily: FONT.regular,
-                        fontSize: SIZES.medium,
+                        fontSize: SIZES.small,
                         color: COLORS.tertiary
                       }}
                     >
@@ -265,7 +278,7 @@ export default function TabThreeScreen() {
                       {item.senderId === user?._id && <Text
                         style={{
                           fontFamily: FONT.regular,
-                          fontSize: SIZES.medium,
+                          fontSize: SIZES.small,
                           color: COLORS.gray
                         }}
                       >
@@ -274,7 +287,7 @@ export default function TabThreeScreen() {
                       <Text
                       style={{
                         fontFamily: FONT.regular,
-                        fontSize: SIZES.medium
+                        fontSize: SIZES.small
                       }}
                     >
                       {item.lastMessage.length > 20 
@@ -319,8 +332,10 @@ export default function TabThreeScreen() {
             >
               <View style={{
                 backgroundColor: '#DBDBDB',
-                width: 70/100 * width,
-                height: 1
+                width: 68/100 * width,
+                height: 1,
+                alignSelf: 'flex-end',
+                marginRight: 20
               }}/>
             </View>
           </View>

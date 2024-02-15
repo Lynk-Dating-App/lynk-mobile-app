@@ -1926,28 +1926,28 @@ export default class UserController {
                 HttpStatus.NOT_FOUND.code
               )
             );
-      
+        
           let _member: any = [];
           let countUnreadMessages = 0
           await Promise.all(
             chats.map(async (chat) => {
                 const otherMember = chat.members.find((member) => member !== userId);
-
+                
                 const user = await datasources.userDAOService.findById(otherMember);
                 const chatMessages = await datasources.chatMessageDAOService.findAll({
                     chatId: chat._id
                 });
-
+                
                 if(!chatMessages)
                     return Promise.reject(CustomAPIError.response("No chat message found.", HttpStatus.NOT_FOUND.code))
 
                 //@ts-ignore
                 const sortedMessages = chatMessages.sort((a, b) => b.createdAt - a.createdAt);
                 const lastMessage = sortedMessages[0];
-
-                const unreadMessages = sortedMessages.filter((message) => message.receiverStatus === 'unread');
+                
+                const unreadMessages = sortedMessages.filter((message) => message.receiverStatus === 'unread' && message.receiverId !== user?._id );
                 const totalUnreadMessages = unreadMessages.length;
-
+                
                 _member.push({
                     _id: user?._id,
                     firstName: user?.firstName,
@@ -1955,16 +1955,16 @@ export default class UserController {
                     profileImageUrl: user?.profileImageUrl,
                     chat: chat,
                     totalUnreadMessages: totalUnreadMessages,
-                    lastMessage: lastMessage ? lastMessage.message : '',
-                    senderId: lastMessage ? lastMessage.senderId : '',
+                    lastMessage: lastMessage !== undefined ? lastMessage.message : '',
+                    senderId: lastMessage ? lastMessage.senderId : null,
                     //@ts-ignore
                     chatDate: lastMessage ? lastMessage.createdAt : null
                 });
-
+                
                 countUnreadMessages += unreadMessages.length
             })
           );
-
+          console.log(_member, 'lokk at me message')
           const member = _member.sort((a: any, b: any) => b.chatDate - a.chatDate)
 
           const response: HttpResponse<any> = {

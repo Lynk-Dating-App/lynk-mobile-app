@@ -18,6 +18,7 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "infoPlist": {
+        "UIBackgroundModes": ["location"],
         "NSPhotoLibraryUsageDescription": "Allow access to the photo library for selecting images",
         "NSFaceIDUsageDescription": "Allow Lynk to use Face ID.",
         "NSLocationWhenInUseUsageDescription": "Lynk need your location to provide you with your match.",

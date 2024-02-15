@@ -1,11 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { 
-  Alert,
+import {
   AppState,
-  Button,
   Dimensions, Image, 
-  Platform, 
-  RefreshControl, 
+  Platform,
   StyleSheet, 
   TouchableOpacity 
 } from 'react-native';
@@ -28,20 +25,24 @@ import AppBtn from '../../components/common/button/AppBtn';
 import useMatch from '../../hook/useMatch';
 import { decode as base64Decode } from 'base-64';
 import * as BackgroundFetch from 'expo-background-fetch';
-import * as TaskManager from 'expo-task-manager';
 import { getMatchesAction, getUserNotificationsAction } from '../../store/actions/userAction';
-import axiosClient from '../../config/axiosClient';
 import socket from '../../config/socket';
-import { clearFavUserStatus, clearGetAllUserNotificationStatus, clearLikeStatus, clearUnLikeStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setOnlineUsers, setSignInAfterSignUp, setSignInAfterSignUp2, setWhichScreen } from '../../store/reducers/userReducer';
+import { 
+  clearFavUserStatus, 
+  clearGetAllUserNotificationStatus, 
+  clearLikeStatus, clearUnLikeStatus, 
+  clearUnLikeUserFrmMatchStatus, 
+  setFromUserId, setOnlineUsers, 
+  setSignInAfterSignUp, 
+  setSignInAfterSignUp2
+} from '../../store/reducers/userReducer';
 import * as Notifications from 'expo-notifications';
 import Snackbar from '../../helpers/Snackbar';
 import { StatusBar } from 'expo-status-bar';
-import { retrieveData, storeData } from '../../components/LocalStorage/LocalStorage';
 import tw from 'twrnc';
 import { INotification } from '@app-models';
 //@ts-ignore
 import { BIOMETRIC_LOGIN_KEY } from '@env';
-import { useNavigation } from '@react-navigation/native';
 import Swiper from 'react-native-deck-swiper';
 
 const API_ROOT = settings.api.rest;
@@ -73,84 +74,139 @@ interface IFilter {
 const LOCATION_TASK_NAME = 'background-location-task';
 const BACKGROUND_FETCH_TASK = 'background-fetch-task';
 
-const requestPermissions = async () => {
-  const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
-  if (foregroundStatus === 'granted') {
-    const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
-    if (backgroundStatus === 'granted') {
-      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-        accuracy: Location.Accuracy.Balanced,
-        timeInterval: 5000, 
-        distanceInterval: 5,
-      });
+// const requestForegroundPermissions = async () => {
+//   const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
+//   if (foregroundStatus === 'granted') {
 
-      // Register the combined background task
-      await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-        minimumInterval: 300, // 5 minutes, adjust as needed
-        stopOnTerminate: false,
-        startOnBoot: true,
-      });
-    }
-  }
-};
+//     // const isTaskRegistered = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
+//     // if (isTaskRegistered) {
+//     //   console.log('Background location task is already registered.');
+//     //   return;
+//     // }
+
+//     TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+//       if (error) {
+//         // Handle error if any
+//         return;
+//       }
+//       if (data) {
+//         const { locations }: any = data;
+//         storeData('lastLocation', JSON.stringify(locations))
+//         console.log('Background location:', locations[0].coords.latitude, locations[0].coords.longitude);
+//           await axiosClient.put(`${API_ROOT}/update-user-location`, {
+//           latitude: locations[0].coords.latitude,
+//           longitude: locations[0].coords.longitude
+//         });
+//       }
+//     });
+
+//     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+//       accuracy: Location.Accuracy.Balanced,
+//       timeInterval: 5000, 
+//       distanceInterval: 0,
+//       pausesUpdatesAutomatically: false, 
+//       foregroundService: {
+//         notificationTitle: 'Background Location',
+//         notificationBody: 'Background location updates are running',
+//       },
+//     });
+
+//     // Register the combined background task
+//     // await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+//     //   minimumInterval: 60 * 1, // 1 minutes, adjust as needed
+//     //   stopOnTerminate: false,
+//     //   startOnBoot: true
+//     // });
+//   }
+// };
+
+// const requestForegroundPermissions = async () => {
+//   const { status } = await Location.requestForegroundPermissionsAsync();
+//   if (status === 'granted') {
+//     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+//       accuracy: Location.Accuracy.Balanced,
+//       timeInterval: 5000, 
+//       distanceInterval: 5,
+//     });
+
+//     // Register the combined background task
+//     await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+//       minimumInterval: 10, // 1 minutes, adjust as needed
+//       stopOnTerminate: false,
+//       startOnBoot: true,
+//     });
+//   }
+// };
 
 const requestForegroundPermissions = async () => {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status === 'granted') {
-    const currentLocation = await Location.getCurrentPositionAsync({});
-    console.log('Current location:', currentLocation);
-    // Perform actions with the current location
-
-    // Start background location updates
-    Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.Balanced,
       timeInterval: 5000, // 5 seconds
-      distanceInterval: 5, // 5 meters
-    });
-
-    // Register the combined background task
-    BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-      minimumInterval: 300, // 5 minutes
-      stopOnTerminate: false,
-      startOnBoot: true,
+      distanceInterval: 0, // 5 meters
     });
   }
 };
 
-
-TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
-  if (error) {
-    // Handle error if any
-    return;
-  }
-  if (data) {
-    const { locations }: any = data;
-    storeData('lastLocation', JSON.stringify(locations))
-    console.log('Background location:', locations[0].coords.latitude, locations[0].coords.longitude);
-    // Perform actions with the locations captured in the background
-  }
-});
-
-TaskManager.defineTask(BACKGROUND_FETCH_TASK, async ({ error }) => {
-  if (error) {
-    console.error('Background fetch task error:', error);
-    return;
-  }
-  
-  const storedLocationString = await retrieveData('lastLocation') 
-  if(storedLocationString) {
-    const storedLocation = JSON.parse(storedLocationString)
-    console.log(storedLocation, 'stored locations')
-
-    await axiosClient.put(`${API_ROOT}/update-user-location`, {
-      latitude: storedLocation[0].coords.latitude,
-      longitude: storedLocation[0].coords.longitude
+const requestBackgroundPermissions = async () => {
+  const { status } = await Location.requestBackgroundPermissionsAsync();
+  if (status === 'granted') {
+    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+      accuracy: Location.Accuracy.Balanced,
+      timeInterval: 5000, // 60 seconds
+      distanceInterval: 0, // 5 meters
     });
   }
+  // const { status } = await Location.requestBackgroundPermissionsAsync();
+  // if (status === 'granted') {
+  //   await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+  //     accuracy: Location.Accuracy.Balanced,
+  //     timeInterval: 5000, 
+  //     distanceInterval: 5,
+  //   });
 
-  // Return a successful result
-  return BackgroundFetch.BackgroundFetchResult.NewData;
-});
+  //   // Register the combined background task
+  //   await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+  //     minimumInterval: 60, // 1 minutes, adjust as needed
+  //     stopOnTerminate: false,
+  //     startOnBoot: true,
+  //   });
+  // }
+};
+
+// TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+//   if (error) {
+//     // Handle error if any
+//     return;
+//   }
+//   if (data) {
+//     const { locations }: any = data;
+//     storeData('lastLocation', JSON.stringify(locations))
+//     console.log('Background location:', locations[0].coords.latitude, locations[0].coords.longitude);
+//   }
+// });
+
+// TaskManager.defineTask(BACKGROUND_FETCH_TASK, async ({ error }) => {
+//   if (error) {
+//     console.error('Background fetch task error:', error);
+//     return;
+//   }
+//   console.log('location task name send loc')
+//   const storedLocationString = await retrieveData('lastLocation') 
+//   if(storedLocationString) {
+//     const storedLocation = JSON.parse(storedLocationString)
+//     console.log(storedLocation, 'stored locations')
+
+//     await axiosClient.put(`${API_ROOT}/update-user-location`, {
+//       latitude: storedLocation[0].coords.latitude,
+//       longitude: storedLocation[0].coords.longitude
+//     });
+//   }
+
+//   // Return a successful result
+//   return BackgroundFetch.BackgroundFetchResult.NewData;
+// });
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -239,15 +295,6 @@ const TabOneScreen = ({screenChange}: any) => {
     _setState('')
     setModalVisible(false)
     setFilter(payload)
-  }
-  
-  const alertComponent = (title: string, mess: string, btnTxt: string, btnFunc: any) => {
-    return Alert.alert(title, mess, [
-        {
-          text: btnTxt,
-          onPress: btnFunc
-        }
-    ]);
   };
 
   useEffect(() => {
@@ -347,9 +394,9 @@ const TabOneScreen = ({screenChange}: any) => {
   }, [filter, actualMatch]);
 
   useEffect(() => {
-    console.log('fired')
-    // requestForegroundPermissions()
-    requestPermissions()
+    console.log('fired location update')
+    requestBackgroundPermissions()
+    requestForegroundPermissions()
 
     return () => {
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);

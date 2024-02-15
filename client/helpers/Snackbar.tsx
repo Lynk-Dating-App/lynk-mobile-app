@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { FONT, SIZES } from '../constants';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -23,32 +23,28 @@ const Snackbar = ({ isVisible, message, onHide, type }) => {
       <View style={styles.container}>
         <View 
           style={{
-            backgroundColor: type === 'error' ? '#FF4C4C' : '#006600',
+            backgroundColor: type === 'error' ? '#ffcdd2' : '#b2dfdb',
             padding: 15,
             borderRadius: 5,
-            flexDirection: 'column',
-            width: '80%'
+            flexDirection: 'row',
+            width: '80%',
+            borderWidth: 0.2,
+            borderColor: type === 'error' ? '#CC6060' : '#337066',
+            gap: 8
           }}
         >
-          {/* <TouchableOpacity onPress={() => onHide()}
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'flex-end'
-            }}
-          >
-            <FontAwesome
-              name="close"
-              size={20}
-              color={'white'}
-            />
-          </TouchableOpacity> */}
+          <FontAwesome
+            name={type === 'error' ? "exclamation-circle" : "check-circle"}
+            size={20}
+            color={type === 'error' ? '#b71c1c' : '#004d40'}
+          />
           <Text
             style={{
-              color: 'white',
-              fontFamily: FONT.bold,
-              fontSize: SIZES.medium,
-              alignSelf: 'center'
+              color: type === 'error' ? '#b71c1c' : '#004d40',
+              fontFamily: FONT.semiBold,
+              fontSize: SIZES.small,
+              textAlign: 'center',
+              width: '90%'
             }}
           >{message}</Text>
         </View>

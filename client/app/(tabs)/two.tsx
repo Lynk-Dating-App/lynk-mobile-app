@@ -72,6 +72,9 @@ export default function TabTwoScreen() {
       fetchLikedUsers(user?._id);
       setIsSuccess(true)
       setSuccess(`Successfully liked ${capitalizeFirstLetter(name)}'s profile.`)
+      if(userReducer.likedUser.likened === true) {
+        router.push('/auth/modals/match')
+      }
       intervalId = setTimeout(() => {
         setIsSuccess(false)
         setSuccess('')

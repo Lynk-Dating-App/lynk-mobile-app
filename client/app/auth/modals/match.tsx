@@ -35,6 +35,7 @@ export default function ForgotPasswordModal() {
     if(userReducer.createChatStatus === 'completed') {
         router.push('/(tabs)/three')
         dispatch(clearCreateChatStatus())
+        dispatch(setPhotoUri({photo: '', userId: ''}))
     } else if(userReducer.createChatStatus === 'failed') {
         setIsError(true)
         setError(userReducer.createChatError)
@@ -137,7 +138,7 @@ export default function ForgotPasswordModal() {
           <AppBtn
             handlePress={() => {
               handleChat()
-              dispatch(setPhotoUri({photo: '', userId: ''}))
+              // dispatch(setPhotoUri({photo: '', userId: ''}))
             }}
             isText={true}
             btnTitle={'Say hello'} 
