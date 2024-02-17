@@ -12,6 +12,7 @@ import { capitalizeEachWord, capitalizeFirstLetter, wordBreaker } from '../../Ut
 import settings from '../../config/settings';
 import { useRouter } from 'expo-router';
 import Snackbar from '../../helpers/Snackbar';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import tw from 'twrnc';
 
 interface Match {
@@ -43,6 +44,9 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
   const router = useRouter();
   const [success, setSuccess] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const [onSwipeLeft, setOnSwipeLeft] = useState(false);
+  const [onSwipeRight, setOnSwipeRight] = useState(false);
+  const [position, setPosition] = useState(0);
 
   const dispatch = useAppDispatch()
   const userReducer = useAppSelector(state => state.userReducer);
@@ -63,6 +67,28 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
     swiperRef.current.swipeBottom();
   }
 
+  const next = () => {
+    if (swiperRef.current) {
+      const currentIndex = swiperRef.current.state.firstCardIndex;
+      swiperRef.current.jumpToCardIndex(currentIndex + 1);
+    }
+  };
+
+  const onSwiping = (index: number, position: number) => {
+    setPosition(index)
+  };
+
+  const onSwipedAborted = () => {
+    setPosition(0)
+  };
+  console.log(position, 'index')
+  const previous = () => {
+    if (swiperRef.current) {
+      const currentIndex = swiperRef.current.state.firstCardIndex;
+      swiperRef.current.jumpToCardIndex(currentIndex - 1);
+    }
+  };
+
   useEffect(() => {
     if(swipe === 'left') {
       handleSwipeLeft()
@@ -70,9 +96,10 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
       handleSwipeRight()
     } else if(swipe === 'up') {
       handleSwipeUp()
-    } else if(swipe === 'bottom') {
-      handleSwipeBottom()
-    }
+    } 
+    // else if(swipe === 'bottom') {
+    //   handleSwipeBottom()
+    // }
 
     return () => {
       setSwipe('')
@@ -112,10 +139,11 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
   return (
     <>
       <Swiper
+        onSwiping={onSwiping}
+        onSwipedAborted={onSwipedAborted}
         ref={swiperRef}
         cards={data}
         infinite={true}
-        // keyExtractor={(item) => item.userId}
         renderCard={(card: Match, index) => (
           data.length > 0 
           ? (<View key={index}
@@ -142,13 +170,12 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                 height: '100%',
                 borderRadius: 20,
                 display: 'flex',
-                // justifyContent: 'space-between',
                 backgroundColor: 'transparent'
               }}
             >
               <View
                 style={{
-                  height: '75%',
+                  height: '73%',
                   backgroundColor: 'transparent'
                 }}
               >
@@ -190,7 +217,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                       fontSize: 14
                     }}>&nbsp;&nbsp;{card?.distance} km</Text>
                   </BlurView>)}
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     onPress={() => setSwipe('bottom')}
                     style={{
                       padding: 5,
@@ -213,18 +240,47 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                         color: COLORS.primary
                       }}
                     >Skip</Text>
+                  </TouchableOpacity> */}
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    flex: 1,
+                    backgroundColor: 'transparent'
+                  }}
+                >
+                  <TouchableOpacity
+                    style={{
+                      width: '30%'
+                    }}
+                    onPress={previous}
+                  >
+                    <Text>
+                      {position < 0 && 'DisLike'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{
+                      width: '40%'
+                    }}
+                    onPress={() => {
+                      if(data.length === 0) return;
+                      dispatch(setFromUserId(card.userId))
+                      router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})
+                    }}
+                  />
+                  <TouchableOpacity
+                    style={{
+                      width: '30%'
+                    }}
+                    onPress={next}
+                  >
+                    <Text>
+                      {position > 0 && 'Like'}
+                      {position === 0 && ''}
+                    </Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  style={{
-                    flex: 1
-                  }}
-                  onPress={() => {
-                    if(data.length === 0) return;
-                    dispatch(setFromUserId(card.userId))
-                    router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})
-                  }}
-                />
               </View>
               
               <View
@@ -236,7 +292,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                   backgroundColor: '#191919',
                   paddingHorizontal: 20,
                   paddingVertical: 5,
-                  flex: 1
+                  flex: 1, gap: 2
                 }}
               >
                 <Text
@@ -254,34 +310,28 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
                     fontSize: SIZES.medium
                   }}
                 >{capitalizeEachWord(card?.occupation)}</Text>
-                <Text
-                  style={{
+                {card?.address && (<Text
+                    style={{
+                      color: 'white',
+                      fontFamily: FONT.semiBold,
+                      fontSize: 14
+                    }}
+                  >{wordBreaker(capitalizeEachWord(card?.address), 4)}</Text>)}
+                {/* <View style={tw`flex flex-row bg-transparent items-center gap-1`}>
+                  <Image
+                    source={icons.location_pin}
+                    style={{
+                      width: 14,
+                      height: 14
+                    }}
+                  />
+                  <Text style={{
                     color: 'white',
                     fontFamily: FONT.semiBold,
-                    fontSize: SIZES.medium
-                  }}
-                >{wordBreaker(capitalizeEachWord(card?.address), 4)}</Text>
-                {/* <TouchableOpacity
-                  onPress={() => {
-                    dispatch(setFromUserId(card?.userId))
-                    router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})}}
-                  style={[{
-                    backgroundColor: 'white',
-                    borderRadius: 5,
-                    marginTop: 15,
-                    marginBottom: 10,
-                    width: 100
-                  }, tw`flex justify-center items-center`]}
-                >
-                  <Text
-                    style={{
-                      fontFamily: FONT.bold,
-                      color: COLORS.primary
-                    }}
-                  >
-                    View profile
-                  </Text>
-                </TouchableOpacity> */}
+                    fontSize: 14
+                  }}>&nbsp;&nbsp;{card?.distance} km away</Text>
+                </View> */}
+                
               </View>
             </View>
              </View>)
@@ -368,17 +418,17 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         }}
         onSwipedTop={(cardIndex) => dispatch(favUserAction(data[cardIndex].userId))}
         onSwiped={(cardIndex) => setIndex(cardIndex)}
-        onSwipedBottom={() => console.log('bottom')}
+        // onSwipedBottom={() => console.log('bottom')}
         // onTapCard={(cardIndex) => {
         //   if(data.length === 0) return;
         //   dispatch(setFromUserId(data[cardIndex].userId))
         //   router.push({pathname: '/auth/single-user', params: {from: 'one-screen'}})
         // }}
-        stackSeparation={-17}
+        stackSeparation={-15}
         disableLeftSwipe={status}
         disableRightSwipe={status}
-        disableBottomSwipe={status}
-        disableTopSwipe={status}
+        disableBottomSwipe
+        disableTopSwipe
       />
       <Snackbar
         isVisible={isSuccess} 
