@@ -1944,8 +1944,9 @@ export default class UserController {
                 //@ts-ignore
                 const sortedMessages = chatMessages.sort((a, b) => b.createdAt - a.createdAt);
                 const lastMessage = sortedMessages[0];
-                
-                const unreadMessages = sortedMessages.filter((message) => message.receiverStatus === 'unread' && message.receiverId !== user?._id );
+
+                const unreadMessages = sortedMessages.filter((message) => message.receiverStatus === 'unread' && message.receiverId === userId );
+
                 const totalUnreadMessages = unreadMessages.length;
                 
                 _member.push({
