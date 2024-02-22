@@ -539,9 +539,9 @@ const Login = () => {
                                     marginLeft: 2
                                 }}
                             >Sign Up</Text>
-                            <TouchableOpacity onPress={() => promptAsync()}>
+                            {/* <TouchableOpacity onPress={() => promptAsync()}>
                                 <Text>google</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
                         </View>
                     </View>
                     

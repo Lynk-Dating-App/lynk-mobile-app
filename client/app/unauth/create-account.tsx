@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Dimensions, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity } from "react-native";
+import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity } from "react-native";
 import { View, Text, SafeAreaView, ScrollView } from '../../components/Themed';
 import AppBtn from '../../components/common/button/AppBtn';
 import { useRouter } from 'expo-router';
-import { COLORS, FONT, SIZES, icons } from '../../constants';
+import { COLORS, FONT, SIZES } from '../../constants';
 import AppInput from '../../components/AppInput/AppInput';
 import { Formik } from 'formik';
 import * as Yup from "yup";
@@ -13,8 +13,6 @@ import useAppSelector from '../../hook/useAppSelector';
 import { isUserExistAction } from '../../store/actions/authActions';
 import { clearUserExistStatus } from '../../store/reducers/authReducer';
 import Snackbar from '../../helpers/Snackbar';
-import { enrollBiometrics } from '../../Utils/BiometricService';
-import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
 

@@ -69,9 +69,19 @@ const SingleUser = () => {
     const {user} = useUser();
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [brkDesc, setBrkDesc] = useState<number>(100);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     const userReducer = useAppSelector(state => state.userReducer);
     const dispatch = useAppDispatch();
+
+    const handleNextPress = () => {
+        console.log('next')
+        setCurrentIndex(prevIndex => prevIndex < userData?.gallery.length - 1 ? prevIndex + 1 : prevIndex);
+      };
+
+    const handlePrevPress = () => {
+        setCurrentIndex(prevIndex => prevIndex > 0 ? prevIndex - 1 : prevIndex);
+    };
 
     const renderImage = (image: any, index: number) => (
         <TouchableOpacity
@@ -315,21 +325,38 @@ const SingleUser = () => {
                 refreshControl={<RefreshControl refreshing={userReducer.getUserStatus === 'loading'} onRefresh={() => getUserAction(userReducer.fromUserId)}/>}
             >
                 <ImageBackground
-                    source={{uri: `${settings.api.baseURL}/${userData?.profileImageUrl}`}}
+                    // source={{uri: `${settings.api.baseURL}/${userData?.profileImageUrl}`}}
+                    source={{ uri: `${settings.api.baseURL}/${userData?.gallery[currentIndex]}` }}
                     style={{
                         width: width,
+                        display: 'flex',
+                        flexDirection: 'row',
                         height: 50/100 * height,
                         borderTopWidth: 5,
                         borderTopColor: userData?.planType === "premium" ? COLORS.premiumPlan : userData?.planType
                     }}
                 >
                     <TouchableOpacity
+                        activeOpacity={1}
+                        style={{
+                            width: '50%',
+                            height: '100%'
+                        }}
+                        onPress={handlePrevPress}
+                    />
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        style={{
+                            position: 'absolute'
+                        }}
                         onPress={() => {
                             router.back()
                             dispatch(setFromUserId(''))
                         }}
                     >
-                        <BlurView intensity={100} style={styles.backButton}>
+                        <BlurView intensity={100} 
+                            style={styles.backButton}
+                        >
                             <FontAwesome 
                                 name='angle-left'
                                 size={25}
@@ -337,6 +364,13 @@ const SingleUser = () => {
                             />
                         </BlurView>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                        style={{
+                            width: '50%',
+                            height: '100%'
+                        }}
+                        onPress={handleNextPress}
+                    />
                 </ImageBackground>
                 
                 <View style={styles.container2}>

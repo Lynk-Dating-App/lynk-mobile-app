@@ -144,7 +144,8 @@ declare module '@app-models' {
     jobDescription: string,
     jobType: string,
     address: string,
-    state: string
+    state: string,
+    gallery: string[]
   }
 
 }

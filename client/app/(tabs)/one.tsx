@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AppState,
+  Button,
   Dimensions, Image, 
   Platform,
   StyleSheet, 
@@ -44,6 +45,7 @@ import { INotification } from '@app-models';
 //@ts-ignore
 import { BIOMETRIC_LOGIN_KEY } from '@env';
 import Swiper from 'react-native-deck-swiper';
+import useUser from '../../hook/useUser';
 
 const API_ROOT = settings.api.rest;
 const { height, width } = Dimensions.get('window');
@@ -61,6 +63,7 @@ interface Match {
   state: string;
   profileVisibility: boolean;
   gender?: string; 
+  gallery: string[]
 }
 
 interface IFilter {
@@ -232,6 +235,7 @@ const TabOneScreen = ({screenChange}: any) => {
   const [error, setError] = useState<string>('');
   const [isError, setIsError] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<INotification[]>([]);
+  const { user } = useUser();
 
   const dispatch = useAppDispatch();
   const authReducer = useAppSelector(state => state.authReducer);
@@ -349,7 +353,8 @@ const TabOneScreen = ({screenChange}: any) => {
         distance: +match.distance,
         gender: match.gender,
         state: match.state,
-        profileVisibility: match.profileVisibility
+        profileVisibility: match.profileVisibility,
+        gallery: match.gallery
       };
     });
 
@@ -411,7 +416,7 @@ const TabOneScreen = ({screenChange}: any) => {
       if(userReducer.likedUser.likened === true) {
         router.push('/auth/modals/match')
       }
-      dispatch(getMatchesAction())
+      // dispatch(getMatchesAction())
       dispatch(clearLikeStatus())
     }
   },[userReducer.likeStatus]);
@@ -421,7 +426,7 @@ const TabOneScreen = ({screenChange}: any) => {
       const data = JSON.stringify(userReducer.unlikedUser)
       socket.emit('liked', data)
 
-      dispatch(getMatchesAction())
+      // dispatch(getMatchesAction())
       dispatch(clearUnLikeStatus())
     }
   },[userReducer.unlikeStatus]);
@@ -558,19 +563,19 @@ const TabOneScreen = ({screenChange}: any) => {
   useEffect(() => {
     const checkToken = async () => {
       const id = await getTokenFromSecureStore(BIOMETRIC_LOGIN_KEY);
-      console.log(id, 'id')
-      if(id !== null && id !== userReducer.loggedInuser?._id) {
-        saveTokenToSecureStore(BIOMETRIC_LOGIN_KEY, userReducer.loggedInuser?._id)
+      if(id !== null && id !== user?._id) {
+        saveTokenToSecureStore(BIOMETRIC_LOGIN_KEY, user?._id)
       }
     }
     
     checkToken()
-  },[userReducer.loggedInuser]);
+  },[user]);
 
   useFocusEffect(
       useCallback(() => {
         dispatch(getUserNotificationsAction());
         dispatch(setSignInAfterSignUp2(false));
+        dispatch(getMatchesAction())
     },[])
   );
 

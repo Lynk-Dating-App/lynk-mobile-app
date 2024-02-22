@@ -74,9 +74,9 @@ export default function TabThreeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      dispatch(findUserChatsAction(userReducer.loggedInuser._id))
+      dispatch(findUserChatsAction(user?._id))
       dispatch(getLikedAndLikedByUsersAction());
-    },[userReducer.loggedInuser])
+    },[user])
   );
 
   useEffect(() => {
