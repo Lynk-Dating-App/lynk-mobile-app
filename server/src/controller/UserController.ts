@@ -2381,7 +2381,7 @@ export default class UserController {
                         return reject(CustomAPIError.response(MESSAGES.image_type_error, HttpStatus.BAD_REQUEST.code));
                     }
 
-                    const outputPath = await Generic.Image(
+                    const outputPath = await Generic.compressImage(
                         galleryImage.filepath
                     );
     

@@ -99,8 +99,8 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
   };
   const previous = () => {
     if (swiperRef.current) {
-      const currentIndex = swiperRef.current.state.firstCardIndex;
-      swiperRef.current.jumpToCardIndex(currentIndex - 1);
+      const currentIndex = swiperRef.current.state.secondCardIndex;
+      swiperRef.current.jumpToCardIndex(currentIndex);
     }
   };
 
