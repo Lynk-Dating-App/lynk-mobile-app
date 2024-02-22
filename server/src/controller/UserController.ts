@@ -1964,7 +1964,6 @@ export default class UserController {
                 countUnreadMessages += unreadMessages.length
             })
           );
-          console.log(_member, 'lokk at me message')
           const member = _member.sort((a: any, b: any) => b.chatDate - a.chatDate)
 
           const response: HttpResponse<any> = {

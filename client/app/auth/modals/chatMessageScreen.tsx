@@ -130,7 +130,7 @@ const ChatMessageScreen = () => {
                 style={styles.iconContainer}
                 onPress={() => {
                   dispatch(setChatUsers(null))
-                  router.push('/(tabs)/three')
+                  router.back()
                   setUserIsTyping('')}}
               >
                 <FontAwesome
@@ -282,6 +282,7 @@ const ChatMessageScreen = () => {
         // setDataArr(prev => [...prev, newDataArr])
       }
     },[arr]);
+    //in progress
 
     useEffect(() => {
       if(userReducer.chatUsers) {
