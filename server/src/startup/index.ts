@@ -24,13 +24,13 @@ export default async function startup() {
     },
   });
 
-  agenda.define('userIsExpired', { concurrency: 1 }, async (job: any) => {
+  agenda.define('cronJobs', { concurrency: 1 }, async (job: any) => {
     await CronJob.userIsExpired()
+    await CronJob.userRewindCount()
   });
 
   await agenda.start();
-  await agenda.every('0 0 * * *', 'userIsExpired');
-  // await agenda.every('10 1 * * *', 'userIsExpired'); // 1:10am
+  await agenda.every('0 0 * * *', 'cronJobs');
 
   //will use this along side nodemailer when i want to send email
   // await QueueManager.init({

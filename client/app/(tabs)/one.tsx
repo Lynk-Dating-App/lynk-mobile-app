@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AppState,
-  Button,
   Dimensions, Image, 
   Platform,
   StyleSheet, 
@@ -26,7 +25,7 @@ import AppBtn from '../../components/common/button/AppBtn';
 import useMatch from '../../hook/useMatch';
 import { decode as base64Decode } from 'base-64';
 import * as BackgroundFetch from 'expo-background-fetch';
-import { getMatchesAction, getUserNotificationsAction } from '../../store/actions/userAction';
+import { getMatchesAction, getUserNotificationsAction, rewindUnlikedUserAction } from '../../store/actions/userAction';
 import socket from '../../config/socket';
 import { 
   clearFavUserStatus, 
@@ -283,6 +282,11 @@ const TabOneScreen = ({screenChange}: any) => {
     setModalVisible(false)
     
     setFilter(payload)
+  }
+
+  const handleSwipeUp = () => {
+    if(user?.subscription?.plan === 'red' || user?.subscription?.plan === 'black') {setIsError(true); return};
+    setSwipe('up')
   }
 
   const handleReset = () => {
@@ -702,16 +706,38 @@ const TabOneScreen = ({screenChange}: any) => {
             }}
           >
             {Array.isArray(state) && (
-              <Select
-                data={state}
-                onValueChange={(text: string) => _setState(text)}
-                value={_state}
-                hasPLaceHolder={true}
-                placeholderTop='State'
-                showSelectError={false}
-                selectWidth={80/100 * width}
-                placeholderLabel='Select a state...'
-              />)}
+              <>
+                <Select
+                  data={state}
+                  onValueChange={(text: string) => _setState(text)}
+                  value={_state}
+                  hasPLaceHolder={true}
+                  placeholderTop='State'
+                  showSelectError={false}
+                  selectWidth={80/100 * width}
+                  placeholderLabel='Select a state...'
+                  planType={user?.subscription?.plan}
+                />
+                <View
+                  style={{
+                    alignSelf: 'center',
+                    width: 80/100 * width,
+                    marginTop: -18,
+                    paddingHorizontal: 10
+                  }}
+                >
+                  <Text
+                    style={{
+                      alignSelf: 'flex-start',
+                      fontFamily: FONT.bold,
+                      fontSize: SIZES.xSmall,
+                      color: 'red'
+                    }}
+                  >Filtering by state is disabled. Please upgrade your plan to purple or purple+.</Text>
+                </View>
+              </>
+            )}
+            
             <View
               style={{
                 width: 80/100 * width,
@@ -944,9 +970,19 @@ const TabOneScreen = ({screenChange}: any) => {
             alignItems: 'center',
             marginTop: 65/100 * height,
             height: 'auto',
-            gap: 50
+            gap: 30
           }}
         >
+          <TouchableOpacity
+            onPress={() => dispatch(rewindUnlikedUserAction())}
+            style={styles.dislikeBtn}
+          >
+            <FontAwesome
+              name="recycle"
+              size={30}
+              color={'green'}
+            />
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setSwipe('left')}
             style={styles.dislikeBtn}
@@ -963,12 +999,12 @@ const TabOneScreen = ({screenChange}: any) => {
           >
             <FontAwesome
               name="heart"
-              size={60}
+              size={30}
               color={'white'}
             />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setSwipe('up')}
+            onPress={() => handleSwipeUp()}
             style={styles.dislikeBtn}
           >
             <FontAwesome
@@ -981,7 +1017,7 @@ const TabOneScreen = ({screenChange}: any) => {
       </View>
       <Snackbar
         isVisible={isError} 
-        message={error}
+        message={error || "You are not allowed to super like this user, Please upgrade your plan to purple or purple+."}
         onHide={() => setIsError(false)}
         type='error'
       />
@@ -1023,8 +1059,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   likeBtn: {
-    width: 90,
-    height: 90,
+    width: 60,
+    height: 60,
     borderRadius: 50,
     backgroundColor: COLORS.primary,
     display: 'flex',

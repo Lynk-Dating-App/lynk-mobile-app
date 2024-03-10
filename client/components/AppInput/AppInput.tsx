@@ -64,7 +64,8 @@ interface SelectProps {
   showSelectError?: boolean,
   selectWidth?: any,
   placeholder?: any,
-  placeholderLabel: string
+  placeholderLabel: string,
+  planType: string
 }
 
 const AppInput = ({
@@ -199,7 +200,7 @@ export const Select = ({
   showSelectError = true,
   selectWidth = 90/100 * width,
   placeholderLabel,
-  style
+  style, planType
 }: SelectProps) => {
 
   const placeholder = {
@@ -207,6 +208,7 @@ export const Select = ({
     value: placeholderLabel,
     color: '#9EA0A4',
   };
+
   return (
     <View
       style={[{
@@ -216,6 +218,7 @@ export const Select = ({
     >
       {hasPLaceHolder && <InputHeader text={placeholderTop} style={headerStyle} />}
       <RNPickerSelect
+        disabled={planType === 'red' || planType === 'black' ? true : false}
         onValueChange={onValueChange}
         items={data}
         itemKey={value}

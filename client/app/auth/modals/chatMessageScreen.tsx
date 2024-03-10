@@ -414,7 +414,7 @@ const ChatMessageScreen = () => {
                     color: COLORS.tertiary
                   }}
                 >{dateDifference(item.createdAt)}</Text>
-                {(item.receiverStatus === 'read' && item.senderId === user?._id) && <FontAwesome 
+                {(item.receiverStatus === 'read' && item.senderId === user?._id && (user?.planType === "purple" || user?.planType === "premium")) && <FontAwesome 
                   name='check'
                   size={15}
                   color={COLORS.primary}

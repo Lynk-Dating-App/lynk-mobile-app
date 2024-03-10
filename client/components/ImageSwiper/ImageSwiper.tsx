@@ -2,12 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing, Image, Platform, TouchableOpacity } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import { Text, View } from '../Themed';
-import { COLORS, FONT, SIZES, icons, images } from '../../constants';
+import { FONT, SIZES, icons, images } from '../../constants';
 import { BlurView } from 'expo-blur';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
 import { favUserAction, likeUserAction, unLikeFrmMatchAction } from '../../store/actions/userAction';
-import { clearUnLikeUserFrmMatchStatus, setFromUserId, setPhotoUri } from '../../store/reducers/userReducer';
+import { clearRewindUnlikeUserStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setPhotoUri } from '../../store/reducers/userReducer';
 import { capitalizeEachWord, capitalizeFirstLetter, wordBreaker } from '../../Utils/Generic';
 import settings from '../../config/settings';
 import { useRouter } from 'expo-router';
@@ -49,6 +49,13 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isDisLiked, setIsDisLiked] = useState(false);
+  const [newData, setNewData] = useState<any[]>([]);
+  const [unlikedId, setUnlikedId] = useState('');
+  const [isError, setIsError] = useState<boolean>(false);
+  const [error, setError] = useState<string>('')
+
+  const dispatch = useAppDispatch()
+  const userReducer = useAppSelector(state => state.userReducer);
 
   const startAnimation = () => {
     setIsAnimating(true);
@@ -67,9 +74,6 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
       }).start();
     });
   };
-
-  const dispatch = useAppDispatch()
-  const userReducer = useAppSelector(state => state.userReducer);
 
   const handleSwipeLeft = () => {
     swiperRef.current.swipeLeft();
@@ -182,13 +186,42 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
     }
   },[isAnimating]);
 
+  useEffect(() => {
+    if(userReducer.rewindUnlikedUserStatus === 'completed') {
+      const _data = [...data, { ...userReducer.rewindedUser, id: data.length + 1 }]
+      setNewData(_data)
+      dispatch(clearRewindUnlikeUserStatus());
+      swiperRef.current.jumpToCardIndex(newData.length - 1);
+    }
+  },[userReducer.rewindUnlikedUserStatus]);
+
+  useEffect(() => {
+    if(userReducer.rewindUnlikedUserStatus === 'failed') {
+      setIsError(true)
+      setError(userReducer.rewindUnlikedUserError)
+      dispatch(clearRewindUnlikeUserStatus());
+    }
+  },[userReducer.rewindUnlikedUserStatus]);
+
+  useEffect(() => {
+    setNewData([...data])
+  },[data]);
+
+  useEffect(() => {
+    if(userReducer.unlikeUserFrmMatchStatus === 'completed') {
+      const filteredArray = newData.filter((item) => item.userId !== unlikedId);
+      setNewData([...filteredArray]);
+      dispatch(clearUnLikeUserFrmMatchStatus());
+    }
+  },[userReducer.unlikeUserFrmMatchStatus]);
+
   return (
     <>
       <Swiper
         onSwiping={onSwiping}
         onSwipedAborted={onSwipedAborted}
         ref={swiperRef}
-        cards={data}
+        cards={newData}
         infinite={true}
         renderCard={(card: Match, index) => {
           return (
@@ -357,6 +390,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         cardVerticalMargin={30}
         showSecondCard={true}
         onSwipedLeft={(cardIndex) => {
+          setUnlikedId(data[cardIndex].userId)
           dispatch(unLikeFrmMatchAction(data[cardIndex].userId))
         }}
         onSwipedRight={(cardIndex) => {
@@ -415,6 +449,13 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         message={success}
         onHide={() => setIsSuccess(false)}
         type='success'
+      />
+
+      <Snackbar
+        isVisible={isError} 
+        message={error}
+        onHide={() => setIsError(false)}
+        type='error'
       />
     </>
   );

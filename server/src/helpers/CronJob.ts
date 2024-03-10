@@ -10,6 +10,7 @@ const userRepository = new UserRepository()
 const subscriptionController = new SubscriptionController();
 
 export default class CronJob {
+
     public static async userIsExpired () {
         console.log('cron job started')
         const users = await userRepository.findAll({});
@@ -71,7 +72,7 @@ export default class CronJob {
                         planType: plan.name
                     }
 
-                    await datasources.userDAOService.update({ _id: user }, updateValue);
+                    await datasources.userDAOService.updateByAny({ _id: user._id }, updateValue);
                     await datasources.notificationDAOService.create({
                         message: "Your subscription for premium plan was successful. You can now enjoy the premium offerings.",
                         status: false,
@@ -85,12 +86,54 @@ export default class CronJob {
                         user: user._id,
                         notification: "Premium subscription failed"
                     } as INotificationModel);
-                    await datasources.userDAOService.update({_id: user}, { isExpired: true, planType: 'purple' })
+                    await datasources.userDAOService.updateByAny({ _id: user._id }, { isExpired: true, planType: 'purple' })
                 }
 
                 return;
             }
         }
+    }
+
+    private static isFirstDayOfMonth(date: Date) {
+        const dayOfMonth = date.getDate();
+
+        return dayOfMonth === 10;
+    }
+
+    public static async userRewindCount () {
+        const currentDate = new Date();
+        const isFirstDay = this.isFirstDayOfMonth(currentDate);
+        const users = await userRepository.findAll({});
+
+        if(isFirstDay) {
+            for (const user of users) {
+                const plan = await datasources.subscriptionDAOService.findByAny({ name: user.planType });
+                if(!plan) return;
+
+                if(plan.name === 'premium') {
+                    await datasources.userDAOService.updateByAny(
+                        { _id: user._id },
+                        { rewindCount: 'unlimited' }
+                    )
+                } else if(plan.name === 'purple') {
+                    await datasources.userDAOService.updateByAny(
+                        { _id: user._id },
+                        { rewindCount: '15' }
+                    )
+                } else if(plan.name === 'red') {
+                    await datasources.userDAOService.updateByAny(
+                        { _id: user._id },
+                        { rewindCount: '5' }
+                    )
+                } else if(plan.name === 'black') {
+                    await datasources.userDAOService.updateByAny(
+                        { _id: user._id },
+                        { rewindCount: 'NO' }
+                    )
+                }
+            }
+        }
+          
     }
 }
 

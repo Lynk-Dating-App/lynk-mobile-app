@@ -290,7 +290,7 @@ const SingleUser = () => {
     },[userReducer.favUserStatus]);
 
     useEffect(() => {
-        if(userData?.likedUsers?.includes(user?._id) && user?.likedUsers?.includes(userData?._id)) {
+        if(user?.plantype === 'premium' || userData?.likedUsers?.includes(user?._id) && user?.likedUsers?.includes(userData?._id)) {
             setCanChat(true)
         }
     },[userData, user]);
@@ -749,7 +749,7 @@ const SingleUser = () => {
                         </View>
                     </View>)}
 
-                    {userData?.sexualPreference && (<View style={styles.section4}>
+                    {/* {userData?.sexualPreference && (<View style={styles.section4}>
                         <Text
                             style={{
                                 color: 'black',
@@ -791,7 +791,7 @@ const SingleUser = () => {
                                 )
                             }
                         </View>
-                    </View>)}
+                    </View>)} */}
 
                     {userData?.relationshipPreference && (<View style={styles.section4}>
                         <Text

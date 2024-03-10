@@ -399,4 +399,10 @@ export const deleteWaitlistUserHandler = authenticateRouteWrapper(async (req, re
     res.status(response.code).json(response);
 });
 
+export const rewindUserHandler = authenticateRouteWrapper(async (req, res) => {
+    const response = await userController.rewindUnLikedUser(req);
+
+    res.status(response.code).json(response);
+});
+
 

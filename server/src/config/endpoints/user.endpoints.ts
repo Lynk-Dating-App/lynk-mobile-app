@@ -65,7 +65,8 @@ import {
     createWaitlistUserHandler,
     getWaitlistUsersHandler,
     updateWaitlistUserHandler,
-    deleteWaitlistUserHandler
+    deleteWaitlistUserHandler,
+    rewindUserHandler
 } from '../../routes/userRoute';
 
 const userEndpoints: RouteEndpoints = [
@@ -458,6 +459,12 @@ const userEndpoints: RouteEndpoints = [
         method: 'delete',
         path: '/delete-waitlist-user/:userId',
         handler: deleteWaitlistUserHandler
+    },
+    {
+        name: 'rewind unliked user',
+        method: 'get',
+        path: '/rewind-last-unliked-user',
+        handler: rewindUserHandler
     }
 ];
 

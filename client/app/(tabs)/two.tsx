@@ -197,116 +197,144 @@ export default function TabTwoScreen() {
           </View>
         )}
         renderItem={({ item, index }) => (
-          <View style={styles.imageContainer} key={item._id}>
-            <TouchableOpacity
-              onPress={() => handleViewUser(item)}
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: 20,
-                overflow: 'hidden'
-              }}
-            >
-              <Image
-                source={{uri: `${settings.api.baseURL}/${item.profileImageUrl}`}}
+          <>
+            <View style={styles.imageContainer} key={item._id}>
+              <TouchableOpacity
+                onPress={() => handleViewUser(item)}
                 style={{
                   width: '100%',
-                  height: '100%'
+                  height: '100%',
+                  borderRadius: 20,
+                  overflow: 'hidden'
                 }}
-              />
-            </TouchableOpacity>
-            <View
-              style={{
-                position: 'absolute',
-                height: '13%',
-                width: '100%',
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'flex-end',
-                alignSelf: 'flex-start',
-                marginTop: 160,
-                backgroundColor: 'transparent'
-              }}
-            >
-              <Text
+              >
+                <Image
+                  source={{uri: `${settings.api.baseURL}/${item.profileImageUrl}`}}
+                  style={{
+                    width: '100%',
+                    height: '100%'
+                  }}
+                />
+              </TouchableOpacity>
+              <View
                 style={{
-                  fontFamily: FONT.extraBold,
-                  fontSize: SIZES.large,
-                  color: 'white',
-                  marginLeft: 10
+                  position: 'absolute',
+                  height: '13%',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'flex-end',
+                  alignSelf: 'flex-start',
+                  marginTop: 160,
+                  backgroundColor: 'transparent'
                 }}
-              >{capitalizeFirstLetter(item.firstName)}, {item.age}</Text>
+              >
+                <Text
+                  style={{
+                    fontFamily: FONT.extraBold,
+                    fontSize: SIZES.large,
+                    color: 'white',
+                    marginLeft: 10
+                  }}
+                >{capitalizeFirstLetter(item.firstName)}, {item.age}</Text>
+              </View>
+              {!item.profileVisibility && (<BlurView
+                intensity={30}
+                style={[{
+                  position: 'absolute',
+                  height: '100%',
+                  width: '100%',
+                  borderRadius: 20,
+                  overflow: 'hidden'
+                }, tw`flex justify-center items-center flex-col`]}
+              >
+                <FontAwesome
+                  name='eye-slash'
+                  size={80}
+                  color={'white'}
+                />
+                <Text
+                  style={{
+                    fontFamily: FONT.bold,
+                    fontSize: SIZES.small,
+                    color: COLORS.white,
+                    textAlign: 'center'
+                  }}
+                >{`You can not view ${capitalizeFirstLetter(item?.firstName)}'s profile.`}</Text>
+              </BlurView>)}
+              <BlurView intensity={50} style={styles.blurView}>
+                <TouchableHighlight
+                  disabled={!userReducer.loggedInuser?.likedUsers.includes(item._id)}
+                  onPress={() => handleUnlike(item)}
+                  underlayColor={COLORS.primary}
+                  style={styles.unlike}
+                >
+                  <FontAwesome
+                    name='close'
+                    size={25}
+                    color={userReducer.loggedInuser?.likedUsers.includes(item._id) ? 'white' : COLORS.primary}
+                  />
+                </TouchableHighlight>
+                <TouchableHighlight
+                  onPress={() => {
+                    setName(item.firstName)
+                    dispatch(favUserAction(item._id))
+                  }}
+                  underlayColor={COLORS.primary}
+                  style={styles.fav}
+                >
+                  <FontAwesome
+                    name='star'
+                    size={25}
+                    color={'green'}
+                  />
+                </TouchableHighlight>
+                <TouchableHighlight 
+                  onPress={() => {
+                    // setPushedId((prevState: string) => [...prevState, item._id]);
+                    setName(item.firstName)
+                    dispatch(setPhotoUri({photo: item.profileImageUrl, userId: item._id}))
+                    dispatch(likeUserAction(item._id))
+                  }}
+                  underlayColor={COLORS.primary}
+                  disabled={item.isMatch}
+                  style={styles.like}
+                >
+                  <FontAwesome
+                    name='heart'
+                    size={25}
+                    color={item.isMatch ? COLORS.primary : 'white'}
+                  />
+                </TouchableHighlight>
+              </BlurView>
             </View>
-            {!item.profileVisibility && (<BlurView
-              intensity={30}
+
+            {(user.planType === 'red' || user.planType === 'black') && (<BlurView
+              intensity={20}
               style={[{
                 position: 'absolute',
                 height: '100%',
                 width: '100%',
                 borderRadius: 20,
-                overflow: 'hidden'
+                overflow: 'hidden',
+                paddingHorizontal: 20
               }, tw`flex justify-center items-center flex-col`]}
             >
               <FontAwesome
-                name='eye-slash'
-                size={80}
-                color={'white'}
-              />
-              <Text
-                style={{
-                  fontFamily: FONT.bold,
-                  fontSize: SIZES.small,
-                  color: COLORS.white,
-                  textAlign: 'center'
-                }}
-              >{`You can not view ${capitalizeFirstLetter(item?.firstName)}'s profile.`}</Text>
+                  name='eye-slash'
+                  size={150}
+                  color={COLORS.post_tertiary}
+                />
+                <Text
+                  style={{
+                    fontFamily: FONT.bold,
+                    fontSize: SIZES.medium,
+                    color: COLORS.primary,
+                    textAlign: 'center'
+                  }}
+                >{`Please upgrade your plan to view the content of this page.`}</Text>
             </BlurView>)}
-            <BlurView intensity={50} style={styles.blurView}>
-              <TouchableHighlight
-                disabled={!userReducer.loggedInuser?.likedUsers.includes(item._id)}
-                onPress={() => handleUnlike(item)}
-                underlayColor={COLORS.primary}
-                style={styles.unlike}
-              >
-                <FontAwesome
-                  name='close'
-                  size={25}
-                  color={userReducer.loggedInuser?.likedUsers.includes(item._id) ? 'white' : COLORS.primary}
-                />
-              </TouchableHighlight>
-              <TouchableHighlight
-                onPress={() => {
-                  setName(item.firstName)
-                  dispatch(favUserAction(item._id))
-                }}
-                underlayColor={COLORS.primary}
-                style={styles.fav}
-              >
-                <FontAwesome
-                  name='star'
-                  size={25}
-                  color={'green'}
-                />
-              </TouchableHighlight>
-              <TouchableHighlight 
-                onPress={() => {
-                  // setPushedId((prevState: string) => [...prevState, item._id]);
-                  setName(item.firstName)
-                  dispatch(setPhotoUri({photo: item.profileImageUrl, userId: item._id}))
-                  dispatch(likeUserAction(item._id))
-                }}
-                underlayColor={COLORS.primary}
-                disabled={item.isMatch}
-                style={styles.like}
-              >
-                <FontAwesome
-                  name='heart'
-                  size={25}
-                  color={item.isMatch ? COLORS.primary : 'white'}
-                />
-              </TouchableHighlight>
-            </BlurView>
-          </View>
+          </>
         )}
         ListHeaderComponent={() => (
             <View style={styles.headContainer}>

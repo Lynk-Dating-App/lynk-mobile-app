@@ -1469,6 +1469,75 @@ export default class UserController {
         return Promise.resolve(response);
     }
 
+    @TryCatch
+    @HasPermission([USER_PERMISSION])
+    public async rewindUnLikedUser(req: Request) {
+        //@ts-ignore
+        const userId = req.user._id;
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user)
+            return Promise.reject(CustomAPIError.response("User not found.", HttpStatus.NOT_FOUND.code));
+
+        if(user.rewindCount === 'NO')
+            return Promise.reject(CustomAPIError.response("Please upgrade your plan.", HttpStatus.BAD_REQUEST.code));
+        
+        if(user.planType === 'red' && user.rewindCount === '0')
+            return Promise.reject(CustomAPIError.response("You can no longer rewind user for this month. Upgrade plan or wait till next month.", HttpStatus.BAD_REQUEST.code));
+
+        if(user.planType === 'purple' && user.rewindCount === '0')
+            return Promise.reject(CustomAPIError.response("You can no longer rewind user for this month. Upgrade plan or wait till next month.", HttpStatus.BAD_REQUEST.code));
+
+        if(!user.unLikedUsers.length)
+            return Promise.reject(CustomAPIError.response("No user found to display.", HttpStatus.NOT_FOUND.code));
+
+        const lastElemId = user.unLikedUsers[user.unLikedUsers.length - 1].user;
+
+        await User.updateOne(
+            { _id: user._id },
+            { $pop: { unLikedUsers: 1 } }
+        )
+
+        const poppedUser = await datasources.userDAOService.findById(lastElemId);
+
+        const poppedUserAddress = await datasources.userAddressDAOService.findByAny({ user: poppedUser?._id })
+
+        const finalUserData = {
+            address: poppedUserAddress,
+            age: poppedUser?.age,
+            distance: Math.ceil(Generic.location_km(
+                user.location.coordinates[1],
+                user.location.coordinates[0],
+                poppedUser?.location.coordinates[1],
+                poppedUser?.location.coordinates[0]
+            )),
+            firstName: poppedUser?.firstName,
+            gallery: poppedUser?.gallery,
+            gender: poppedUser?.gender,
+            image: poppedUser?.profileImageUrl,
+            lastName: poppedUser?.lastName,
+            occupation: poppedUser?.jobType,
+            profileVisibility: poppedUser?.profileVisibility,
+            state: poppedUser?.state,
+            userId: poppedUser?._id
+        };
+
+        if(user.planType === 'purple' || user.planType === 'red') {
+            const count = Number(user.rewindCount);
+            const updatedCount = count - 1;
+            await datasources.userDAOService.updateByAny({_id: user._id}, {rewindCount: updatedCount.toString()})
+        }
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: `Successfull.`,
+            result: finalUserData 
+        };
+
+        return response;
+
+    }
+
     /**
      * the handle when a user fav's another user
      */
@@ -2777,11 +2846,15 @@ export default class UserController {
 
         const matcher = new Matcher(users);
         const matches = matcher.findMatches(user, user.preference as IPreference);
+        const maxUsersAllowed = (user.planType === 'red' || user.planType === 'black') ? 10 : Infinity;
 
-        const finalMatches = matches.map(match => ({
+        const finalMatches = matches
+            .slice(0, maxUsersAllowed)
+            .map(match => ({
             //@ts-ignore
             ...match._doc,
-            distance: Math.ceil(Generic.location_km(
+            distance: (match.location.coordinates[1] === -1 && match.location.coordinates[0] === -1) ? 0 :
+            Math.ceil(Generic.location_km(
                 user.location.coordinates[1],
                 user.location.coordinates[0],
                 match.location.coordinates[1],
@@ -2792,6 +2865,7 @@ export default class UserController {
         const allUsers = users
             //@ts-ignore
             .filter(_user => _user._doc.gender !== user.gender)
+            .slice(0, maxUsersAllowed)
             .map(_user => ({
                 //@ts-ignore
                 ..._user._doc,

@@ -80,7 +80,8 @@ interface IUser {
   }] | null,
   sexualPreference: string | null,
   authorizationCode: string | null,
-  autoRenewal: boolean
+  autoRenewal: boolean,
+  rewindCount: string;
 }
 
 const userSchema = new Schema<IUser>({
@@ -162,7 +163,8 @@ const userSchema = new Schema<IUser>({
   }],
   sexualPreference: {type: String, allowNull: true},
   authorizationCode: { type: String, allowNull: true },
-  autoRenewal: { type: Boolean, default: false }
+  autoRenewal: { type: Boolean, default: false },
+  rewindCount: { type: String }
 });
 
 userSchema.index({ location: '2dsphere' });

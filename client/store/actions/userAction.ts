@@ -40,6 +40,7 @@ const UPDATE_NOTIFICATION = 'user:UPDATE_NOTIFICATION';
 const LIKED_AND_LIKED_BY_USERS = 'user:LIKED_AND_LIKED_BY_USERS';
 const TOGGLE_AUTO_RENEWAL = 'user:TOGGLE_AUTO_RENEWAL';
 const REQUEST_VERIFICATION = 'user:REQUEST_VERIFICATION';
+const REWIND_UNLIKEDUSER = 'user:REWIND_UNLIKEDUSER';
 
 const API_ROOT = settings.api.rest;
 
@@ -262,6 +263,12 @@ export const updateNotificationAction = asyncThunkWrapper<ApiResponseSuccess<any
 
 export const getLikedAndLikedByUsersAction = asyncThunkWrapper<ApiResponseSuccess<any>, void>(LIKED_AND_LIKED_BY_USERS, async () => {
     const response = await axiosClient.get(`${API_ROOT}/liked-and-liked-by-users`);
+
+    return response.data;
+});
+
+export const rewindUnlikedUserAction = asyncThunkWrapper<ApiResponseSuccess<any>, void>(REWIND_UNLIKEDUSER, async () => {
+    const response = await axiosClient.get(`${API_ROOT}/rewind-last-unliked-user`);
 
     return response.data;
 });

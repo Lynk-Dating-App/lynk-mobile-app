@@ -22,6 +22,7 @@ import {
     getUserNotificationsAction, 
     likeUserAction, 
     requestVerificationAction, 
+    rewindUnlikedUserAction, 
     saveGalleryImageAction, 
     toggleAutoRenewalAction, 
     toggleProfileVisibilityAction, 
@@ -49,6 +50,10 @@ interface IUserState {
     getUserStatus: IThunkAPIStatus;
     getUserSuccess: string;
     getUserError?: string;
+
+    rewindUnlikedUserStatus: IThunkAPIStatus;
+    rewindUnlikedUserSuccess: string;
+    rewindUnlikedUserError?: string;
 
     requestVerificationStatus: IThunkAPIStatus;
     requestVerificationSuccess: string;
@@ -214,13 +219,18 @@ interface IUserState {
     signInAfterSignUp2: boolean;
     whichScreen: string;
     likedAndLikedByUsers: ILikedAndLikedByUsers[];
-    notificationId: string 
+    notificationId: string;
+    rewindedUser: any[]
 };
 
 const initialState: IUserState = {
     getUserError: '',
     getUserSuccess: '',
     getUserStatus: 'idle',
+
+    rewindUnlikedUserError: '',
+    rewindUnlikedUserSuccess: '',
+    rewindUnlikedUserStatus: 'idle',
 
     requestVerificationError: '',
     requestVerificationSuccess: '',
@@ -386,7 +396,8 @@ const initialState: IUserState = {
     signInAfterSignUp2: false,
     whichScreen: '',
     likedAndLikedByUsers: [],
-    notificationId: ''
+    notificationId: '',
+    rewindedUser: []
 };
 
 const userSlice = createSlice({
@@ -397,6 +408,12 @@ const userSlice = createSlice({
             state.getUserStatus = 'idle';
             state.getUserSuccess = '';
             state.getUserError = '';
+        },
+
+        clearRewindUnlikeUserStatus(state: IUserState) {
+            state.rewindUnlikedUserStatus = 'idle';
+            state.rewindUnlikedUserSuccess = '';
+            state.rewindUnlikedUserError = '';
         },
 
         clearRequestVerificationStatus(state: IUserState) {
@@ -655,6 +672,24 @@ const userSlice = createSlice({
                 if (action.payload) {
                 state.getUserError = action.payload.message;
                 } else state.getUserError = action.error.message;
+            });
+
+        builder
+            .addCase(rewindUnlikedUserAction.pending, state => {
+                state.rewindUnlikedUserStatus = 'loading';
+            })
+            .addCase(rewindUnlikedUserAction.fulfilled, (state, action) => {
+                state.rewindUnlikedUserStatus = 'completed';
+                state.rewindUnlikedUserSuccess = action.payload.message;
+
+                state.rewindedUser = action.payload.result;
+            })
+            .addCase(rewindUnlikedUserAction.rejected, (state, action) => {
+                state.rewindUnlikedUserStatus = 'failed';
+                
+                if (action.payload) {
+                    state.rewindUnlikedUserError = action.payload.message;
+                } else state.rewindUnlikedUserError = action.error.message;
             });
 
         builder
@@ -1268,7 +1303,7 @@ export const {
     clearUpdateNotificationStatus, setSignInAfterSignUp,
     setSignInAfterSignUp2, setWhichScreen,
     clearGetLikedAndLikedByUsersStatus,
-    clearRequestVerificationStatus
+    clearRequestVerificationStatus, clearRewindUnlikeUserStatus
 } = userSlice.actions;
 
 export default userSlice.reducer;
