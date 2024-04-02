@@ -79,5 +79,8 @@
     "uuid": "^9.0.1",
     "winston": "^3.9.0",
     "winston-daily-rotate-file": "^4.7.1"
+  },
+  "resolutions": {
+    "@types/mime": "3.0.4"
   }
 }
