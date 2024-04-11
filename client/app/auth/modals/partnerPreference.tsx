@@ -111,6 +111,61 @@ const PartnerPreference = () => {
     const dispatch = useAppDispatch();
     const router = useRouter();
 
+    const handleOnSubmit = (values: any) => {
+        const minHeight = values.pMinHeight.trim();
+        const maxHeight = values.pMaxHeight.trim();
+        const minAge = values.pMinAge.trim();
+        const maxAge = values.pMaxAge.trim();
+
+        if(+minHeight > +maxHeight) {
+            return alertComponent(
+            'Height',
+            'Min height cannot be greater than Max height.',
+            'Cancel',
+            ()=>console.log('pressed')
+            );
+        }
+
+        if(+minAge > +maxAge) {
+            return alertComponent(
+            'Age',
+            'Min age cannot be greater than Max age.',
+            'Cancel',
+            ()=>console.log('pressed')
+            );
+        }
+
+        if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' \s]/.test(minHeight) ||
+            /[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' \s]/.test(maxHeight)
+        ) {
+            return alertComponent(
+            'Height',
+            'Invalid height. Only numbers and periodd(.) sign are allowed.',
+            'Cancel',
+            ()=>console.log('pressed')
+            );
+        }
+
+        if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"'.\s]/.test(minAge) ||
+            /[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"'.\s]/.test(maxAge)
+        ) {
+            return alertComponent(
+            'Age',
+            'Invalid Age. Only numbers are allowed.',
+            'Cancel',
+            ()=>console.log('pressed')
+            );
+        }
+
+        const payload = {
+            preference: {
+            ...values
+            }
+        }
+
+        dispatch(updatePreferenceAction(payload))
+    }
+ 
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
     
@@ -145,7 +200,9 @@ const PartnerPreference = () => {
                 }}
                 style={{
                     backgroundColor: 'white',
-                    padding: 20,
+                    paddingLeft: 20,
+                    paddingRight: 20,
+                    paddingTop: 40,
                     borderTopStartRadius: 30,
                     borderTopEndRadius: 30,
                     width: '100%',
@@ -161,9 +218,7 @@ const PartnerPreference = () => {
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            flexDirection: 'row',
-                            gap: 100,
-                            paddingRight: 20
+                            flexDirection: 'row'
                         }}
                     >
                         <Text
@@ -193,60 +248,7 @@ const PartnerPreference = () => {
                             pMaxHeight: userReducer.loggedInuser?.preference?.pMaxHeight || '',
                         }}
                         validationSchema={schema}
-                        onSubmit={(values: any) => {
-                        const minHeight = values.pMinHeight.trim();
-                        const maxHeight = values.pMaxHeight.trim();
-                        const minAge = values.pMinAge.trim();
-                        const maxAge = values.pMaxAge.trim();
-
-                        if(+minHeight > +maxHeight) {
-                            return alertComponent(
-                            'Height',
-                            'Min height cannot be greater than Max height.',
-                            'Cancel',
-                            ()=>console.log('pressed')
-                            );
-                        }
-
-                        if(+minAge > +maxAge) {
-                            return alertComponent(
-                            'Age',
-                            'Min age cannot be greater than Max age.',
-                            'Cancel',
-                            ()=>console.log('pressed')
-                            );
-                        }
-
-                        if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' \s]/.test(minHeight) ||
-                            /[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' \s]/.test(maxHeight)
-                        ) {
-                            return alertComponent(
-                            'Height',
-                            'Invalid height. Only numbers and periodd(.) sign are allowed.',
-                            'Cancel',
-                            ()=>console.log('pressed')
-                            );
-                        }
-
-                        if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"'.\s]/.test(minAge) ||
-                            /[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"'.\s]/.test(maxAge)
-                        ) {
-                            return alertComponent(
-                            'Age',
-                            'Invalid Age. Only numbers are allowed.',
-                            'Cancel',
-                            ()=>console.log('pressed')
-                            );
-                        }
-
-                        const payload = {
-                            preference: {
-                            ...values
-                            }
-                        }
-
-                        dispatch(updatePreferenceAction(payload))
-                        }}
+                        onSubmit={(value) => handleOnSubmit(value)}
                     >
                         {({ handleChange, handleSubmit, values, errors, touched }) => (
                             <View style={styles.formContainer}>

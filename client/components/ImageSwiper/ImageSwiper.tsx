@@ -6,7 +6,7 @@ import { FONT, SIZES, icons, images } from '../../constants';
 import { BlurView } from 'expo-blur';
 import useAppDispatch from '../../hook/useAppDispatch';
 import useAppSelector from '../../hook/useAppSelector';
-import { favUserAction, likeUserAction, unLikeFrmMatchAction } from '../../store/actions/userAction';
+import { favUserAction, getMatchesAction, likeUserAction, unLikeFrmMatchAction } from '../../store/actions/userAction';
 import { clearRewindUnlikeUserStatus, clearUnLikeUserFrmMatchStatus, setFromUserId, setPhotoUri } from '../../store/reducers/userReducer';
 import { capitalizeEachWord, capitalizeFirstLetter, wordBreaker } from '../../Utils/Generic';
 import settings from '../../config/settings';
@@ -390,12 +390,20 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         cardVerticalMargin={30}
         showSecondCard={true}
         onSwipedLeft={(cardIndex) => {
+          const lastIndex = newData.length - 1;
           setUnlikedId(data[cardIndex].userId)
           dispatch(unLikeFrmMatchAction(data[cardIndex].userId))
+          if(lastIndex === cardIndex) {
+            dispatch(getMatchesAction())
+          }
         }}
         onSwipedRight={(cardIndex) => {
+          const lastIndex = newData.length - 1;
           dispatch(setPhotoUri({photo: data[cardIndex].image, userId: data[cardIndex].userId}))
           dispatch(likeUserAction(data[cardIndex].userId))
+          if(lastIndex === cardIndex) {
+            dispatch(getMatchesAction())
+          }
         }}
         onSwipedTop={(cardIndex) => dispatch(favUserAction(data[cardIndex].userId))}
         onSwiped={(cardIndex) => setIndex(cardIndex)}

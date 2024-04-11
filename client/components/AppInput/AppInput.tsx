@@ -65,7 +65,7 @@ interface SelectProps {
   selectWidth?: any,
   placeholder?: any,
   placeholderLabel: string,
-  planType: string
+  planType?: string
 }
 
 const AppInput = ({

@@ -621,7 +621,7 @@ const TabOneScreen = ({screenChange}: any) => {
             </View>)}
           </TouchableOpacity>)}
 
-          {!modalVisible && (<TouchableOpacity style={{marginTop: Platform.select({android: 20, ios: 10})}}
+          <TouchableOpacity style={{marginTop: Platform.select({android: 20, ios: 10})}}
             onPress={() => 
               setModalVisible(true)
             }
@@ -633,247 +633,8 @@ const TabOneScreen = ({screenChange}: any) => {
                 height: 35
               }}
             />
-          </TouchableOpacity>)}
-          
+          </TouchableOpacity>
         </View>
-        
-        {modalVisible && (<ReusableModal
-            modalVisible={modalVisible}
-            setModalVisible={setModalVisible}
-            style={{
-              backgroundColor: 'white',
-              padding: 20,
-              borderTopStartRadius: 30,
-              borderTopEndRadius: 30,
-              width: '100%',
-              height: "auto"
-            }}
-            animationViewStyle={{
-              flex: 1,
-              justifyContent: 'flex-end',
-              alignItems: 'flex-end',
-          }}
-        >
-          <View
-            style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexDirection: 'row',
-                gap: 100
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: FONT.extraBold,
-                fontSize: SIZES.xLarge,
-              }}
-            >Filters</Text>
-            <View style={{display: 'flex', gap: 30, flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-              <TouchableOpacity
-                onPress={handleReset}
-              >
-                <Text
-                  style={{
-                    color: COLORS.primary,
-                    fontFamily: FONT.bold,
-                    fontSize: SIZES.medium
-                  }}
-              >Clear</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-              >
-              <Text
-                style={{
-                  color: COLORS.primary,
-                  fontFamily: FONT.bold,
-                  fontSize: SIZES.medium
-                }}
-              >Close</Text>
-              </TouchableOpacity>
-             
-            </View>
-            
-          </View>
-          <View
-            style={{
-              marginTop: 40,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: 20
-            }}
-          >
-            {Array.isArray(state) && (
-              <>
-                <Select
-                  data={state}
-                  onValueChange={(text: string) => _setState(text)}
-                  value={_state}
-                  hasPLaceHolder={true}
-                  placeholderTop='State'
-                  showSelectError={false}
-                  selectWidth={80/100 * width}
-                  placeholderLabel='Select a state...'
-                  planType={user?.subscription?.plan}
-                />
-                <View
-                  style={{
-                    alignSelf: 'center',
-                    width: 80/100 * width,
-                    marginTop: -18,
-                    paddingHorizontal: 10
-                  }}
-                >
-                  <Text
-                    style={{
-                      alignSelf: 'flex-start',
-                      fontFamily: FONT.bold,
-                      fontSize: SIZES.xSmall,
-                      color: 'red'
-                    }}
-                  >Filtering by state is disabled. Please upgrade your plan to purple or purple+.</Text>
-                </View>
-              </>
-            )}
-            
-            <View
-              style={{
-                width: 80/100 * width,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexDirection: 'row'
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: FONT.extraBold,
-                  fontSize: SIZES.large,
-                }}
-              >Distance</Text>
-              <Text
-                style={{
-                  fontFamily: FONT.regular,
-                  fontSize: SIZES.medium,
-                }}
-              >{rangeDisValues.decrease} - {rangeDisValues.increase}km</Text>
-            </View>
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                width: 80/100 * width,
-                gap: Platform.select({ios: -8, android: -35})
-              }}
-            >
-              <Slider
-                style={{
-                  width: Platform.select({ios: '50%', android: '60%'}),
-                }}
-                value={rangeDisValues.decrease}
-                onValueChange={handleRangeDisDecChange}
-                minimumValue={0}
-                maximumValue={200}
-                step={1}
-                thumbTintColor={COLORS.primary}
-                minimumTrackTintColor={COLORS.gray2}
-                maximumTrackTintColor={COLORS.primary}
-              />
-              <Slider
-                style={{
-                  width: Platform.select({ios: '50%', android: '60%'}),
-                  marginLeft: -8
-                }}
-                value={rangeDisValues.increase}
-                onValueChange={handleRangeDisIncChange}
-                minimumValue={rangeDisValues.decrease}
-                maximumValue={400}
-                step={1}
-                thumbTintColor={COLORS.primary}
-                minimumTrackTintColor={COLORS.primary}
-                maximumTrackTintColor={COLORS.gray2}
-              />
-            </View>
-
-            <View
-              style={{
-                width: 80/100 * width,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexDirection: 'row'
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: FONT.extraBold,
-                  fontSize: SIZES.large,
-                }}
-              >Age</Text>
-              <Text
-                style={{
-                  fontFamily: FONT.regular,
-                  fontSize: SIZES.medium,
-                }}
-              >{rangeValues.decrease} - {rangeValues.increase}</Text>
-            </View>
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                width: 80/100 * width,
-                gap: Platform.select({ios: -8, android: -35})
-              }}
-            >
-              <Slider
-                style={{
-                  width: Platform.select({ios: '50%', android: '60%'})
-                }}
-                value={rangeValues.decrease}
-                onValueChange={handleRangeDecChange}
-                minimumValue={0}
-                maximumValue={50}
-                step={1}
-                thumbTintColor={COLORS.primary}
-                minimumTrackTintColor={COLORS.gray2}
-                maximumTrackTintColor={COLORS.primary}
-              />
-              <Slider
-                style={{
-                  width: Platform.select({ios: '50%', android: '60%'})
-                }}
-                value={rangeValues.increase}
-                onValueChange={handleRangeIncChange}
-                minimumValue={rangeValues.decrease}
-                maximumValue={100}
-                step={1}
-                thumbTintColor={COLORS.primary}
-                minimumTrackTintColor={COLORS.primary}
-                maximumTrackTintColor={COLORS.gray2}
-              />
-            </View>
-            <AppBtn
-              handlePress={handleFilter}
-              isText={true}
-              btnTitle={'Send'} 
-              btnWidth={'80%'} 
-              btnHeight={60} 
-              btnBgColor={COLORS.primary}
-              btnTextStyle={{
-                fontSize: SIZES.medium,
-                fontFamily: FONT.bold
-              }}
-              btnStyle={{
-                marginTop: 20,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-            />
-          </View>
-        </ReusableModal>)}
       </View>
       <View style={styles.imgContainer}>
         {finalData.length > 0 ? 
@@ -882,9 +643,8 @@ const TabOneScreen = ({screenChange}: any) => {
           ) : (
             <>
               <Swiper
-                cards={finalData}
+                cards={[]}
                 infinite={true}
-                // keyExtractor={(item) => item.userId}
                 renderCard={(card: Match, index) => (
                   <View
                     style={{
@@ -917,8 +677,6 @@ const TabOneScreen = ({screenChange}: any) => {
                       <View />
                       <View
                         style={{
-                          // borderBottomLeftRadius: 20,
-                          // borderBottomRightRadius: 20,
                           width: '100%',
                           height: 50,
                           backgroundColor: 'transparent',
@@ -928,27 +686,12 @@ const TabOneScreen = ({screenChange}: any) => {
                       >
                         <Text
                           style={{
-                            // color: 'blac',
                             fontFamily: FONT.extraBold,
                             fontSize: SIZES.xLarge,
                             alignSelf: 'center',
                             elevation: 5,
                           }}
                         >No match found</Text>
-                        {/* <Text
-                          style={{
-                            color: 'white',
-                            fontFamily: FONT.semiBold,
-                            fontSize: SIZES.medium
-                          }}
-                        >Hello</Text> */}
-                        {/* <Text
-                          style={{
-                            color: 'white',
-                            fontFamily: FONT.semiBold,
-                            fontSize: SIZES.medium
-                          }}
-                        ></Text> */}
                       </View>
                     </View>
                   </View>
@@ -1021,6 +764,243 @@ const TabOneScreen = ({screenChange}: any) => {
         onHide={() => setIsError(false)}
         type='error'
       />
+      {modalVisible && (<ReusableModal
+          modalVisible={modalVisible}
+          setModalVisible={setModalVisible}
+          style={{
+            backgroundColor: 'white',
+            padding: 20,
+            borderTopStartRadius: 30,
+            borderTopEndRadius: 30,
+            width: '100%',
+            height: "auto"
+          }}
+          animationViewStyle={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            alignItems: 'flex-end',
+        }}
+      >
+        <View
+          style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexDirection: 'row',
+              gap: 100
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: FONT.extraBold,
+              fontSize: SIZES.xLarge,
+            }}
+          >Filters</Text>
+          <View style={{display: 'flex', gap: 30, flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+            <TouchableOpacity
+              onPress={handleReset}
+            >
+              <Text
+                style={{
+                  color: COLORS.primary,
+                  fontFamily: FONT.bold,
+                  fontSize: SIZES.medium
+                }}
+            >Clear</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+            >
+            <Text
+              style={{
+                color: COLORS.primary,
+                fontFamily: FONT.bold,
+                fontSize: SIZES.medium
+              }}
+            >Close</Text>
+            </TouchableOpacity>
+            
+          </View>
+          
+        </View>
+        <View
+          style={{
+            marginTop: 40,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 20
+          }}
+        >
+          {Array.isArray(state) && (
+            <>
+              <Select
+                data={state}
+                onValueChange={(text: string) => _setState(text)}
+                value={_state}
+                hasPLaceHolder={true}
+                placeholderTop='State'
+                showSelectError={false}
+                selectWidth={80/100 * width}
+                placeholderLabel='Select a state...'
+                planType={user?.subscription?.plan}
+              />
+              <View
+                style={{
+                  alignSelf: 'center',
+                  width: 80/100 * width,
+                  marginTop: -18,
+                  paddingHorizontal: 10
+                }}
+              >
+                <Text
+                  style={{
+                    alignSelf: 'flex-start',
+                    fontFamily: FONT.bold,
+                    fontSize: SIZES.xSmall,
+                    color: 'red'
+                  }}
+                >Filtering by state is disabled. Please upgrade your plan to purple.</Text>
+              </View>
+            </>
+          )}
+          
+          <View
+            style={{
+              width: 80/100 * width,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexDirection: 'row'
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: FONT.extraBold,
+                fontSize: SIZES.large,
+              }}
+            >Distance</Text>
+            <Text
+              style={{
+                fontFamily: FONT.regular,
+                fontSize: SIZES.medium,
+              }}
+            >{rangeDisValues.decrease} - {rangeDisValues.increase}km</Text>
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              width: 80/100 * width,
+              gap: Platform.select({ios: -8, android: -35})
+            }}
+          >
+            <Slider
+              style={{
+                width: Platform.select({ios: '50%', android: '60%'}),
+              }}
+              value={rangeDisValues.decrease}
+              onValueChange={handleRangeDisDecChange}
+              minimumValue={0}
+              maximumValue={200}
+              step={1}
+              thumbTintColor={COLORS.primary}
+              minimumTrackTintColor={COLORS.gray2}
+              maximumTrackTintColor={COLORS.primary}
+            />
+            <Slider
+              style={{
+                width: Platform.select({ios: '50%', android: '60%'}),
+                marginLeft: -8
+              }}
+              value={rangeDisValues.increase}
+              onValueChange={handleRangeDisIncChange}
+              minimumValue={rangeDisValues.decrease}
+              maximumValue={400}
+              step={1}
+              thumbTintColor={COLORS.primary}
+              minimumTrackTintColor={COLORS.primary}
+              maximumTrackTintColor={COLORS.gray2}
+            />
+          </View>
+
+          <View
+            style={{
+              width: 80/100 * width,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexDirection: 'row'
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: FONT.extraBold,
+                fontSize: SIZES.large,
+              }}
+            >Age</Text>
+            <Text
+              style={{
+                fontFamily: FONT.regular,
+                fontSize: SIZES.medium,
+              }}
+            >{rangeValues.decrease} - {rangeValues.increase}</Text>
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              width: 80/100 * width,
+              gap: Platform.select({ios: -8, android: -35})
+            }}
+          >
+            <Slider
+              style={{
+                width: Platform.select({ios: '50%', android: '60%'})
+              }}
+              value={rangeValues.decrease}
+              onValueChange={handleRangeDecChange}
+              minimumValue={0}
+              maximumValue={50}
+              step={1}
+              thumbTintColor={COLORS.primary}
+              minimumTrackTintColor={COLORS.gray2}
+              maximumTrackTintColor={COLORS.primary}
+            />
+            <Slider
+              style={{
+                width: Platform.select({ios: '50%', android: '60%'})
+              }}
+              value={rangeValues.increase}
+              onValueChange={handleRangeIncChange}
+              minimumValue={rangeValues.decrease}
+              maximumValue={100}
+              step={1}
+              thumbTintColor={COLORS.primary}
+              minimumTrackTintColor={COLORS.primary}
+              maximumTrackTintColor={COLORS.gray2}
+            />
+          </View>
+          <AppBtn
+            handlePress={handleFilter}
+            isText={true}
+            btnTitle={'Send'} 
+            btnWidth={'80%'} 
+            btnHeight={60} 
+            btnBgColor={COLORS.primary}
+            btnTextStyle={{
+              fontSize: SIZES.medium,
+              fontFamily: FONT.bold
+            }}
+            btnStyle={{
+              marginTop: 20,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          />
+        </View>
+      </ReusableModal>)}
       <StatusBar style='dark'/>
     </SafeAreaView>
   );
@@ -1077,7 +1057,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: SIZES.xxLarge,
     fontFamily: FONT.extraBold,
-    marginVertical: 10,
     marginTop: Platform.select({android: 30, ios: 0})
   },
   separator: {
