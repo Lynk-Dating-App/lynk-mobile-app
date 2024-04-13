@@ -312,15 +312,15 @@ export default function EditUserDetail () {
                         }}
                         validationSchema={schema2}
                         onSubmit={(values: any) => {
-                            const age = new Date().getFullYear() - new Date(values.dob).getFullYear();
-                            if(age < 18) {
-                                return alertComponent(
-                                    'Age Limit',
-                                    'Age can not be less than 18.',
-                                    'Cancel',
-                                    ()=>console.log('pressed')
-                                );
-                            }
+                            // const age = new Date().getFullYear() - new Date(values.dob).getFullYear();
+                            // if(age < 18) {
+                            //     return alertComponent(
+                            //         'Age Limit',
+                            //         'Age can not be less than 18.',
+                            //         'Cancel',
+                            //         ()=>console.log('pressed')
+                            //     );
+                            // }
                             // if(/[a-zA-Z,;!@#$%^&*()_+{}\[\]:;<>,?\\/`~"' ]/.test(values.height)) {
                             //     return alertComponent(
                             //         'Height',

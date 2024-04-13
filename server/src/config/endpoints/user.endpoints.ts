@@ -109,7 +109,7 @@ const userEndpoints: RouteEndpoints = [
     {
         name: 'verify-user',
         method: 'put',
-        path: '/verify-user',
+        path: '/verify-user/:userId',
         handler: verifyUserHandler
     },
     {

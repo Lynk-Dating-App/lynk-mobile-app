@@ -342,25 +342,6 @@ const Login = () => {
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
-
-        if(userReducer.updateUserStatus === 'completed') {
-            setIsResetPasswordSuccess(true)
-            setSuccess("Successful, please login again.")
-        
-            intervalId = setTimeout(() => {
-                setIsResetPasswordSuccess(false)
-                setSuccess('')
-            },6000);
-            dispatch(clearUpdateUserStatus());
-        } 
-
-        return () => {
-            clearInterval(intervalId);
-        }
-    },[userReducer.updateUserStatus]);
-
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout;
     
         if(userReducer.deactivateAccountStatus === 'completed') {
             setIsResetPasswordSuccess(true)

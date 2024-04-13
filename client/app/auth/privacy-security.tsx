@@ -203,7 +203,10 @@ export default function PrivacySecurity () {
         let intervalId: NodeJS.Timeout;
 
         if(userReducer.updateUserStatus === 'completed') {
+            setChangeEmail(false)
+            setChangePhone(false)
             handleLogout()
+            dispatch(clearUpdateUserStatus());
         } else if(userReducer.updateUserStatus === 'failed') {
 
             setIsError(true)
@@ -692,11 +695,23 @@ export default function PrivacySecurity () {
                                                 fontFamily: FONT.bold,
                                                 fontSize: SIZES.medium,
                                                 alignSelf: 'center',
-                                                textAlign: 'center',
-                                                marginBottom: 20
+                                                textAlign: 'center'
                                             }}
                                         >
                                             Enter a new email.
+                                        </Text>
+                                        <Text 
+                                            style={{
+                                                color: 'red',
+                                                fontFamily: FONT.light,
+                                                fontSize: SIZES.small,
+                                                alignSelf: 'center',
+                                                textAlign: 'center',
+                                                width: '80%',
+                                                marginBottom: 10
+                                            }}
+                                        >
+                                            Please note: you would be logged out and be required to log in.
                                         </Text>
                                         
                                         <AppInput
@@ -805,6 +820,19 @@ export default function PrivacySecurity () {
                                             }}
                                         >
                                             Enter a new phone number.
+                                        </Text>
+                                        <Text 
+                                            style={{
+                                                color: 'red',
+                                                fontFamily: FONT.light,
+                                                fontSize: SIZES.small,
+                                                alignSelf: 'center',
+                                                textAlign: 'center',
+                                                width: '80%',
+                                                marginBottom: 10
+                                            }}
+                                        >
+                                            Please note: you would be logged out and be required to log in.
                                         </Text>
                                         <Phone
                                             setFormattedValue={setFormattedValue}

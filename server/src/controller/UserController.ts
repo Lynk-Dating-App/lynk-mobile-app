@@ -2599,7 +2599,9 @@ export default class UserController {
                         fs.unlink(`${basePath}/${image}`, () => {})
                     }
                 }
+
                 const age = new Date().getFullYear() - new Date(value.dob).getFullYear()
+
                 const payload = {
                     ...value,
                     about: value.bio,
@@ -2728,13 +2730,12 @@ export default class UserController {
         //     _phone = value.phone
         // };
 
-        const age = new Date().getFullYear() - new Date(value.dob).getFullYear()
+        // const age = new Date().getFullYear() - new Date(value.dob).getFullYear()
 
         const userValues = {
             ...value,
             email: value.email,
-            phone: phone === '' ? user.phone : phone,
-            age: age.toString()
+            phone: phone === '' ? user.phone : phone
         };
 
         const updatedUser = await datasources.userDAOService.updateByAny(

@@ -421,7 +421,8 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
         disableBottomSwipe
         disableTopSwipe
       />
-      {isAnimating && (<Animated.View
+      {/* THUMB UP AND DOWN ICON DISPLAYS WITH LIKE AND DISLIKE LOGIC BELLOW */}
+      {/* {isAnimating && (<Animated.View
         style={{
           height: 58/100 * height,
           backgroundColor: 'transparent',
@@ -451,7 +452,7 @@ const ImageSwiper = ({swipe, setSwipe, data}: IProps) => {
           size={100}
           color={"red"}
         />)}
-      </Animated.View>)}
+      </Animated.View>)} */}
       <Snackbar
         isVisible={isSuccess} 
         message={success}

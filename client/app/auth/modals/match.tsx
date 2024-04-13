@@ -83,7 +83,8 @@ export default function ForgotPasswordModal() {
               position: 'absolute',
               transform: [{ rotate: '-15deg' }],
               marginTop: 120,
-              marginLeft: -80
+              marginLeft: -80,
+              backgroundColor: 'transparent'
             }}
           >
             <Image

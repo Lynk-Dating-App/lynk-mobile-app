@@ -329,10 +329,10 @@ export default function TabTwoScreen() {
                   style={{
                     fontFamily: FONT.bold,
                     fontSize: SIZES.medium,
-                    color: COLORS.primary,
+                    color: 'white',
                     textAlign: 'center'
                   }}
-                >{`Please upgrade your plan to view the content of this page.`}</Text>
+                >{`Please upgrade your plan to view people who have liked you.`}</Text>
             </BlurView>)}
           </>
         )}
