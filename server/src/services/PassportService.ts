@@ -217,14 +217,14 @@ passport.serializeUser(function(userId, done) {
 
 passport.deserializeUser((userId: any, done) => {
     User.findById(userId)
-        .then((response) => {
+        .then((response: any) => {
             if (response) {
                 done(null, response);
             } else {
                 done(new Error('User not found'), null);
             }
         })
-        .catch((err) => {
+        .catch((err: any) => {
             done(err, null);
         });
 });

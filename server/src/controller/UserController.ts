@@ -1744,7 +1744,7 @@ export default class UserController {
         const userId = req.user._id;
 
         const { error, value } = Joi.object<any>({
-            photo: Joi.string().required().label('photo'),
+            photo: Joi.string().label('photo'),
         }).validate(req.body);
         if (error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
 
