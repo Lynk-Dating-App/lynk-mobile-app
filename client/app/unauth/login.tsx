@@ -29,7 +29,7 @@ import { decode as base64Decode } from 'base-64';
 import { StatusBar } from 'expo-status-bar';
 import { clearDeactivateAccountStatus, clearUpdateUserStatus, setSignInAfterSignUp } from '../../store/reducers/userReducer';
 //@ts-ignore
-import { BIOMETRIC_LOGIN_KEY, IOS_CLIENT_ID, ANDROID_CLIENT_ID } from '@env';
+import { BIOMETRIC_LOGIN_KEY } from '@env';
 import tw from 'twrnc';
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
@@ -82,7 +82,7 @@ const Login = () => {
     const [count, setCount] = useState<number>(120);
     const [formattedValue, setFormattedValue] = useState("");
     const [biometricId, setBiometricId] = useState<string>("");
-    
+
     const otpRef = useRef<any>(null);
     const dispatch = useAppDispatch();
     const authReducer = useAppSelector(state => state.authReducer);
