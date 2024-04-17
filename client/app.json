@@ -45,10 +45,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.lynk_app.lynk",
-      "config": {
-        "usesCleartextTraffic": true
-      }
+      "package": "com.lynk_app.lynk"
     },
     "web": {
       "bundler": "metro",
@@ -58,6 +55,14 @@
     "plugins": [
       "expo-router",
       "expo-apple-authentication",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
       [
         "expo-local-authentication",
         {

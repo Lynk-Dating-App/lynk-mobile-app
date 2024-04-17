@@ -76,8 +76,7 @@ export const galleryAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(GAL
 
 
 export const signInAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(SIGN_IN, async (args: any) => {
-    // const response = await axiosClient.post(`${API_ROOT}/sign-in-user`, args);
-    const response = await axios.post(`http://93.127.162.78:8080/api/v1/sign-in-user`, args);
+    const response = await axiosClient.post(`${API_ROOT}/sign-in-user`, args);
     return response.data;
 });
 
