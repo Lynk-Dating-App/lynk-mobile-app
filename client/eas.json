@@ -18,16 +18,7 @@
       "android": {
         "buildType": "apk"
       },
-      "channel": "preview",
-      "extra": {
-        "REST_ROOT": "/api/v1",
-        "BASE_URL": "http://93.127.162.78:8080",
-        "ADMIN_AUTH": "jY4kLp7nQs9E3aW8",
-        "NODE_ENV": "development",
-        "BIOMETRIC_LOGIN_KEY": "R6sH8aB3pN9qF2wV",
-        "PROJECT_ID": "60b75acf-1ff1-4cb4-baf3-275735c181f8",
-        "PAYSTACK_PK": "pk_test_37465cfd4f2c93b78787724ced0a010079e45d4f"
-      }
+      "channel": "preview"
     },
     "production": {
       "channel": "production"
