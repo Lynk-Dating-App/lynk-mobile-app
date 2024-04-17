@@ -59,7 +59,7 @@ storage
 keys
 .vscode
 .idea
-.env*
+# .env*
 server/build
 *.rdb
 .DS_Store
@@ -70,7 +70,7 @@ public
 *sdk*
 **.p8*
 admin
-client/.env
+# client/.env
 admin/.env
-server/.env
+# server/.env
 
