@@ -435,6 +435,7 @@ const Login = () => {
                                         width: 80/100 * width
                                     }}
                                 >
+                                    <Text style={{color: 'red'}}>{process.env.EXPO_PUBLIC_BASE_URL}</Text>
                                     <AppBtn
                                         handlePress={() => handleSubmit()}
                                         isText={true}
