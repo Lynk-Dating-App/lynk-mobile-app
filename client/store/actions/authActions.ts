@@ -17,7 +17,7 @@ const ENTER_PASSWORD_AFTER_RESET = 'auth:ENTER_PASSWORD_AFTER_RESET';
 const SIGN_IN_WITH_BIOMETRIC = 'auth:SIGN_IN_WITH_BIOMETRIC';
 
 const API_ROOT = settings.api.rest;
-
+console.log(API_ROOT, 'API_ROOT')
 export const sendSignUpTokenAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(SEND_SIGN_UP_TOKEN, async (args: any) => {
     const response = await axiosClient.post(`${API_ROOT}/send-sign-up-token`, args);
 

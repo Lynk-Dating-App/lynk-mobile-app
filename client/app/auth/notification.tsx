@@ -5,14 +5,12 @@ import { useRouter } from 'expo-router';
 import { Image, StyleSheet } from 'react-native';
 import AppBtn from '../../components/common/button/AppBtn';
 import * as Notifications from 'expo-notifications';
-//@ts-ignore
-import { PROJECT_ID } from '@env'; 
 import { Platform } from 'react-native';
 import useAppDispatch from '../../hook/useAppDispatch';
 import { setSignInAfterSignUp2 } from '../../store/reducers/userReducer';
 
 const Notification = () => {
-    const projectId = PROJECT_ID;
+    const projectId = process.env.EXPO_PUBLIC_PROJECT_ID;
     const router = useRouter();
     const dispatch = useAppDispatch();
     

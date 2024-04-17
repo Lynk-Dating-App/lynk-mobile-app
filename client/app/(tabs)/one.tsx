@@ -41,12 +41,9 @@ import Snackbar from '../../helpers/Snackbar';
 import { StatusBar } from 'expo-status-bar';
 import tw from 'twrnc';
 import { INotification } from '@app-models';
-//@ts-ignore
-import { BIOMETRIC_LOGIN_KEY } from '@env';
 import Swiper from 'react-native-deck-swiper';
 import useUser from '../../hook/useUser';
 
-const API_ROOT = settings.api.rest;
 const { height, width } = Dimensions.get('window');
 
 interface Match {
@@ -566,9 +563,9 @@ const TabOneScreen = ({screenChange}: any) => {
 
   useEffect(() => {
     const checkToken = async () => {
-      const id = await getTokenFromSecureStore(BIOMETRIC_LOGIN_KEY);
+      const id = await getTokenFromSecureStore(process.env.EXPO_PUBLIC_BIOMETRIC_LOGIN_KEY);
       if(id !== null && id !== user?._id) {
-        saveTokenToSecureStore(BIOMETRIC_LOGIN_KEY, user?._id)
+        saveTokenToSecureStore(process.env.EXPO_PUBLIC_BIOMETRIC_LOGIN_KEY, user?._id)
       }
     }
     

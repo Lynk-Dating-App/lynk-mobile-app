@@ -19,8 +19,6 @@ import Snackbar from "../../helpers/Snackbar";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { getTokenFromSecureStore } from "../../components/ExpoStore/SecureStore";
-//@ts-ignore
-import { BIOMETRIC_LOGIN_KEY } from '@env';
 import * as LocalAuthentication from 'expo-local-authentication';
 
 const { width } = Dimensions.get("window");
@@ -162,10 +160,10 @@ export default function PrivacySecurity () {
             //Log the user in on success
             if(biometricAuth) {
                 if(biometricId === null) {
-                    saveTokenToSecureStore(BIOMETRIC_LOGIN_KEY, userReducer.loggedInuser?._id)
+                    saveTokenToSecureStore(process.env.EXPO_PUBLIC_BIOMETRIC_LOGIN_KEY, userReducer.loggedInuser?._id)
                     setBiometricStatus("completed")
                 } else {
-                    removeTokenFromSecureStore(BIOMETRIC_LOGIN_KEY)
+                    removeTokenFromSecureStore(process.env.EXPO_PUBLIC_BIOMETRIC_LOGIN_KEY)
                     setBiometricStatus("completed")
                 }
             }
@@ -192,7 +190,7 @@ export default function PrivacySecurity () {
 
     useEffect(() => {
         const checkToken = async () => {
-            const id = await getTokenFromSecureStore(BIOMETRIC_LOGIN_KEY);
+            const id = await getTokenFromSecureStore(process.env.EXPO_PUBLIC_BIOMETRIC_LOGIN_KEY);
             setBiometricId(id)
         }
         

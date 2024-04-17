@@ -1,17 +1,13 @@
-//@ts-ignore
-import { REST_ROOT, BASE_URL, ADMIN_AUTH, NODE_ENV } from '@env';
-
-const baseUrl = BASE_URL
 
 const settings = {
   api: {
-    rest: REST_ROOT,
-    baseURL: baseUrl
+    rest: process.env.EXPO_PUBLIC_REST_ROOT,
+    baseURL: process.env.EXPO_PUBLIC_BASE_URL
   },
   auth: {
-    admin: ADMIN_AUTH,
+    admin: process.env.EXPO_PUBLIC_ADMIN_AUTH
   },
-  env: NODE_ENV,
+  env: process.env.EXPO_PUBLIC_NODE_ENV,
   roles: [
     'ADMIN_ROLE',
     'CUSTOMER_ROLE',

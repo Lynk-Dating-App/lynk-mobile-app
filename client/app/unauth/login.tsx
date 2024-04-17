@@ -27,9 +27,7 @@ import { getTokenFromSecureStore } from '../../components/ExpoStore/SecureStore'
 import settings from '../../config/settings';
 import { decode as base64Decode } from 'base-64';
 import { StatusBar } from 'expo-status-bar';
-import { clearDeactivateAccountStatus, clearUpdateUserStatus, setSignInAfterSignUp } from '../../store/reducers/userReducer';
-//@ts-ignore
-import { BIOMETRIC_LOGIN_KEY } from '@env';
+import { clearDeactivateAccountStatus, setSignInAfterSignUp } from '../../store/reducers/userReducer';
 import tw from 'twrnc';
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
@@ -220,7 +218,7 @@ const Login = () => {
 
     useEffect(() => {
         const checkToken = async () => {
-            const id = await getTokenFromSecureStore(BIOMETRIC_LOGIN_KEY);
+            const id = await getTokenFromSecureStore(process.env.EXPO_PUBLIC_BIOMETRIC_LOGIN_KEY);
             setBiometricId(id)
         }
         

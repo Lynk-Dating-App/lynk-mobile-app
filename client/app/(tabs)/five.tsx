@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, Text, View } from "../../components/Themed";
 import tw from 'twrnc';
 import { ActivityIndicator, ImageBackground } from "react-native";
-import { FONT, SIZES, images } from "../../constants";
+import { COLORS, FONT, SIZES, images } from "../../constants";
 import { Image } from "react-native";
 import TabOneScreen from "./one";
 import { useFocusEffect } from "expo-router";
@@ -62,9 +62,22 @@ export default function TabFourScreen() {
                 />
                 <ActivityIndicator color='white' size="small"/>
             </ImageBackground>)}
-            {!isloading && (<>
-                <TabOneScreen />
-            </>)}
+            {!isloading && (
+            <View
+                style={[{
+                    flex: 1,
+                }, tw`flex justify-center items-center`]}
+            >
+                <Text
+                    style={{
+                        fontFamily: FONT.bold,
+                        fontSize: SIZES.large,
+                        marginBottom: 10,
+                        color: COLORS.primary
+                    }}
+                >Coming Soon</Text>
+                {/* <TabOneScreen /> */}
+            </View>)}
         </SafeAreaView>
     )
 }

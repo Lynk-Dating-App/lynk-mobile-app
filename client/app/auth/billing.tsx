@@ -14,8 +14,6 @@ import Snackbar from "../../helpers/Snackbar";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import  { Paystack }  from 'react-native-paystack-webview';
-//@ts-ignore
-import { BILLING_EMAIL, PAYSTACK_PK } from '@env';
 import Tooltip from 'react-native-walkthrough-tooltip';
 import tw from 'twrnc';
 import { clearToggleAutoRenewalStatus } from "../../store/reducers/userReducer";
@@ -588,8 +586,8 @@ export default function Billing () {
             </View>
 
             <Paystack
-                paystackKey={ PAYSTACK_PK }
-                billingEmail={ BILLING_EMAIL }
+                paystackKey={ process.env.EXPO_PUBLIC_PAYSTACK_PK }
+                billingEmail={ process.env.EXPO_PUBLIC_BILLING_EMAIL }
                 amount={amount}
                 onCancel={(e) => {
                     setAmount('')

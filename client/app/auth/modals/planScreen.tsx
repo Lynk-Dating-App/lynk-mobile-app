@@ -11,8 +11,6 @@ import Snackbar from "../../../helpers/Snackbar";
 import { useRouter } from "expo-router";
 import { clearSubscribeStatus } from "../../../store/reducers/subscriptionReducer";
 import { Paystack } from "react-native-paystack-webview";
-//@ts-ignore
-import { BILLING_EMAIL, PAYSTACK_PK } from '@env';
 import { subscriptionAction } from "../../../store/actions/subscriptionAction";
 
 const { width } = Dimensions.get("window");
@@ -315,8 +313,8 @@ const PlanScreen = () => {
             </ScrollView>
 
             <Paystack
-                paystackKey={ PAYSTACK_PK }
-                billingEmail={ BILLING_EMAIL }
+                paystackKey={ process.env.EXPO_PUBLIC_PAYSTACK_PK }
+                billingEmail={ process.env.EXPO_PUBLIC_BILLING_EMAIL }
                 amount={amount}
                 onCancel={(e) => {
                     setAmount('')
