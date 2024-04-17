@@ -19,7 +19,7 @@
         "buildType": "apk"
       },
       "channel": "preview",
-      "config": {
+      "extra": {
         "REST_ROOT": "/api/v1",
         "BASE_URL": "http://93.127.162.78:8080",
         "ADMIN_AUTH": "jY4kLp7nQs9E3aW8",
