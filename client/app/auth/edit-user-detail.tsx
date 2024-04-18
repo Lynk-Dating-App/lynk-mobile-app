@@ -180,8 +180,8 @@ const schema2 = Yup.object().shape({
     // dob: Yup.date().required().label("dob"),
     height: Yup.string().required().label("height"),
     state: Yup.string().required().label("state"),
-    about: Yup.string().required().label("about"),
-    address: Yup.string().required().label("address"),
+    about: Yup.string().label("about"),
+    address: Yup.string().label("address"),
     officeName: Yup.string().optional().label("office name"),
     officeAddress: Yup.string().optional().label("office address"),
     religion: Yup.string().optional().label("religion"),
@@ -338,62 +338,6 @@ export default function EditUserDetail () {
                     >
                     {({ handleChange, handleSubmit, values, errors, touched, setFieldValue }) => (
                         <View style={styles.formContainer}>
-                            {/* <View 
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    gap: 20,
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}
-                            >
-                            <AppInput
-                                placeholder={'First Name'}
-                                hasPLaceHolder={true}
-                                placeholderTop={'First Name'}
-                                value={values.firstName}
-                                style={{
-                                    width: 43/100 * width,
-                                    borderColor: errors.firstName ? 'red' : COLORS.gray2
-                                }}
-                                headerStyle={{
-                                    fontFamily: FONT.semiBold,
-                                    fontSize: SIZES.small,
-                                    marginLeft: 5,
-                                    color: COLORS.gray
-                                }}
-                                errorTextStyle={{
-                                marginLeft: 1
-                                }}
-                                onChangeText={handleChange('firstName')}
-                                error={errors.firstName}
-                                touched={touched.firstName}
-                                showError={false}
-                            />
-                            <AppInput
-                                placeholder={'Last Name'}
-                                hasPLaceHolder={true}
-                                placeholderTop={'Last Name'}
-                                value={values.lastName}
-                                headerStyle={{
-                                fontFamily: FONT.semiBold,
-                                fontSize: SIZES.small,
-                                marginLeft: 5,
-                                color: COLORS.gray
-                                }}
-                                style={{
-                                    width: 43/100 * width,
-                                    borderColor: errors.lastName ? 'red' : COLORS.gray2
-                                }}
-                                errorTextStyle={{
-                                    marginLeft: 1
-                                }}
-                                onChangeText={handleChange('lastName')}
-                                error={errors.lastName}
-                                touched={touched.lastName}
-                                showError={false}
-                            />
-                            </View> */}
 
                             {Array.isArray(education) && (
                                 <Select

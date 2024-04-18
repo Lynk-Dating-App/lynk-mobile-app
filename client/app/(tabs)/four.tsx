@@ -1018,7 +1018,7 @@ export default function TabFourScreen() {
             </TouchableOpacity>)} */}
           </View>)}
 
-          {user?.interests?.length > 0 && (<View style={styles.section3}>
+          {user?.interests[0] !== "undefined" && (<View style={styles.section3}>
             <Text
               style={{
                 color: 'black',
@@ -1063,7 +1063,7 @@ export default function TabFourScreen() {
             </View>
           </View>)}
 
-          <View style={styles.section3}>
+          {user?.religion && (<View style={styles.section3}>
             <Text
               style={{
                 color: 'black',
@@ -1109,9 +1109,9 @@ export default function TabFourScreen() {
               )
             }
             </View>
-          </View>
+          </View>)}
 
-          <View style={styles.section3}>
+          {user?.religiousInvolvement && (<View style={styles.section3}>
             <Text
               style={{
                 color: 'black',
@@ -1158,9 +1158,9 @@ export default function TabFourScreen() {
               )
             }
             </View>
-          </View>
+          </View>)}
 
-          <View style={styles.section3}>
+          {user?.education && (<View style={styles.section3}>
             <Text
               style={{
                 color: 'black',
@@ -1206,9 +1206,9 @@ export default function TabFourScreen() {
               )
             }
             </View>
-          </View>
+          </View>)}
 
-          <View style={styles.section3}>
+          {user?.sexualPreference && (<View style={styles.section3}>
             <Text
               style={{
                 color: 'black',
@@ -1254,9 +1254,9 @@ export default function TabFourScreen() {
               )
             }
             </View>
-          </View>
+          </View>)}
 
-          <View style={styles.section3}>
+          {user?.relationshipPreference && (<View style={styles.section3}>
             <Text
               style={{
                 color: 'black',
@@ -1302,9 +1302,9 @@ export default function TabFourScreen() {
               )
             }
             </View>
-          </View>
+          </View>)}
 
-          <View style={styles.section3}>
+          {user?.personalityTemperament && (<View style={styles.section3}>
             <Text
               style={{
                 color: 'black',
@@ -1351,7 +1351,7 @@ export default function TabFourScreen() {
             }
             </View>
           </View>
-
+)}
           {/* <View style={styles.section3}>
             <View
               style={{

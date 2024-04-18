@@ -10,9 +10,9 @@ import ReusableModal from "../../components/Modal/ReusableModal";
 import AppBtn from "../../components/common/button/AppBtn";
 import useAppSelector from "../../hook/useAppSelector";
 import useAppDispatch from "../../hook/useAppDispatch";
-import { changePasswordAction, updateUserAction } from "../../store/actions/userAction";
-import { useRouter } from "expo-router";
-import { clearChangePasswordStatus, clearUpdateUserStatus } from "../../store/reducers/userReducer";
+import { changePasswordAction, updateUserEmailPhoneAction } from "../../store/actions/userAction";
+import { useNavigation, useRouter } from "expo-router";
+import { clearChangePasswordStatus, clearUpdateUserEmailPhoneStatus } from "../../store/reducers/userReducer";
 import { removeTokenFromSecureStore, saveTokenToSecureStore } from "../../components/ExpoStore/SecureStore";
 import settings from "../../config/settings";
 import Snackbar from "../../helpers/Snackbar";
@@ -59,6 +59,8 @@ export default function PrivacySecurity () {
     const [biometricId, setBiometricId] = useState<string>('');
     const [biometricStatus, setBiometricStatus] = useState<string>('');
     const [isBiometricSuccess, setIsBiometricSuccess] = useState<boolean>(false);
+    const { getState } = useNavigation();
+    const screenName = getState().routes.at(-1)?.name;
 
     const router = useRouter();
     const userReducer = useAppSelector(state => state.userReducer);
@@ -66,41 +68,14 @@ export default function PrivacySecurity () {
 
     const { user } = useUser();
 
-    const payload = {
-        firstName: user?.firstName,
-        lastName: user?.lastName,
-        height: user?.height,
-        state: user?.state,
-        address: user?.address,
-        about: user?.about,
-        officeName: user?.officeName,
-        officeAddress: user?.officeAddress,
-        religion: user?.religion,
-        religiousInvolvement: user?.religiousInvolvement,
-        sexualPreference: user?.sexualPreference,
-        relationshipPreference: user?.relationshipPreference,
-        personalityTemperament: user?.personalityTemperament,
-        education: user?.education
-    }
-
     const handleChangePhone = () => {
         const phone = formattedValue.startsWith('+') && (formattedValue.replace('+', ''));
 
-        const values = {
-            ...payload,
-            phone: phone
-        }
-
-        dispatch(updateUserAction(values));
+        dispatch(updateUserEmailPhoneAction({ phone: phone }));
     };
 
     const handleChangeEmail = () => {
-        const values = {
-            ...payload,
-            email: email.toLowerCase()
-        }
-
-        dispatch(updateUserAction(values));
+        dispatch(updateUserEmailPhoneAction({ email: email.toLowerCase() }));
     };
 
     const handleLogout = async () => {
@@ -196,32 +171,32 @@ export default function PrivacySecurity () {
         
         checkToken()
     },[biometricStatus]);
-
+console.log(error, isError, 'err')
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
-        if(userReducer.updateUserStatus === 'completed') {
+        if(userReducer.updateUserEmailPhoneStatus === 'completed') {
             setChangeEmail(false)
             setChangePhone(false)
             handleLogout()
-            dispatch(clearUpdateUserStatus());
-        } else if(userReducer.updateUserStatus === 'failed') {
+            dispatch(clearUpdateUserEmailPhoneStatus());
+        } else if(userReducer.updateUserEmailPhoneStatus === 'failed') {
 
             setIsError(true)
-            setError(userReducer.updateUserError)
+            setError(userReducer.updateUserEmailPhoneError)
         
             intervalId = setTimeout(() => {
                 setIsError(false)
                 setError('')
             },6000);
 
-            dispatch(clearUpdateUserStatus());
+            dispatch(clearUpdateUserEmailPhoneStatus());
         }
 
         return () => {
             clearInterval(intervalId);
         }
-    },[userReducer.updateUserStatus]);
+    },[userReducer.updateUserEmailPhoneStatus]);
 
     useEffect(() => {
         const phone = user?.phone.replace('234', '0')
@@ -709,7 +684,7 @@ export default function PrivacySecurity () {
                                                 marginBottom: 10
                                             }}
                                         >
-                                            Please note: you would be logged out and be required to log in.
+                                            Please note: you would be logged out and required to log in again.
                                         </Text>
                                         
                                         <AppInput
@@ -753,7 +728,7 @@ export default function PrivacySecurity () {
                                                 justifyContent: 'center',
                                                 alignItems: 'center'
                                             }}
-                                            spinner={userReducer.updateUserStatus === 'loading'}
+                                            spinner={userReducer.updateUserEmailPhoneStatus === 'loading'}
                                             spinnerColor='white'
                                             spinnerStyle={{
                                                 marginLeft: 10
@@ -830,7 +805,7 @@ export default function PrivacySecurity () {
                                                 marginBottom: 10
                                             }}
                                         >
-                                            Please note: you would be logged out and be required to log in.
+                                            Please note: you would be logged out and required to log in again.
                                         </Text>
                                         <Phone
                                             setFormattedValue={setFormattedValue}
@@ -857,7 +832,7 @@ export default function PrivacySecurity () {
                                                 justifyContent: 'center',
                                                 alignItems: 'center'
                                             }}
-                                            spinner={userReducer.updateUserStatus === 'loading'}
+                                            spinner={userReducer.updateUserEmailPhoneStatus === 'loading'}
                                             spinnerColor='white'
                                             spinnerStyle={{
                                                 marginLeft: 10

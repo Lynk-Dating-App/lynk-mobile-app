@@ -69,8 +69,8 @@ export default function JobDescription () {
     
         if(userReducer.changeJobStatus === 'completed') {
             dispatch(getUserAction(userReducer.loggedInuser?._id))
+            router.back()
             dispatch(clearChangeJobStatus())
-            router.push('/(tabs)/four')
         } else if(userReducer.changeJobStatus === 'failed') {
             setIsError(true)
             setError(userReducer.changeJobError)

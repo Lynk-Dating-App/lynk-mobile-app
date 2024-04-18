@@ -66,7 +66,8 @@ import {
     getWaitlistUsersHandler,
     updateWaitlistUserHandler,
     deleteWaitlistUserHandler,
-    rewindUserHandler
+    rewindUserHandler,
+    updateUserEmailPhoneHandler
 } from '../../routes/userRoute';
 
 const userEndpoints: RouteEndpoints = [
@@ -75,6 +76,12 @@ const userEndpoints: RouteEndpoints = [
         method: 'put',
         path: '/user-update',
         handler: updateUserHandler
+    },
+    {
+        name: 'update-user-email-phone',
+        method: 'put',
+        path: '/user-update-email-phone',
+        handler: updateUserEmailPhoneHandler
     },
     {
         name: 'update-user-profile-detail',

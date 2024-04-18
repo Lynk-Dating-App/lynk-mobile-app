@@ -12,6 +12,12 @@ export const updateUserHandler = authenticateRouteWrapper( async (req, res) =>  
     res.status(response.code).json(response);
 });
 
+export const updateUserEmailPhoneHandler = authenticateRouteWrapper( async (req, res) =>  {
+    const response = await userController.updateEmailPhone(req);
+
+    res.status(response.code).json(response);
+});
+
 export const updateUserDetailHandler = authenticateRouteWrapper( async (req, res) =>  {
     const response = await userController.updateUserDetails(req);
 

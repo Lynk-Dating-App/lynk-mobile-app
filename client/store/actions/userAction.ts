@@ -22,6 +22,7 @@ const CREATE_CHAT = 'user:CREATE_CHAT';
 const FETCH_FAV_USERS = 'user:FETCH_FAV_USERS';
 const UPDATE_PREFERENCE = 'user:UPDATE_PREFERENCE';
 const UPDATE_USER = 'user:UPDATE_USER';
+const UPDATE_USER_EMAIL_PHONE = 'user:UPDATE_USER_EMAIL_PHONE';
 const UPDATE_USER_DETAILS = 'user:UPDATE_USER_DETAILS';
 const ADD_JOB = 'user:ADD_JOB';
 const CHANGE_JOB = 'user:CHANGE_JOB';
@@ -153,6 +154,12 @@ export const updateUserDetailAction = asyncThunkWrapper<ApiResponseSuccess<any>,
 
 export const updateUserAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(UPDATE_USER, async (args) => {
     const response = await axiosClient.put(`${API_ROOT}/user-update`, args);
+
+    return response.data;
+});
+
+export const updateUserEmailPhoneAction = asyncThunkWrapper<ApiResponseSuccess<any>, any>(UPDATE_USER_EMAIL_PHONE, async (args) => {
+    const response = await axiosClient.put(`${API_ROOT}/user-update-email-phone`, args);
 
     return response.data;
 });

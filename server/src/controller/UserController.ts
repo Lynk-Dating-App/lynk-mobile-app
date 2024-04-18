@@ -1138,7 +1138,7 @@ export default class UserController {
 
         //@ts-ignore
         const userId = req.user._id;
-
+  
         const { error, value } = Joi.object<IUserModel>($updateJobDescription).validate(req.body);
         if(error) return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
 
@@ -1149,12 +1149,12 @@ export default class UserController {
         const twentyDaysAgo = new Date();
         twentyDaysAgo.setDate(twentyDaysAgo.getDate() - 20);
 
-        if (user.updatedAt && user.updatedAt >= twentyDaysAgo) {
-            return Promise.reject(CustomAPIError.response("Job preference was last updated less than 20 days ago", HttpStatus.BAD_REQUEST.code));
-        }
+        // if (user.updatedAt && user.updatedAt >= twentyDaysAgo) {
+        //     return Promise.reject(CustomAPIError.response("Job preference was last updated less than 20 days ago", HttpStatus.BAD_REQUEST.code));
+        // }
 
         const updateValues: Partial<IUserModel> = {
-            verify: PENDING_VERIFICATION,
+            // verify: ACTIVE_VERIFICATION,//PENDING_VERIFICATION,
             updatedAt: new Date(),
             jobType: value.jobType,
             jobDescription: value.jobDescription
@@ -2406,6 +2406,81 @@ export default class UserController {
         const response: HttpResponse<any> = {
             code: HttpStatus.OK.code,
             message: 'Successfully deleted'
+        };
+
+        return Promise.resolve(response);
+    }
+
+    @TryCatch
+    public async updateEmailPhone(req: Request) {
+        //@ts-ignore
+        const userId = req.user._id;
+
+        const { error, value } = Joi.object<any>({
+            phone: Joi.string().label('Phone number'),
+            email: Joi.string().label('Email'),
+        }).validate(req.body);
+        if (error) {
+            return Promise.reject(CustomAPIError.response(error.details[0].message, HttpStatus.BAD_REQUEST.code));
+        }
+
+        const user = await datasources.userDAOService.findById(userId);
+        if(!user) return Promise.reject(CustomAPIError.response('User not found', HttpStatus.NOT_FOUND.code));
+
+        if(value.email) {
+            const user_email = await datasources.userDAOService.findByAny({
+                email: value.email
+            });
+
+            if(user.email === value.email){
+                if(user_email) {
+                    return Promise.reject(CustomAPIError.response('User with this email already exists', HttpStatus.NOT_FOUND.code))
+                }
+            };
+    
+            if(user.email && user.email !== value.email){
+                if(user_email) {
+                    return Promise.reject(CustomAPIError.response('User with this email already exists', HttpStatus.NOT_FOUND.code))
+                }
+            };
+        }
+
+        let phone = '';
+        if(value.phone) {
+            phone = value.phone.replace(/(^\+?(234)?0?)/, '234');
+
+            const user_phone = await datasources.userDAOService.findByAny({
+                phone: phone
+            });
+
+            //@ts-ignore
+            if(user.phone === phone){
+                if(user_phone) {
+                    return Promise.reject(CustomAPIError.response('User with this phone number already exists', HttpStatus.NOT_FOUND.code))
+                }
+            };
+            
+            //@ts-ignore
+            if(user.phone && user.phone !== phone){
+                if(user_phone) {
+                    return Promise.reject(CustomAPIError.response('User with this phone number already exists', HttpStatus.NOT_FOUND.code))
+                }
+            };
+        }
+
+        const userValues = {
+            email: value.email ? value.email : user.email,
+            phone: phone === '' ? user.phone : phone
+        };
+
+        await datasources.userDAOService.updateByAny(
+            {_id: userId},
+            userValues
+        );
+
+        const response: HttpResponse<any> = {
+            code: HttpStatus.OK.code,
+            message: 'Successfully updated'
         };
 
         return Promise.resolve(response);

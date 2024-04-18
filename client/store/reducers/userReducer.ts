@@ -33,7 +33,8 @@ import {
     updatePreferenceAction,
     updateProfileImageAction,
     updateUserAction,
-    updateUserDetailAction
+    updateUserDetailAction,
+    updateUserEmailPhoneAction
 } from '../actions/userAction';
 import { 
     IChatMessage, 
@@ -130,6 +131,10 @@ interface IUserState {
     updateUserStatus: IThunkAPIStatus;
     updateUserSuccess: string;
     updateUserError?: string;
+
+    updateUserEmailPhoneStatus: IThunkAPIStatus;
+    updateUserEmailPhoneSuccess: string;
+    updateUserEmailPhoneError?: string;
 
     fetchFavUsersStatus: IThunkAPIStatus;
     fetchFavUsersSuccess: string;
@@ -307,6 +312,10 @@ const initialState: IUserState = {
     updateUserError: '',
     updateUserSuccess: '',
     updateUserStatus: 'idle',
+
+    updateUserEmailPhoneError: '',
+    updateUserEmailPhoneSuccess: '',
+    updateUserEmailPhoneStatus: 'idle',
 
     fetchFavUsersError: '',
     fetchFavUsersSuccess: '',
@@ -612,6 +621,12 @@ const userSlice = createSlice({
             state.updateUserStatus = 'idle';
             state.updateUserSuccess = '';
             state.updateUserError = '';
+        },
+
+        clearUpdateUserEmailPhoneStatus(state: IUserState) {
+            state.updateUserEmailPhoneStatus = 'idle';
+            state.updateUserEmailPhoneSuccess = '';
+            state.updateUserEmailPhoneError = '';
         },
 
         setPhotoUri(state: IUserState, action) {
@@ -932,6 +947,22 @@ const userSlice = createSlice({
                 if (action.payload) {
                 state.updateUserError = action.payload.message;
                 } else state.updateUserError = action.error.message;
+            });
+
+        builder
+            .addCase(updateUserEmailPhoneAction.pending, state => {
+                state.updateUserStatus = 'loading';
+            })
+            .addCase(updateUserEmailPhoneAction.fulfilled, (state, action) => {
+                state.updateUserEmailPhoneStatus = 'completed';
+                state.updateUserEmailPhoneSuccess = action.payload.message;
+            })
+            .addCase(updateUserEmailPhoneAction.rejected, (state, action) => {
+                state.updateUserEmailPhoneStatus = 'failed';
+
+                if (action.payload) {
+                state.updateUserEmailPhoneError = action.payload.message;
+                } else state.updateUserEmailPhoneError = action.error.message;
             });
 
         builder
@@ -1291,6 +1322,7 @@ export const {
     clearUpdatePreferenceStatus,
     clearAddJobStatus, clearChangeJobStatus,
     clearUpdateUserDetailStatus, clearUpdateUserStatus,
+    clearUpdateUserEmailPhoneStatus,
     clearUploadUserProfileImageStatus,
     clearDeleteImageFromGalleryStatus,
     clearSaveImageToGalleryStatus, clearGetPlansStatus,
